@@ -32,6 +32,7 @@ There is no direct path to Phase 4. Every code change goes through Phase 3.5. **
 | "This is too simple for the full process" | Phase 4 Mode B exists for exactly this case. |
 | "Entering Phase 4 for a one-line fix is overkill" | Phase 4 Mode B is lightweight: implement → self-review → mark [!]. |
 | "I can just self-review, subagent is overhead" | Prefer subagent (independent eyes catch what you missed). Self-review is acceptable for MANUAL-heavy projects. |
+| "User said test passed, I'll update AC later" | User confirming test passed = update AC to `[x]` NOW. Not "later" — immediately. |
 
 ## Prerequisites
 
@@ -294,6 +295,8 @@ After ALL Phase 4 items are implemented, verify each one:
 | **BLOCKED** | Mark `[!]`. Note: `🚫 BLOCKED: [reason]` |
 
 **Mode B items** are marked `[!]` during Phase 4.8 — verify they are actually marked. If any Mode B item is still `[ ]`, it was missed — return to Phase 4 Mode B for that item. **Present all [!] items (both Mode A MANUAL/BLOCKED and Mode B) to the user** with specific verification instructions. After user confirms each item works → mark `[x]`.
+
+**🚨 User confirmation is event-driven, not phase-locked.** The user may test and report back at any time — minutes or hours after you presented the `[!]` list. When the user says "test passed" / "works" / "looks good" — **immediately update the corresponding AC from `[!]` to `[x]`**. Do not defer. Do not wait for a "Phase 5 moment." The moment the user confirms is the moment you update. This applies regardless of what phase you think you're in.
 
 **Iron rule:** Only mark `[x]` after FRESH verification in this turn. "Passed before" doesn't count. Applies to both modes.
 
