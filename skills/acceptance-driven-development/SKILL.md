@@ -20,6 +20,19 @@ Phase 3.5 is the **single entry point** for all code changes:
 - Improvement to existing AC → check if behavioral change → if yes: update AC → discuss → confirm; if no: impact analysis → demote → Phase 4
 
 Phase 3.5 is the only path to Phase 4. Every code change goes through Phase 3.5. **Before writing any code, announce which Phase 4 mode you're entering** (e.g., "Phase 4 Mode B — fix bug, 1 AC"). This is a structural guardrail — awareness of it does not create an exception.
+
+**Transparency rule:** Every major phase entry and mode choice must be announced to the user in a one-line summary. The user supervises via these announcements — they are not optional narration.
+
+| When | Announce |
+|------|----------|
+| Entering Phase 0 | `Phase 0 — Locating AC documents` |
+| New project (Greenfield) | `Gate 1 — Design discussion` / `Gate 2 — AC creation` |
+| Entering Phase 3.5 | `Phase 3.5 — Impact analysis: [brief change description]` |
+| Entering Phase 4 | `Phase 4 Mode A — batch N items` or `Phase 4 Mode B — [change description], N AC` |
+| Entering Phase 4.8 | `Phase 4.8 — [Mode A review subagent / Mode B self-review]` |
+| Entering Phase 5 | `Phase 5 — Verify and mark` |
+| Entering Phase 6 | `Phase 6 — Completion check` |
+
 </EXTREMELY-IMPORTANT>
 
 | Rationalization | Reality |
