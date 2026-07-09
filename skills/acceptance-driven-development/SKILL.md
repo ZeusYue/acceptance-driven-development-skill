@@ -327,14 +327,14 @@ After marking all items, proceed to Phase 6 to check completion.
 ```
 Phase 5 →
   ├── Any AUTO [ ] remaining? → Phase 4 (MANDATORY)
-  └── No [ ] items? → Complete. Present [!] checklist if any.
+  └── No [ ] items? → Present [!] checklist to user → user confirms → mark [x] → project doc
 ```
 
 **🚨 Exit condition: zero `[ ]` items.** Before saying "done": re-read AC, count `[ ]`. If any remain → back to Phase 4 Mode A (batch process all remaining items).
 
-When `[!]` items exist, present them as a user checklist with specific instructions for each item.
+**`[!]` → `[x]` loop:** When `[!]` items exist, present them as a user checklist with specific instructions. Wait for the user to test and confirm each one. After each confirmation → immediately mark `[x]`. Repeat until zero `[!]` remain.
 
-**Project document:** When no `[ ]` items remain, create a project document at `<VAULT>/projects/<ProjectName>/<ProjectName>.md`. Follow the project doc template structure: one-line overview, tech stack, architecture, core modules, edge cases, reusable patterns, technical debt, and overall assessment. This document is read by `project-experience` in future projects — without it, the experience loop is broken.
+**Project document:** When zero `[ ]` AND zero `[!]` remain, create a project document at `<VAULT>/projects/<ProjectName>/<ProjectName>.md`. Follow the project doc template structure: one-line overview, tech stack, architecture, core modules, edge cases, reusable patterns, technical debt, and overall assessment. This document is read by `project-experience` in future projects — without it, the experience loop is broken.
 
 **Experience cache update:** After the project document is created, ask the user:
 
@@ -358,7 +358,7 @@ When `[!]` items exist, present them as a user checklist with specific instructi
 | 4 | Implement | Mode A: batch all [ ] / Mode B: lightweight (user-requested change) |
 | 4.8 | Review | Mode A: subagent review / Mode B: self-review (Wiring + Safety + Fidelity + State + Impact) |
 | 5 | Verify + mark | AUTO → command → `[x]` / MANUAL,BLOCKED → `[!]` / Mode B [!] → user confirms → `[x]` |
-| 6 | Complete | `[ ]` exists? → Phase 4. Done when no `[ ]` |
+| 6 | Complete | `[ ]` exists? → Phase 4. `[!]` exists? → user test → `[x]`. Project doc when zero `[ ]` & `[!]` |
 
 ---
 
