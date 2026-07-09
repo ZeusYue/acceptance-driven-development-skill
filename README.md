@@ -106,7 +106,7 @@ Your entire project lives in one markdown file — a single source of truth that
 
 ## 🔥 Optional: Install Superpowers for an Upgrade
 
-ADD works great standalone. But if you have [Superpowers](https://github.com/anthropics/superpowers), it levels up:
+ADD works great standalone. But if you have [Superpowers](https://github.com/obra/superpowers), it levels up:
 
 | Superpowers Skill | What ADD Unlocks |
 |-------------------|------------------|
