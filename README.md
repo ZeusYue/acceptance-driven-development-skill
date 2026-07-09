@@ -170,6 +170,12 @@ A: ~2 minutes of overhead per change. It saves hours of debugging and rework. We
 **Q: Do I need Superpowers?**
 A: Not at all. ADD is complete on its own. Superpowers adds optional professional workflows when you want them.
 
+**Q: What's the recommended setup?**
+A: The author's daily driver — and what we recommend — is **ADD + Superpowers + Obsidian**. Superpowers deepens every phase (brainstorming, planning, subagent execution, TDD, verification), while Obsidian gives you a beautiful dashboard for your project documents with wiki-links and Dataview auto-indexing. That said, ADD works perfectly with any folder structure and any agent.
+
+**Q: Do I need to load ADD in every conversation?**
+A: No — load it once at the start of your first session. The agent remembers the rules for the rest of that session. If it ever skips a step, just say "Phase 3.5?" or "Did you self-review?" — that's usually enough to snap it back. When you start a brand new session, load ADD once at the beginning. Think of it like turning on the ignition, not holding the accelerator.
+
 **Q: What if the agent skips the process?**
 A: ADD has 8 defensive layers. If the agent still manages to skip, asking "Did you go through Mode B?" is your final safety net.
 
