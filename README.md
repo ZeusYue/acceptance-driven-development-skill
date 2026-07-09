@@ -127,7 +127,7 @@ ADD works standalone. But if you have the [Superpowers skill pack](https://githu
 | `verification-before-completion` | Fresh verification output required before any `[x]` marker |
 | `finishing-a-development-branch` | Clean branch completion after all ACs pass |
 
-Without Superpowers, ADD still works but these steps run as direct implementation. With Superpowers, they become full professional workflows. Install when you're ready for the upgrade.
+ADD works standalone with direct implementation. Install Superpowers anytime for upgraded workflows — interactive brainstorming, structured task decomposition, independent subagent execution. It's a one-click power boost, not a dependency.
 
 ---
 
@@ -179,8 +179,8 @@ See `projects/AlarmClock/` for a complete worked example:
 **Q: Does this slow me down?**
 A: The overhead is ~2 minutes per change (impact analysis + self-review). It saves hours of debugging and rework.
 
-**Q: Can I use this without Superpowers?**
-A: Yes — ADD degrades gracefully. You get the core AC loop, self-review, and hard gates without anything extra.
+**Q: Do I need Superpowers?**
+A: Not at all. ADD works great on its own — you get the full AC loop, self-review, and hard gates. Superpowers is an optional upgrade that adds brainstorming, structured planning, and subagent execution when you want them.
 
 **Q: What if my agent skips the process?**
 A: ADD has 6 hard gates (confirmation requirements, exit blockers, rationalization counters). If the agent still skips, asking "Did you go through Mode B?" is your last line of defense — and it works.
