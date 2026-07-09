@@ -320,6 +320,13 @@ When `[!]` items exist, present them as a user checklist with specific instructi
 
 **Project document:** After all `[!]` items are confirmed by the user and marked `[x]`, create a project document at `<VAULT>/projects/<ProjectName>/<ProjectName>.md`. Follow the project doc template structure: one-line overview, tech stack, architecture, core modules, edge cases, reusable patterns, technical debt, and overall assessment. This document is read by `project-experience` in future projects — without it, the experience loop is broken.
 
+**Experience cache update:** After the project document is created, ask the user:
+
+> "Project complete. Update the experience cache? Recommended — this writes today's pitfalls and reusable patterns into cache so future projects get a ~15s fast path instead of a full scan."
+
+- **Yes** → delete `<VAULT>/<DOCS>/memory.md` (so project-experience sees no cache and runs full extraction), then `Skill("project-experience")`. It will detect the missing cache, run Phase 1–5 across all projects (including the newly completed one), and save the updated cache. Tell the user: "Next project loads experience in ~15 seconds."
+- **No** → completion is done. Remind the user they can update the cache later by saying "update experience cache".
+
 ---
 
 ## Quick Reference

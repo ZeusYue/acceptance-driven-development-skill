@@ -21,10 +21,20 @@ New task received ──► Is it code/architecture/dependency related?
                     ▼
              Run Phase 0: locate vault
                     │
-          ┌─────────┴──────────┐
-          │ Found               │ Not found → skip, tell user
-          ▼
-     Phase 1–5: extract and apply experience
+              ┌─────┴──────┐
+              ▼            ▼
+       memory.md?      memory.md?
+         YES              NO
+          │                │
+          ▼                ▼
+    Read cache        Phase 1–5 full
+    → Phase 2            │
+          │               ▼
+          │          Phase 6: save cache
+          │               │
+          └───────┬───────┘
+                  ▼
+          Phase 4–5: briefing + apply
 ```
 
 **Specific triggers:**
@@ -62,6 +72,13 @@ Project docs live in any subfolder under VAULT (e.g. `projects/`, `claude/`, `my
 
 Store `DOCS` (the folder name under VAULT where project docs live) for all subsequent paths. All file paths use `<VAULT>/<DOCS>/...` where `<DOCS>` is the discovered folder name.
 
+### Step 0.3: Check experience cache
+
+Check if `<VAULT>/<DOCS>/memory.md` exists:
+
+- **YES** → read it. Skip Phase 1 (Survey) and Phase 3 (Extract). Go directly to Phase 2 to match cache entries against the current task. The cache already contains distilled results from all completed projects.
+- **NO** → proceed with full Phase 1–5. After Phase 5, save the cache (see Phase 6).
+
 ## Phase 1: Survey
 
 Read the project index (`<VAULT>/<DOCS>/project-index.md`) to understand what exists.
@@ -81,7 +98,9 @@ This takes under 15 seconds.
 
 ## Phase 2: Match — Find Relevant Projects
 
-Read the frontmatter tags of each project document and compare against the current task:
+**If reading from cache (Step 0.3 = YES):** scan the `Known Pitfalls`, `Reusable Patterns`, and `Coding Conventions` sections of memory.md. Match entries to the current task by keywords and context. Skip the project-tag matching below.
+
+**If running full cycle (Step 0.3 = NO):** read the frontmatter tags of each project document and compare against the current task:
 
 | Match dimension | How to check | Example |
 |-----------------|-------------|---------|
@@ -156,18 +175,53 @@ The briefing is your constraint system. For every subsequent decision:
 
 > "I see you used Generation Counter in Project A and Project B for async race conditions — I'll use the same approach here."
 
+## Phase 6: Save Experience Cache
+
+After completing the full extraction cycle (Phases 1–5), save the distilled experience to `<VAULT>/<DOCS>/memory.md`:
+
+```markdown
+# Project Experience Cache
+
+> Auto-generated from completed projects. Delete and re-run project-experience to refresh.
+
+## Known Pitfalls
+<!-- Actual bugs that took >10min to fix. Merge duplicates across projects. -->
+
+- **brief description**: symptom → root cause → fix (ProjectA, ProjectB)
+
+## Reusable Patterns
+<!-- Patterns appearing in ≥2 projects, or single-project patterns highly generalizable. -->
+
+- **Pattern Name**: what it solves → how it works (ProjectA, ProjectB)
+
+## Coding Conventions
+<!-- Cross-project stable preferences. Only conventions that differ from defaults. -->
+
+- convention description
+```
+
+**Content rules:**
+- **Known Pitfalls**: Only bugs you actually encountered and spent time fixing. Include symptom, root cause, and fix. Merge entries that are the same pitfall across projects — append source project names in parentheses.
+- **Reusable Patterns**: Only patterns observed in ≥2 projects, or highly generalizable single-project patterns. Exclude project-specific glue code. Include what problem it solves and how it works.
+- **Coding Conventions**: Only preferences stable across projects. Don't list every convention — just ones that differ from common defaults.
+- **Hard cap**: Keep the entire file under ~40 lines. If exceeding, merge similar entries and drop the least impactful.
+
+**This cache is read by future invocations** — if it exists, Phase 1 and Phase 3 are skipped (see Step 0.3). When new projects are completed, the user can delete this file and re-run project-experience (triggered by ADD Phase 6). Do NOT auto-update the cache — project completion is a human judgment call.
+
 ## Quick Reference
 
 | Phase | Action | Time |
 |-------|--------|------|
-| 0. Locate | Current dir → search → ask. Discover docs folder by content | 10s |
+| 0. Locate | Discover docs folder by content | 10s |
+| 0.3 Cache | Check memory.md → skip Phase 1+3 if exists | 2s |
 | 1. Survey | Read index + glob project files | 10s |
-| 2. Match | Compare tags vs task | 5s |
+| 2. Match | Compare tags vs task (or cache entries vs task) | 5s |
 | 3. Extract | Read targeted sections from 1-2 projects | 30-60s |
 | 4. Synthesize | Write briefing to context | 30s |
 | 5. Apply | Reference briefing in all subsequent decisions | Ongoing |
+| 6. Save | Write briefing to memory.md (first run only) | 10s |
 
-**Total overhead: ~2 minutes.**
+**Total overhead: ~2 minutes (first run) / ~15 seconds (cache hit).**
 
 ## Common Mistakes
 
@@ -179,3 +233,4 @@ The briefing is your constraint system. For every subsequent decision:
 | Ignoring ✅ resolved items | "That's already fixed, not relevant" | Resolved items show exactly what patterns to use INSTEAD. |
 | Reading entire project docs | "More context is better" | Trust the section mapping table. Targeted reading is faster and cleaner. |
 | Not citing sources | "The author knows their own projects" | Citations show your reasoning is evidence-based, not generic advice. |
+| Skipping cache check | "I'll just run the full cycle" | Always check memory.md first. Cache hit saves 2 minutes. |
