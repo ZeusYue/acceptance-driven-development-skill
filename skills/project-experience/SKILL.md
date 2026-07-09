@@ -52,7 +52,7 @@ New task received ──► Is it code/architecture/dependency related?
 
 ## Phase 0: Locate the Project Docs — REQUIRED before all other phases
 
-The project documents live in any folder (Obsidian vault or plain directory). You **cannot** use relative paths because your working directory may be anywhere. You MUST locate the docs root first.
+The project documents live in any folder (Obsidian vault or plain directory). Use **absolute paths only** — your working directory may be anywhere. Locate the docs root first.
 
 ### Step 0.1: Locate the project docs root (try in order)
 
@@ -98,7 +98,7 @@ This takes under 15 seconds.
 
 ## Phase 2: Match — Find Relevant Projects
 
-**If reading from cache (Step 0.3 = YES):** scan the `Known Pitfalls`, `Reusable Patterns`, and `Coding Conventions` sections of memory.md. Match entries to the current task by keywords and context. Skip the project-tag matching below.
+**If reading from cache (Step 0.3 = YES):** scan the `Known Pitfalls`, `Reusable Patterns`, and `Coding Conventions` sections of memory.md. Match entries to the current task by keywords and context. Skip the project-tag matching below. After matching → go to Phase 4 to synthesize the briefing from cache entries.
 
 **If running full cycle (Step 0.3 = NO):** read the frontmatter tags of each project document and compare against the current task:
 
@@ -115,7 +115,7 @@ If zero matches across all dimensions, state this explicitly and proceed with ge
 
 ## Phase 3: Extract — Targeted Reading
 
-**Do NOT read full project documents.** Read only the sections relevant to the current task:
+**Read only the sections relevant to the current task** (targeted reading saves time and context):
 
 | Current task needs... | Read these sections |
 |----------------------|---------------------|
@@ -162,6 +162,21 @@ Compose a briefing and output it to the conversation. It serves as a persistent 
 - Test coverage: [inferred]
 ```
 
+**When reading from cache (Step 0.3 = YES), use this simpler briefing format** — the cache already has distilled entries, no project names needed:
+
+```markdown
+## Project Experience Briefing (from cache)
+
+### Relevant Pitfalls
+- **pitfall**: strategy to avoid (from cached experience)
+
+### Relevant Patterns
+- **pattern**: how to apply (from cached experience)
+
+### Coding Conventions
+- convention (from cached experience)
+```
+
 ## Phase 5: Apply
 
 The briefing is your constraint system. For every subsequent decision:
@@ -169,7 +184,7 @@ The briefing is your constraint system. For every subsequent decision:
 1. **Choose a library** → check Pitfalls to Avoid
 2. **Design a module** → check Reusable Patterns
 3. **Write boilerplate** → check Coding Preferences
-4. **In doubt** → re-read the relevant project section
+4. **In doubt** → cache mode: re-read memory.md; full-cycle mode: re-read the relevant project section
 
 **Reference the briefing explicitly in your responses:**
 
@@ -203,10 +218,10 @@ After completing the full extraction cycle (Phases 1–5), save the distilled ex
 **Content rules:**
 - **Known Pitfalls**: Only bugs you actually encountered and spent time fixing. Include symptom, root cause, and fix. Merge entries that are the same pitfall across projects — append source project names in parentheses.
 - **Reusable Patterns**: Only patterns observed in ≥2 projects, or highly generalizable single-project patterns. Exclude project-specific glue code. Include what problem it solves and how it works.
-- **Coding Conventions**: Only preferences stable across projects. Don't list every convention — just ones that differ from common defaults.
+- **Coding Conventions**: Only preferences stable across projects. List only conventions that differ from common defaults — skip universal ones.
 - **Hard cap**: Keep the entire file under ~40 lines. If exceeding, merge similar entries and drop the least impactful.
 
-**This cache is read by future invocations** — if it exists, Phase 1 and Phase 3 are skipped (see Step 0.3). When new projects are completed, the user can delete this file and re-run project-experience (triggered by ADD Phase 6). Do NOT auto-update the cache — project completion is a human judgment call.
+**This cache is read by future invocations** — if it exists, Phase 1 and Phase 3 are skipped (see Step 0.3). When new projects are completed, the user can delete this file and re-run project-experience (triggered by ADD Phase 6). Cache regeneration is manual-only — project completion is a human judgment call.
 
 ## Quick Reference
 
@@ -228,7 +243,7 @@ After completing the full extraction cycle (Phases 1–5), save the distilled ex
 | Mistake | Why it happens | Fix |
 |---------|---------------|-----|
 | Using relative paths for vault files | Working directory may be outside the vault | **ALWAYS use absolute paths** starting with the vault root discovered in Phase 0 |
-| Skipping Phase 0 | "I already know where the docs are" | Never guess. Verify with a read, then fallback to search or ask. |
+| Skipping Phase 0 | "I already know where the docs are" | Always verify: read first, then fallback to search, then ask. |
 | Not writing the briefing | "I'll remember what I read" | Without a written briefing, lessons fade within 10 message turns. Write it down. |
 | Ignoring ✅ resolved items | "That's already fixed, not relevant" | Resolved items show exactly what patterns to use INSTEAD. |
 | Reading entire project docs | "More context is better" | Trust the section mapping table. Targeted reading is faster and cleaner. |
