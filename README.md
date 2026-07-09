@@ -59,9 +59,14 @@ Project doc auto-generated ──► Next project learns from this one ✦
 
 ## 60-Second Quick Start
 
+### Load the skill (once per session)
+```
+/acceptance-driven-development
+```
+
 ### Tell it what you want
 ```
-"I want to build an alarm clock app with countdown timers. Use ADD."
+"I want to build an alarm clock app with countdown timers."
 ```
 
 ### Agent handles the rest
@@ -149,6 +154,8 @@ projects/templates/                    →  your-project-docs-folder/
 ```
 
 Restart your agent. Type `/skills` to verify.
+
+**First use:** At the start of each coding session, load ADD once with `/acceptance-driven-development`. The rules stay active for the entire session. If the agent ever skips a step, just say "Phase 3.5?" — that snaps it back. New session? Load once again.
 
 ---
 
