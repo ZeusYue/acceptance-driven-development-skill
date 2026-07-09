@@ -51,7 +51,7 @@ Project doc auto-generated ──► Next project learns from this one ✦
 | Agent says "I fixed it" — you test and find 3 more bugs | Agent self-reviews against 5 checks *before* showing you |
 | Fixing one thing breaks another | Impact analysis demotes affected ACs before changing code |
 | 3 failed attempts → agent keeps patching | 3 failures → agent stops and asks "wrong approach?" |
-| Each project starts from scratch | `project-experience` auto-learns from your past projects |
+| Each project starts from scratch | `project-experience` learns from past projects; cache makes it ~15s |
 
 ---
 
@@ -123,7 +123,7 @@ ADD works great standalone. But if you have [Superpowers](https://github.com/ant
 
 ## 🔗 The Experience Loop
 
-ADD ships with `project-experience` — a companion skill that reads your past project docs and extracts:
+ADD ships with `project-experience` — a companion skill that reads your past project docs and extracts reusable patterns, known pitfalls, and coding conventions. First run scans all projects (~2 min) and generates a `memory.md` cache. Every subsequent run hits the cache in ~15 seconds. ADD also reads the cache during feature design (Phase 3.5), so past project experience surfaces at every decision point.
 
 > "You used Generation Counter in 3 projects for async race conditions — I'll use it here too."
 > "You fixed vcpkg hardcoding with `$$PWD/bin` — let's do that from the start."
@@ -160,10 +160,10 @@ Restart your agent. Type `/skills` to verify.
 ## Real Example
 
 See `projects/AlarmClock/`:
-- `AC.md` — 22 acceptance criteria (features, performance, compatibility, quality)
+- `AC.md` — 23 acceptance criteria (features, performance, compatibility, quality)
 - `AlarmClock.md` — Project doc that `project-experience` reads
 
-Built entirely with ADD. Features: timed alarms, countdowns, always-on-top window, transparency slider, click-through lock mode, daily repeat, snooze, full-screen flash notifications.
+Built entirely with ADD. Features: timed alarms, countdowns, always-on-top window, transparency slider, click-through lock mode, daily and weekday-only repeat, snooze, full-screen flash notifications, compact card mode.
 
 ---
 
