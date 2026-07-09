@@ -5,18 +5,6 @@
   Works with Claude Code · Codex CLI · Gemini CLI · Copilot CLI
 </p>
 
----
-
-## 🆕 What's New in v1.1
-
-- **Experience cache** — `project-experience` now generates a `memory.md` cache. First run still scans all projects (~2 min), but every subsequent run reads the cache in ~15 seconds. The cache is cross-project, deduplicated — not N projects × N items.
-- **Cache-aware design** — ADD's Phase 3.5 and Gate 1 now auto-check the experience cache before proposing solutions. Pitfalls and patterns from past projects surface at every decision point, not just during initial load.
-- **Event-driven AC updates** — User says "test passed"? Agent marks `[x]` immediately. No waiting for a "Phase 5 moment."
-- **Transparency rule** — Every phase and mode entry is announced to the user: `Phase 3.5 — Impact analysis`, `Phase 4 Mode B — fix bug, 1 AC`, etc. You always know where the agent is.
-- **12+ logic gaps fixed** — Phase 1 bypass, Phase 4.8 marking conflict, fast lane discussion contradiction, Greenfield cache gap, and more. Full audit with negative phrasings cleaned.
-
----
-
 ## The Problem We've All Had
 
 You ask an AI agent to build something. It writes code. It compiles. It says **"Done!"**
@@ -201,3 +189,19 @@ A: ADD works best for software. The AC table structure needs verifiable, testabl
 
 **Q: My project doesn't have AC docs yet?**
 A: Phase 0 detects this and triggers the full setup — brainstorming → design doc → AC creation. Takes about 5 minutes.
+
+---
+
+## Changelog
+
+### v1.1 — Experience Cache & Quality Audit (2026-07-09)
+
+- **Experience cache**: `project-experience` generates `memory.md` — ~15s fast path after first scan
+- **Cache-aware Phase 3.5 & Gate 1**: past project pitfalls surface at every decision point
+- **Event-driven AC updates**: user confirms test → `[x]` immediately, no waiting
+- **Transparency rule**: every phase/mode entry announced to user for supervision
+- **12+ logic gaps fixed**, 16+ negative phrasings cleaned
+
+### v1.0 — Initial Release (2026-07-03)
+
+- Full 9-phase workflow, dual-mode implementation (batch/lightweight), 5-item self-review, hard-gate completion
