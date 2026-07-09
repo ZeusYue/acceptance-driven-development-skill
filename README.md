@@ -7,6 +7,16 @@
 
 ---
 
+## 🆕 What's New in v1.1
+
+- **Experience cache** — `project-experience` now generates a `memory.md` cache. First run still scans all projects (~2 min), but every subsequent run reads the cache in ~15 seconds. The cache is cross-project, deduplicated — not N projects × N items.
+- **Cache-aware design** — ADD's Phase 3.5 and Gate 1 now auto-check the experience cache before proposing solutions. Pitfalls and patterns from past projects surface at every decision point, not just during initial load.
+- **Event-driven AC updates** — User says "test passed"? Agent marks `[x]` immediately. No waiting for a "Phase 5 moment."
+- **Transparency rule** — Every phase and mode entry is announced to the user: `Phase 3.5 — Impact analysis`, `Phase 4 Mode B — fix bug, 1 AC`, etc. You always know where the agent is.
+- **12+ logic gaps fixed** — Phase 1 bypass, Phase 4.8 marking conflict, fast lane discussion contradiction, Greenfield cache gap, and more. Full audit with negative phrasings cleaned.
+
+---
+
 ## The Problem We've All Had
 
 You ask an AI agent to build something. It writes code. It compiles. It says **"Done!"**
