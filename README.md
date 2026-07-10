@@ -194,6 +194,20 @@ A: Phase 0 detects this and triggers the full setup — brainstorming → design
 
 ## Changelog
 
+### v1.2 — Unified Document Hub (2026-07-10)
+
+- **`$DOC_HUB` centralized architecture**: all ACs, project docs, templates, and experience cache under one directory independent of code
+- **`~/.exp_memory.md` anchor discovery**: auto-locate hub across sessions and windows — no repeated path prompts
+- **Immediate placeholder**: `.exp_memory.md` created on first setup, not waiting for project completion — prevents parallel-session conflicts
+- **Improved onboarding prompt**: explains purpose (shared across all projects), warns against project-specific paths
+- **`memory.md` → `exp_memory.md`**: renamed to avoid name collisions with Claude's own memory files
+- **6-item review checklist**: Framework-specific checks added as the 6th item (Wiring, Safety, Fidelity, State, Impact, Framework)
+- **Mode B AC restoration**: explicitly restores ACs demoted by impact analysis after self-review
+- **Phase 5 path split**: Mode A items (AUTO/MANUAL/BLOCKED) and Mode B items handled in separate clear paths
+- **3-failure threshold for Mode A**: prevents infinite re-implementation loops on failing verifications
+- **`[~]` settlement step**: partially-done items must be resolved (fix/defer/deprecate) before project doc generation
+- **All paths use `$DOC_HUB`**: zero hardcoded `projects/` or `<VAULT>/<DOCS>` references remain
+
 ### v1.1 — Experience Cache & Quality Audit (2026-07-09)
 
 - **Experience cache**: `project-experience` generates `memory.md` — ~15s fast path after first scan
