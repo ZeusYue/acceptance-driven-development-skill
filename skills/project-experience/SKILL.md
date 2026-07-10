@@ -19,11 +19,11 @@ New task received ──► Is it code/architecture/dependency related?
                     ┌─────────┴──────────┐
                     │ YES                │ NO → skip
                     ▼
-             Run Phase 0: locate vault
+             Run Phase 0: locate doc hub
                     │
               ┌─────┴──────┐
               ▼            ▼
-       memory.md?      memory.md?
+     .exp_memory.md?    .exp_memory.md?
          YES              NO
           │                │
           ▼                ▼
@@ -50,47 +50,43 @@ New task received ──► Is it code/architecture/dependency related?
 - Task is about editing markdown files, notes, or documentation
 - Code task is trivial (single-line fix, typo, formatting)
 
-## Phase 0: Locate the Project Docs — REQUIRED before all other phases
+## Phase 0: Locate the Document Hub — REQUIRED before all other phases
 
-The project documents live in any folder (Obsidian vault or plain directory). Use **absolute paths only** — your working directory may be anywhere. Locate the docs root first.
+All project documents and the experience cache live under a single directory (`$DOC_HUB`), independent of code directories. Use **absolute paths only**.
 
-### Step 0.1: Locate the project docs root (try in order)
+### Step 0.1: Discover $DOC_HUB via the cache anchor
 
-1. **Search home directory:** `Glob pattern="**/.obsidian"` or `Glob pattern="**/AC.md"` from `~`
-2. **Check current directory as fast path:** `Read ".obsidian/app.json"` or search for `AC.md` in subfolders
-3. **Ask user:** "Where are your project docs? (can be an Obsidian vault or any folder)"
-4. If user has no folder yet: "I can create one. Which directory?" → create `<chosen>/projects/` → VAULT.
+1. `Glob pattern="**/.exp_memory.md" path="~"` — search home directory for the experience cache anchor
+   - **Found** → `$DOC_HUB` = the directory containing `.exp_memory.md`. Skip to Step 0.3.
+   - **Not found** → ask the user once: "Where do you store your project documents? Recommended: ~/project-docs/"
+     → `$DOC_HUB` = user's answer. Create directory if needed. The cache anchor will be created on first project completion (Phase 6).
 
 ### Step 0.2: Find project documents
 
-Project docs live in any subfolder under VAULT (e.g. `projects/`, `claude/`, `my-projects/`). The folder name is not fixed — find it by content:
+Project docs live at `$DOC_HUB/<ProjectName>/<ProjectName>.md`.
 
-1. Try `Read "<VAULT>/projects/project-index.md"` — if exists, store `DOCS=projects`
-2. If not found, search: `Glob pattern="**/project-index.md" path="<VAULT>"`
-3. If still not found, search for any project doc: `Glob pattern="**/AC.md" path="<VAULT>"` — the parent folder is your docs root
-4. If nothing found, tell the user and offer to create: "No project docs found yet. Create a `projects/` folder with templates?" → on approval, create the folder and copy/add templates.
-
-Store `DOCS` (the folder name under VAULT where project docs live) for all subsequent paths. All file paths use `<VAULT>/<DOCS>/...` where `<DOCS>` is the discovered folder name.
+`Glob pattern="$DOC_HUB/*/*.md"` lists all projects. If the user mentioned a specific project name, target that one. Otherwise scan all.
+Store `$DOC_HUB` for all subsequent paths.
 
 ### Step 0.3: Check experience cache
 
-Check if `<VAULT>/<DOCS>/memory.md` exists:
+Check if `$DOC_HUB/.exp_memory.md` exists:
 
 - **YES** → read it. Skip Phase 1 (Survey) and Phase 3 (Extract). Go directly to Phase 2 to match cache entries against the current task. The cache already contains distilled results from all completed projects.
 - **NO** → proceed with full Phase 1–5. After Phase 5, save the cache (see Phase 6).
 
 ## Phase 1: Survey
 
-Read the project index (`<VAULT>/<DOCS>/project-index.md`) to understand what exists.
+Read the project index (`$DOC_HUB/project-index.md`) if it exists.
 
-If only Dataview code blocks are present (the index is auto-generated), also run a direct file listing:
+Also run a direct file listing to discover all project documents:
 
 ```
-Glob pattern="<DOCS>/*/**.md" path="<VAULT>"
+Glob pattern="$DOC_HUB/*/*.md"
 ```
 
 From the survey, extract:
-- How many projects exist
+- How many projects exist (each subdirectory under `$DOC_HUB` = one project)
 - Their tags (languages, frameworks, domains) — read frontmatter of each project document found
 - Their status (maintained, completed, archived)
 
@@ -98,7 +94,7 @@ This takes under 15 seconds.
 
 ## Phase 2: Match — Find Relevant Projects
 
-**If reading from cache (Step 0.3 = YES):** scan the `Known Pitfalls`, `Reusable Patterns`, and `Coding Conventions` sections of memory.md. Match entries to the current task by keywords and context. Skip the project-tag matching below. After matching → go to Phase 4 to synthesize the briefing from cache entries.
+**If reading from cache (Step 0.3 = YES):** scan the `Known Pitfalls`, `Reusable Patterns`, and `Coding Conventions` sections of `$DOC_HUB/.exp_memory.md`. Match entries to the current task by keywords and context. Skip the project-tag matching below. After matching → go to Phase 4 to synthesize the briefing from cache entries.
 
 **If running full cycle (Step 0.3 = NO):** read the frontmatter tags of each project document and compare against the current task:
 
@@ -184,7 +180,7 @@ The briefing is your constraint system. For every subsequent decision:
 1. **Choose a library** → check Pitfalls to Avoid
 2. **Design a module** → check Reusable Patterns
 3. **Write boilerplate** → check Coding Preferences
-4. **In doubt** → cache mode: re-read memory.md; full-cycle mode: re-read the relevant project section
+4. **In doubt** → cache mode: re-read `$DOC_HUB/.exp_memory.md`; full-cycle mode: re-read the relevant project document in `$DOC_HUB/<ProjectName>/`
 
 **Reference the briefing explicitly in your responses:**
 
@@ -192,7 +188,7 @@ The briefing is your constraint system. For every subsequent decision:
 
 ## Phase 6: Save Experience Cache
 
-After completing the full extraction cycle (Phases 1–5), save the distilled experience to `<VAULT>/<DOCS>/memory.md`:
+After completing the full extraction cycle (Phases 1–5), save the distilled experience to `$DOC_HUB/.exp_memory.md`:
 
 ```markdown
 # Project Experience Cache
@@ -227,14 +223,14 @@ After completing the full extraction cycle (Phases 1–5), save the distilled ex
 
 | Phase | Action | Time |
 |-------|--------|------|
-| 0. Locate | Discover docs folder by content | 10s |
-| 0.3 Cache | Check memory.md → skip Phase 1+3 if exists | 2s |
-| 1. Survey | Read index + glob project files | 10s |
+| 0. Locate | Discover $DOC_HUB via ~/.exp_memory.md | 5s |
+| 0.3 Cache | Check $DOC_HUB/.exp_memory.md → skip Phase 1+3 if exists | 2s |
+| 1. Survey | Read index + glob $DOC_HUB/*/*.md | 10s |
 | 2. Match | Compare tags vs task (or cache entries vs task) | 5s |
-| 3. Extract | Read targeted sections from 1-2 projects | 30-60s |
+| 3. Extract | Read targeted sections from 1-2 project docs | 30-60s |
 | 4. Synthesize | Write briefing to context | 30s |
 | 5. Apply | Reference briefing in all subsequent decisions | Ongoing |
-| 6. Save | Write briefing to memory.md (first run only) | 10s |
+| 6. Save | Write briefing to $DOC_HUB/.exp_memory.md (first run only) | 10s |
 
 **Total overhead: ~2 minutes (first run) / ~15 seconds (cache hit).**
 
@@ -242,10 +238,10 @@ After completing the full extraction cycle (Phases 1–5), save the distilled ex
 
 | Mistake | Why it happens | Fix |
 |---------|---------------|-----|
-| Using relative paths for vault files | Working directory may be outside the vault | **ALWAYS use absolute paths** starting with the vault root discovered in Phase 0 |
-| Skipping Phase 0 | "I already know where the docs are" | Always verify: read first, then fallback to search, then ask. |
+| Using relative paths | Working directory may be anywhere | Always use absolute paths from `$DOC_HUB` |
+| Skipping Phase 0 | "I already know where the docs are" | Always verify: search ~/.exp_memory.md first, then fallback to ask. |
 | Not writing the briefing | "I'll remember what I read" | Without a written briefing, lessons fade within 10 message turns. Write it down. |
 | Ignoring ✅ resolved items | "That's already fixed, not relevant" | Resolved items show exactly what patterns to use INSTEAD. |
 | Reading entire project docs | "More context is better" | Trust the section mapping table. Targeted reading is faster and cleaner. |
 | Not citing sources | "The author knows their own projects" | Citations show your reasoning is evidence-based, not generic advice. |
-| Skipping cache check | "I'll just run the full cycle" | Always check memory.md first. Cache hit saves 2 minutes. |
+| Skipping cache check | "I'll just run the full cycle" | Always check `$DOC_HUB/.exp_memory.md` first. Cache hit saves 2 minutes. |

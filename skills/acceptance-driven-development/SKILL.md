@@ -61,11 +61,14 @@ Phase 3.5 is the only path to Phase 4. Every code change goes through Phase 3.5.
 
 **Graceful degradation:** Missing skill → engine continues but loses that capability. Tell the user what's missing. For brainstorming specifically: if unavailable, large changes (Phase 3.5) → ask user to describe requirements manually, then update AC.
 
-**Project docs recommended** (the skill works without them, but they help):
-- `projects/ac-template.md` — AC document template (format described inline in Gate 2 if missing)
-- `projects/project-index.md` — Project index (used by `project-experience`; auto-created when first project is added)
+**Standalone by default:** ADD works independently with direct implementation. **Optional upgrade:** Install Superpowers skills for enhanced workflows — `brainstorming` for interactive design, `writing-plans` for structured task decomposition, `subagent-driven-development` for independent subagent execution, etc. If a Superpowers skill is available, ADD automatically uses it. If not, ADD proceeds with direct implementation — no errors, no blocking.
 
-> **Folder naming:** You can name the folder anything (`projects/`, `docs/`). The skill auto-discovers it by scanning for `AC.md` files. No Obsidian required.
+**Project docs structure:** All documents live under `$DOC_HUB/<ProjectName>/`. Templates are auto-created in `$DOC_HUB/` on first use:
+- `$DOC_HUB/ac-template.md` — AC document template (format described inline in Gate 2 if missing)
+- `$DOC_HUB/project-doc-template.md` — Project doc template
+- `$DOC_HUB/project-index.md` — Project index (used by `project-experience`; auto-created when first project is added)
+
+> No Obsidian required — `$DOC_HUB` is a plain directory. If you use Obsidian, set `$DOC_HUB` to your vault path to manage documents alongside your notes.
 
 ## When to Use
 
@@ -87,29 +90,32 @@ User says "implement X" or "add Y feature"
 
 ---
 
-## Phase 0: Locate and Load
+## Phase 0: Locate Document Hub
 
-Find the project docs and AC document. **Always use absolute paths.**
+All project ACs, project docs, templates, and the experience cache live under a single **document hub** (`$DOC_HUB`). This is independent of code directories — the hub is shared across all projects, sessions, and windows.
 
-**Step 0.1 — Locate the project docs root (try in order):**
-1. Search home directory: `Glob pattern="**/.obsidian"` or `Glob pattern="**/AC.md"` from `~`
-2. Check current directory as fast path: `Read ".obsidian/app.json"` or `Glob "projects/**/AC.md"`
-3. Ask user: "Where are your project docs? (can be an Obsidian vault or any folder)"
-4. If user has no folder yet: "I can create one. Which directory?" → create `<chosen>/projects/` → VAULT. New project → Greenfield rule handles the rest.
+**Step 0.1 — Discover $DOC_HUB via the cache anchor:**
 
-**Step 0.2 — Find AC:** First discover what projects exist: `Glob "**/AC.md" path="<VAULT>"`. If the user mentioned a specific project name, read that one. Otherwise, present the list to the user or infer from the current code directory.
+1. `Glob pattern="**/.exp_memory.md" path="~"` — search home directory for the experience cache anchor file
+   - **Found** → `$DOC_HUB` = the directory containing `.exp_memory.md`. Skip to Step 0.2.
+   - **Not found** → ask the user once: "Where should project documents be stored? (Recommended: ~/project-docs/ — just give me a path, I'll create the needed files there)"
+     → `$DOC_HUB` = user's answer. Create the directory. The cache file will be generated after the first project completes (Phase 6).
+
+**Step 0.2 — Find project AC:**
+
+`Glob pattern="$DOC_HUB/*/AC.md"` — lists all projects with AC documents. If the user mentioned a specific project name, read that one. Otherwise, present the list or infer from context.
 
 **Step 0.3 — If AC not found:**
 - New project → 🚨 Greenfield rule below
-- Should exist but missing → ask user
+- Project exists but AC missing → ask user
 
-**Pre-Greenfield check:** If the docs folder doesn't exist under VAULT, create it first. Templates are optional — the AC format is described inline in Gate 2.
+**Note:** Templates (`ac-template.md`, `project-doc-template.md`) are auto-created in `$DOC_HUB/` on first use if missing. No Obsidian required — `$DOC_HUB` is a plain directory.
 
 **🚨 Greenfield rule:** No AC yet → two-gate process:
 
 #### Gate 1: Design Document
 1. Announce: "New project — no AC yet. Let's clarify the goals first."
-2. **Check experience cache:** Read `<VAULT>/<DOCS>/memory.md` if it exists. Scan `Known Pitfalls` and `Reusable Patterns` for anything relevant to the new project's domain or tech stack. Mention relevant findings during design discussion.
+2. **Check experience cache:** Read `$DOC_HUB/.exp_memory.md` if it exists. Scan `Known Pitfalls` and `Reusable Patterns` for anything relevant to the new project's domain or tech stack. Mention relevant findings during design discussion.
 3. **Climb the solution ladder** before designing — stop at the first rung that holds:
    1. Already in this codebase? (reuse existing code)
    2. Standard library does it?
@@ -117,7 +123,7 @@ Find the project docs and AC document. **Always use absolute paths.**
    4. Already-installed dependency solves it?
    5. Only then: search for new external libraries or design custom.
 4. Run `Skill("brainstorming")` — interactive: ask explicit questions, present options (including ladder findings from step 3). Every design decision requires user input.
-5. Save as `<VAULT>/<DOCS>/<ProjectName>/design.md`
+5. Save as `$DOC_HUB/<ProjectName>/design.md`
 6. Tell user to review
 7. **HARD GATE: Wait for user to say they're ready for AC creation**
 
@@ -125,7 +131,7 @@ Find the project docs and AC document. **Always use absolute paths.**
 1. Draft AC table from approved design. **Format**: `| ID | Criterion | Status | How to Verify | Expected Result |` (5 columns). Use sequential numbering (AC-1, AC-2, ...). Group by category (Features/Performance/Compatibility/Quality) using table section headers. Include status summary, change log, and Backlog sections.
 2. Present draft to user
 3. **HARD GATE: Wait for approval**
-4. Save as `<VAULT>/<DOCS>/<ProjectName>/AC.md`
+4. Save as `$DOC_HUB/<ProjectName>/AC.md`
 5. Proceed to Phase 1
 
 **Violation:** Writing AC without user approval → delete file, back to Gate 1.
@@ -198,7 +204,7 @@ Before writing code, grep for callers of the function(s) you're about to modify.
 
 **Default to Medium when uncertain.** If a change could be Small or Medium, classify it as Medium. The cost of over-discussing (1 extra minute) is lower than the cost of wrong direction (hours of rework).
 
-**Check experience cache (all sizes):** Before proposing an approach, read `<VAULT>/<DOCS>/memory.md` (the global experience cache maintained by `project-experience`). Scan the `Known Pitfalls` and `Reusable Patterns` sections for anything relevant to the current change. This is a 2-second scan — don't re-load project-experience, just read the file. If you find a relevant pitfall or pattern, mention it when presenting your approach to the user.
+**Check experience cache (all sizes):** Before proposing an approach, read `$DOC_HUB/.exp_memory.md` (the global experience cache maintained by `project-experience`). Scan the `Known Pitfalls` and `Reusable Patterns` sections for anything relevant to the current change. This is a 2-second scan — don't re-load project-experience, just read the file. If you find a relevant pitfall or pattern, mention it when presenting your approach to the user.
 
 **Every size includes a discussion step — except fast-lane bug fixes** (impact analysis → mode announcement → implement). After updating AC, present your proposed approach and wait for the user to say "approved"/"go ahead" before writing code.
 
@@ -352,13 +358,13 @@ Phase 5 →
 
 **`[~]` → settle:** When `[~]` items exist, ask the user: fix remaining issues → `[x]`, or defer → `[>]`, or deprecate → `[-]`. Every item needs a settled outcome.
 
-**Project document:** When every AC is `[x]`, `[>]`, or `[-]` — no `[ ]`, `[!]`, or `[~]` — create a project document at `<VAULT>/<DOCS>/<ProjectName>/<ProjectName>.md`. Each item must have a settled outcome: verified done, explicitly deferred, or explicitly deprecated. Follow the project doc template structure: one-line overview, tech stack, architecture, core modules, edge cases, reusable patterns, technical debt, and overall assessment. This document is read by `project-experience` in future projects — without it, the experience loop is broken.
+**Project document:** When every AC is `[x]`, `[>]`, or `[-]` — no `[ ]`, `[!]`, or `[~]` — create a project document at `$DOC_HUB/<ProjectName>/<ProjectName>.md`. Each item must have a settled outcome: verified done, explicitly deferred, or explicitly deprecated. Follow the project doc template structure: one-line overview, tech stack, architecture, core modules, edge cases, reusable patterns, technical debt, and overall assessment. This document is read by `project-experience` in future projects — without it, the experience loop is broken.
 
 **Experience cache update:** After the project document is created, ask the user:
 
 > "Project complete. Update the experience cache? Recommended — this writes today's pitfalls and reusable patterns into cache so future projects get a ~15s fast path instead of a full scan."
 
-- **Yes** → delete `<VAULT>/<DOCS>/memory.md` (so project-experience sees no cache and runs full extraction), then `Skill("project-experience")`. It will detect the missing cache, run Phase 1–5 across all projects (including the newly completed one), and save the updated cache. Tell the user: "Next project loads experience in ~15 seconds."
+- **Yes** → delete `$DOC_HUB/.exp_memory.md` (so project-experience sees no cache and runs full extraction), then `Skill("project-experience")`. It will detect the missing cache, run Phase 1–5 across all projects (including the newly completed one), and save the updated cache. Tell the user: "Next project loads experience in ~15 seconds."
 - **No** → completion is done. Remind the user they can update the cache later by saying "update experience cache".
 
 ---
@@ -368,7 +374,7 @@ Phase 5 →
 | Phase | Action | Key |
 |-------|--------|-----|
 | 🚨 | **FIRST RULE** | ALL code changes → Phase 3.5 first. Phase 3.5 is the only path to Phase 4. |
-| 0 | Locate docs + AC | Search → ask. New project → Gate 1 (brainstorm) → Gate 2 (AC) |
+| 0 | Locate doc hub + AC | Search ~/.exp_memory.md → $DOC_HUB. New project → Gate 1 (brainstorm) → Gate 2 (AC) |
 | 1 | Triage statuses | `[ ]` `[~]` `[x]` `[-]` `[!]` `[>]` |
 | 2 | Sort by dependency | Features→Compat→Perf→Quality. No labels? Infer from content |
 | 3 | Classify verifiability | AUTO ✅ / MANUAL ⚠️ / BLOCKED 🚫 |
