@@ -2,7 +2,8 @@
 
 <p align="center">
   <b>The AI skill pack that makes "done" a checklist, not a feeling.</b><br>
-  Works with Claude Code · Codex CLI · Gemini CLI · Copilot CLI
+  Works with Claude Code · Codex CLI · Gemini CLI · Copilot CLI<br>
+  <sub>[English](#the-problem-weve-all-had) | [中文](#我们共同遇到的问题)</sub>
 </p>
 
 ## The Problem We've All Had
@@ -71,7 +72,7 @@ Project doc auto-generated ──► Next project learns from this one ✦
 - Asks you clarifying questions (not silent guessing)
 - Writes an Acceptance Criteria document (you review and approve)
 - Builds everything — batch mode, no interruptions
-- Self-reviews each change against a 5-item checklist
+- Self-reviews each change against a 6-item checklist
 - Marks items `[x]` (verified) or `[!]` (needs your test)
 - Loops until nothing is `[ ]` — then generates your project documentation
 
@@ -123,7 +124,7 @@ ADD works great standalone. But if you have [Superpowers](https://github.com/obr
 
 ## 🔗 The Experience Loop
 
-ADD ships with `project-experience` — a companion skill that reads your past project docs and extracts reusable patterns, known pitfalls, and coding conventions. First run scans all projects (~2 min) and generates a `memory.md` cache. Every subsequent run hits the cache in ~15 seconds. ADD also reads the cache during feature design (Phase 3.5), so past project experience surfaces at every decision point.
+ADD ships with `project-experience` — a companion skill that reads your past project docs and extracts reusable patterns, known pitfalls, and coding conventions. First run scans all projects (~2 min) and generates an `exp_memory.md` cache. Every subsequent run hits the cache in ~15 seconds. ADD also reads the cache during feature design (Phase 3.5), so past project experience surfaces at every decision point.
 
 > "You used Generation Counter in 3 projects for async race conditions — I'll use it here too."
 > "You fixed vcpkg hardcoding with `$$PWD/bin` — let's do that from the start."
@@ -210,7 +211,7 @@ A: Phase 0 detects this and triggers the full setup — brainstorming → design
 
 ### v1.1 — Experience Cache & Quality Audit (2026-07-09)
 
-- **Experience cache**: `project-experience` generates `memory.md` — ~15s fast path after first scan
+- **Experience cache**: `project-experience` generates `exp_memory.md` — ~15s fast path after first scan
 - **Cache-aware Phase 3.5 & Gate 1**: past project pitfalls surface at every decision point
 - **Event-driven AC updates**: user confirms test → `[x]` immediately, no waiting
 - **Transparency rule**: every phase/mode entry announced to user for supervision
@@ -219,3 +220,228 @@ A: Phase 0 detects this and triggers the full setup — brainstorming → design
 ### v1.0 — Initial Release (2026-07-03)
 
 - Full 9-phase workflow, dual-mode implementation (batch/lightweight), 5-item self-review, hard-gate completion
+
+---
+
+# 验收驱动开发 (ADD)
+
+<p align="center">
+  <b>让"完成"变成一份清单，而不是一种感觉的 AI 技能包。</b><br>
+  适用于 Claude Code · Codex CLI · Gemini CLI · Copilot CLI<br>
+  <sub>[English](#the-problem-weve-all-had) | [中文](#我们共同遇到的问题)</sub>
+</p>
+
+## 我们共同遇到的问题
+
+你让 AI 助手帮你构建一个功能。它写代码、编译通过，然后说**"搞定了！"**
+
+你打开应用一看——三个功能没做，一个按钮不灵，还有别的东西莫名其妙坏了。而 AI 助手早已愉快地翻篇了，浑然不觉。
+
+**AI 助手是天生的乐观派。它们只管交付代码就宣称完成，而你才是那个发现到底缺了什么的人。**
+
+我们构建 ADD 就是为了从根本上解决这个问题。
+
+---
+
+## 它是如何工作的
+
+```
+你的想法
+    │
+    ▼
+助手提出澄清性问题 ──► 绝不默默猜测
+    │
+    ▼
+助手撰写验收标准 ──► 你来审核并批准
+    │
+    ▼
+助手批量构建每一项 ──► 每完成一项都自查一遍
+    │
+    ▼
+[ ] → [!] → 你测试 → [x] ──► 循环直到没有任何 [ ]
+    │
+    ▼
+自动生成项目文档 ──► 下一个项目从中受益 ✦
+```
+
+**实际发生的事情是这样的：** 只要还有 AC 状态是 `[ ]`，助手就不能说"做完了"。它不能跳过自检，不能偷偷改你的需求，更不能对着同一个 bug 修了十次却不问你是不是思路本身就错了。每一行代码都能追溯到一条验收标准。
+
+---
+
+## 使用 ADD 之前 vs 之后
+
+| 😟 之前 | 😎 之后 |
+|-----------|----------|
+| "完成" = 代码编译通过 | "完成" = 每一个 AC 复选框都是 `[x]` |
+| 助手假设，你来纠正 | 助手询问，你确认，*然后*才开始构建 |
+| 助手说"我修好了" —— 你一测又发现三个 bug | 助手在给你看之前，先按 5 项检查自查一遍 |
+| 修一个东西，坏另一个 | 影响分析在改代码之前先降级受影响的 AC |
+| 失败了 3 次 → 助手继续打补丁 | 3 次失败 → 助手停下来问"是不是方向错了？" |
+| 每个项目从零开始 | `project-experience` 从过往项目中学习；缓存启动约 15 秒 |
+
+---
+
+## 60 秒快速上手
+
+### 加载技能（每次会话一次）
+```
+/acceptance-driven-development
+```
+
+### 告诉它你想要什么
+```
+"我想做一个带倒计时功能的闹钟应用。"
+```
+
+### 剩下的交给助手
+- 提出澄清性问题（而不是默默猜测）
+- 撰写验收标准文档（你来审核批准）
+- 批量构建所有内容 —— 不打断你
+- 对每一项变更按 6 项清单自查
+- 标记为 `[x]`（已验证）或 `[!]`（需要你手动测试）
+- 循环直到没有任何 `[ ]` —— 然后自动生成项目文档
+
+### 用于已有项目
+```
+"继续开发 ImageView"
+→ 助手读取你的 AC 表格，找到剩余的 [ ] 项，批量处理全部
+```
+
+### 在项目中途添加功能
+```
+"加一个贪睡按钮"
+→ 助手先更新 AC，提出方案，等你确认，然后才写代码
+```
+
+---
+
+## 6 种 AC 状态（简易 Markdown 表格）
+
+| 标记 | 含义 |
+|------|---------|
+| `[ ]` | 尚未开始 —— 助手会去做 |
+| `[~]` | 部分完成 —— 已知边缘情况问题 |
+| `[x]` | 已验证通过 |
+| `[!]` | 已实现 —— 需要你亲手测试 |
+| `[-]` | 已弃用 |
+| `[>]` | 已推迟 —— 用户决定延后。助手完全跳过，除非用户要求 |
+
+你的整个项目都存放在一个 Markdown 文件里 —— 一份你和助手都能读取的单一事实来源。
+
+---
+
+## 🔥 可选：安装 Superpowers 获得升级体验
+
+ADD 单独使用已经非常出色。但如果你有 [Superpowers](https://github.com/obra/superpowers)，它会直接升维：
+
+| Superpowers 技能 | ADD 解锁的能力 |
+|-------------------|------------------|
+| `brainstorming` | 新项目深度交互式设计讨论 |
+| `writing-plans` | 结构化任务分解 |
+| `subagent-driven-development` | 每个任务独立子代理执行 |
+| `test-driven-development` | 高质量 AC 自动驱动 TDD |
+| `verification-before-completion` | 标记 `[x]` 前强制重新验证 |
+| `finishing-a-development-branch` | 干净利落地收尾分支 |
+
+**可以这样理解：** 单独的 ADD 是一辆跑车。ADD + Superpowers 是同一辆车，但配了一支专业的维修团队。准备好了随时安装。
+
+---
+
+## 🔗 经验循环
+
+ADD 自带 `project-experience` —— 一个配套技能，它能读取你过去的项目文档，提取可复用的模式、已知陷阱和编码惯例。首次运行会扫描所有项目（约 2 分钟）并生成 `exp_memory.md` 缓存。之后的每次运行只需约 15 秒命中缓存。ADD 在功能设计阶段也会读取缓存（阶段 3.5），因此过往项目经验会在每一个决策点浮现。
+
+> "你在 3 个项目中用 Generation Counter 解决异步竞态条件 —— 我这次也会用。"
+> "你用 `$$PWD/bin` 修复了 vcpkg 硬编码问题 —— 咱们一开始就这么做。"
+> "你的质量基线是核心算法 70%+ 测试覆盖率。"
+
+你每做一个项目，未来的每个项目都会变得更好。使用 Obsidian 可以自动索引（Dataview）。不用 Obsidian？任何文件夹都可以 —— 技能会自动发现你的文档。
+
+---
+
+## 适用于你的 AI 助手
+
+| Claude Code | Codex CLI | Gemini CLI | Copilot CLI | 任何支持 SKILL.md 的助手 |
+|:-----------:|:---------:|:----------:|:-----------:|:------------------:|
+| ✅ | ✅ | ✅ | ✅ | ✅ |
+
+标准 `SKILL.md` 格式。丢进去，重启，完事。
+
+---
+
+## 安装
+
+```bash
+skills/acceptance-driven-development/  →  ~/.claude/skills/acceptance-driven-development/
+skills/project-experience/             →  ~/.claude/skills/project-experience/
+projects/templates/                    →  你的项目文档文件夹/
+```
+
+重启你的助手。输入 `/skills` 验证。
+
+**首次使用：** 每次编程会话开始时，用 `/acceptance-driven-development` 加载一次 ADD。规则在整个会话期间保持激活。如果助手跳过了某个步骤，只需说"阶段 3.5？"—— 它立马就回来了。新会话？再加载一次就好。
+
+---
+
+## 真实案例
+
+参见 `projects/AlarmClock/`：
+- `AC.md` —— 23 条验收标准（功能、性能、兼容性、质量）
+- `AlarmClock.md` —— `project-experience` 会读取的项目文档
+
+完全使用 ADD 构建。功能包括：定时闹钟、倒计时、窗口置顶、透明度滑块、点击穿透锁定模式、每日及仅工作日重复、贪睡、全屏闪烁通知、紧凑卡片模式。
+
+---
+
+## 常见问题
+
+**Q：这会拖慢我的开发速度吗？**
+A：每次变更大约额外花费 2 分钟。但它帮你省下的是数小时的调试和返工。我们在真实项目上已经测试了几个月。
+
+**Q：我需要 Superpowers 吗？**
+A：完全不需要。ADD 本身就是完整的。Superpowers 在你想要的时候提供可选的专业工作流。
+
+**Q：推荐什么配置？**
+A：作者日常使用的配置 —— 也是我们推荐的 —— 是 **ADD + Superpowers + Obsidian**。Superpowers 深化每一个阶段（头脑风暴、规划、子代理执行、TDD、验证），而 Obsidian 通过 wiki 链接和 Dataview 自动索引，为你的项目文档提供美观的仪表盘。当然，ADD 在任何文件夹结构和任何助手下都能完美运行。
+
+**Q：我需要在每次对话中加载 ADD 吗？**
+A：不需要 —— 在第一次会话开始时加载一次即可。助手会在该会话的剩余时间里记住规则。如果它跳过了某个步骤，只需说"阶段 3.5？"或"你自查过了吗？"—— 通常这就够了。当你开启一个全新的会话时，在开始时加载一次 ADD。可以理解为：这是拧钥匙点火，不是一直踩着油门。
+
+**Q：如果助手跳过了流程怎么办？**
+A：ADD 有 8 层防御机制。如果助手仍然设法跳过，问一句"你经过模式 B 了吗？"就是你的最后一道安全网。
+
+**Q：非代码项目能用吗？**
+A：ADD 最适合软件开发。AC 表格结构需要可验证、可测试的行为。
+
+**Q：我的项目还没有 AC 文档怎么办？**
+A：阶段 0 会检测到这一点并触发完整设置 —— 头脑风暴 → 设计文档 → AC 创建。大约需要 5 分钟。
+
+---
+
+## 更新日志
+
+### v1.2 — 统一文档中心 (2026-07-10)
+
+- **`$DOC_HUB` 集中化架构**：所有 AC、项目文档、模板和经验缓存都在一个独立于代码的目录下
+- **`~/.exp_memory.md` 锚点发现**：跨会话和窗口自动定位文档中心 —— 不再重复询问路径
+- **即时占位符**：`.exp_memory.md` 在首次设置时即创建，不等项目完成 —— 防止并行会话冲突
+- **改进的引导提示**：解释用途（跨所有项目共享），警告不要使用项目特定路径
+- **`memory.md` → `exp_memory.md`**：重命名以避免与 Claude 自身的 memory 文件冲突
+- **6 项审查清单**：框架特定检查作为第 6 项加入（接线、安全、保真度、状态、影响、框架）
+- **模式 B AC 恢复**：自检后显式恢复被影响分析降级的 AC
+- **阶段 5 路径分离**：模式 A 项（AUTO/MANUAL/BLOCKED）和模式 B 项在独立的清晰路径中处理
+- **模式 A 3 次失败阈值**：防止验证失败时无限重新实现循环
+- **`[~]` 结算步骤**：部分完成的条目必须在项目文档生成前解决（修复/推迟/弃用）
+- **所有路径使用 `$DOC_HUB`**：不再有任何硬编码的 `projects/` 或 `<VAULT>/<DOCS>` 引用
+
+### v1.1 — 经验缓存与质量审查 (2026-07-09)
+
+- **经验缓存**：`project-experience` 生成 `exp_memory.md` —— 首次扫描后约 15 秒快速路径
+- **缓存感知的阶段 3.5 和关卡 1**：过往项目陷阱在每个决策点浮现
+- **事件驱动的 AC 更新**：用户确认测试 → 立即标记 `[x]`，无需等待
+- **透明规则**：每次进入阶段/模式时向用户宣告，方便监督
+- **修复 12+ 逻辑漏洞**，清理 16+ 处负面措辞
+
+### v1.0 — 初始发布 (2026-07-03)
+
+- 完整 9 阶段工作流、双模式实现（批量/轻量）、5 项自检、硬关卡完成
