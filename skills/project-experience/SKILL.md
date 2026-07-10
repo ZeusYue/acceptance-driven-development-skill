@@ -59,7 +59,7 @@ All project documents and the experience cache live under a single directory (`$
 1. `Glob pattern="**/.exp_memory.md" path="~"` — search home directory for the experience cache anchor
    - **Found** → `$DOC_HUB` = the directory containing `.exp_memory.md`. Skip to Step 0.3.
    - **Not found** → ask the user once: "Where do you store your project documents? Recommended: ~/project-docs/"
-     → `$DOC_HUB` = user's answer. Create directory if needed. The cache anchor will be created on first project completion (Phase 6).
+     → `$DOC_HUB` = user's answer. Create directory if needed. **Immediately create `$DOC_HUB/.exp_memory.md`** with `# Project Experience Cache\n\n> No completed projects yet.` so other sessions discover the hub immediately.
 
 ### Step 0.2: Find project documents
 
