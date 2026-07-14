@@ -25,7 +25,7 @@ Phase 3.5 is the only path to Phase 4. Every code change goes through Phase 3.5.
 
 | When | Announce |
 |------|----------|
-| Entering Phase 0 | `Phase 0 — Locating AC documents` |
+| Entering Phase 0 | `Phase 0 — Locating document hub` |
 | New project (Greenfield) | `Gate 1 — Design discussion` / `Gate 2 — AC creation` |
 | Entering Phase 3.5 | `Phase 3.5 — Impact analysis: [brief change description]` |
 | Entering Phase 4 | `Phase 4 Mode A — batch N items` or `Phase 4 Mode B — [change description], N AC` |
@@ -194,7 +194,7 @@ Before writing code, grep for callers of the function(s) you're about to modify.
 
 **Does NOT require AC update (fast lane — impact analysis only):** Pure cosmetic (color, font, spacing) with no user-perceptible behavior change, code refactoring preserving identical behavior, build/config changes, **bug fixes that restore the originally intended behavior**.
 
-**Fast lane exit:** After impact analysis, announce `"Phase 4 Mode B — fix bug, N AC"` before writing code. The announcement is the gate into Phase 4. **If the buggy feature has no AC entry** (e.g., it was built before ADD was adopted), append a one-line AC to the appropriate category section with the next sequential ID. Use the standard 5-column format. Present the new AC entry to the user: "I added AC-N: [description] to track this fix. OK to proceed?" Wait for confirmation before writing code. Then proceed with the fix.
+**Fast lane exit:** After impact analysis, announce `"Phase 4 Mode B — fix bug, N AC"` before writing code. The announcement is the gate into Phase 4. The fix itself needs no approach discussion. **If the buggy feature has no AC entry** (e.g., it was built before ADD was adopted), append a one-line AC to the appropriate category section with the next sequential ID, standard 5-column format. This one case needs a quick confirmation — present it: "I added AC-N: [description] to track this fix. OK to proceed?" (confirming the AC exists, not debating the fix). Wait for confirmation, then proceed.
 
 **How to handle — depends on size:**
 
@@ -248,13 +248,13 @@ When the skill first loads with multiple `[ ]` items remaining: process ALL of t
 1. **First: list all [ ] AC items to be implemented** — copy their IDs and descriptions into the conversation for tracking. No code before this list is established.
 2. Implement all items sequentially. For interdependent items, implement them as a group.
 3. **After all items are implemented** — Phase 4.8: dispatch ONE review subagent for the entire batch. Prefer subagent (independent eyes). Self-review is acceptable if subagent is unavailable or project is MANUAL-heavy. PASS → continue. FAIL → fix, re-review.
-4. **Restore demoted ACs** — if Phase 3.5 impact analysis demoted any ACs from `[x]`/`[!]` to `[ ]`, re-verify them now. Restore to `[x]` if they still pass.
+4. **Restore demoted ACs** — if Phase 3.5 impact analysis demoted any ACs from `[x]`/`[!]` to `[ ]`, re-verify them now. Restore to `[x]` if they still pass. (This restoration is the one exception to "marking happens in Phase 5" — demoted ACs were already `[x]`, so restoring their prior status is not new marking.)
 
 **Interdependent ACs:** If 2+ ACs share the same code change, implement them as one group. **Every group goes through the same batch review.**
 
-Marking happens in Phase 5, not here. Process all items without pausing for user confirmation between them.
+New AC items are marked in Phase 5, not here. Process all items without pausing for user confirmation between them.
 
-**Stop when:** all items have completed steps 1-2 → Phase 5, or BLOCKED → record + continue, or CRITICAL failure → escalate.
+**Stop when:** all items have completed steps 1-4 → Phase 5, or BLOCKED → record + continue, or CRITICAL failure → escalate.
 
 **Failure threshold:** If any AC (AUTO or MANUAL) fails verification or user testing 3 times in Mode A (Phase 5 marks it `[ ]`, back to Phase 4, re-implement, re-verify, still fails), STOP. The verification command or the approach is likely wrong. Present findings to the user before attempting a 4th time.
 
@@ -347,7 +347,8 @@ After marking all items, proceed to Phase 6 to check completion.
 
 ```
 Phase 5 →
-  ├── Any [ ] remaining? → Phase 4 (MANDATORY)
+  ├── [ ] with demotion note? → re-verify only (was previously [x]/[!])
+  ├── [ ] genuinely unimplemented? → Phase 4 (MANDATORY)
   └── No [ ] remaining? → [!] checklist → user test → [x]
                      → [~] items → settle: [x] / [>] / [-]
                      → All [x] [>] [-]? → project doc
