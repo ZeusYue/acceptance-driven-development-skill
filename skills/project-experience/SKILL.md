@@ -19,7 +19,7 @@ New task received ──► Is it code/architecture/dependency related?
                     ┌─────────┴──────────┐
                     │ YES                │ NO → skip
                     ▼
-             Run Phase 0: locate doc hub
+             Run Phase 0.1: locate doc hub
                     │
               ┌─────┴──────┐
               ▼            ▼
@@ -27,14 +27,22 @@ New task received ──► Is it code/architecture/dependency related?
          YES              NO
           │                │
           ▼                ▼
-    Read cache        Phase 1–5 full
-    → Phase 2            │
-          │               ▼
-          │          Phase 6: save cache
-          │               │
-          └───────┬───────┘
-                  ▼
-          Phase 4–5: briefing + apply
+  Phase 0.2: read    Phase 0.3: find
+  cache & validate   project docs
+          │                │
+    ┌─────┴──────┐         ▼
+    ▼            ▼    Phase 1–5 full
+  Valid        Empty        │
+  cache?       → treat      ▼
+    │          as NO   Phase 6: save
+    ▼            │     cache
+ Phase 2         │        │
+ (match          │        │
+  cache)         │        │
+    │            │        │
+    └────────────┼────────┘
+                 ▼
+         Phase 4–5: briefing + apply
 ```
 
 **Specific triggers:**
@@ -57,23 +65,26 @@ All project documents and the experience cache live under a single directory (`$
 ### Step 0.1: Discover $DOC_HUB via the cache anchor
 
 1. `Glob pattern="**/_exp_memory.md" path="~"` — search home directory for the experience cache anchor
-   - **Found** → `$DOC_HUB` = the directory containing `_exp_memory.md`. Skip to Step 0.3.
+   - **Found** → `$DOC_HUB` = the directory containing `_exp_memory.md`. If multiple `_exp_memory.md` files are found, pick the one closest to the home directory root (shortest path). If tied, pick the most recently modified. Warn the user: "Multiple experience caches found — using [path]." Skip to Step 0.2.
    - **Not found** → ask the user once: "I need a central directory to store acceptance criteria and project experience for ALL your projects. This directory will be shared across projects, so pick a stable location — don't put it inside a specific project folder. Suggested: ~/project-docs/ (just give me the path; I'll create the needed files there.)"
      → `$DOC_HUB` = user's answer. Create directory if needed. **Immediately create `$DOC_HUB/_exp_memory.md`** with `# Project Experience Cache\n\n> No completed projects yet.` so other sessions discover the hub immediately.
 
-### Step 0.2: Find project documents
+### Step 0.2: Check experience cache
+
+Check if `$DOC_HUB/_exp_memory.md` exists:
+
+- **YES** → read it. If it contains only the placeholder (`> No completed projects yet.`) or has no entries under `## Known Pitfalls` or `## Reusable Patterns`, treat as NO (full cycle). Otherwise skip Phase 1 and 3, go directly to Phase 2.
+- **NO** → proceed with full Phase 1–5. After Phase 5, save the cache (see Phase 6).
+
+After reading, validate: if the file has no `## Known Pitfalls` or `## Reusable Patterns` heading, or if content under those headings is empty, treat as NO (full cycle).
+
+### Step 0.3: Find project documents
 
 Project docs live at `$DOC_HUB/<ProjectName>/<ProjectName>.md`.
 
 `Glob pattern="$DOC_HUB/*/*.md"` lists all projects. If the user mentioned a specific project name, target that one. Otherwise scan all.
+Filter results: keep only files matching `<DirName>/<DirName>.md` (the file named after its containing directory). Ignore AC.md, design.md, or other supplementary files — those are read separately when needed.
 Store `$DOC_HUB` for all subsequent paths.
-
-### Step 0.3: Check experience cache
-
-Check if `$DOC_HUB/_exp_memory.md` exists:
-
-- **YES** → read it. Skip Phase 1 (Survey) and Phase 3 (Extract). Go directly to Phase 2 to match cache entries against the current task. The cache already contains distilled results from all completed projects.
-- **NO** → proceed with full Phase 1–5. After Phase 5, save the cache (see Phase 6).
 
 ## Phase 1: Survey
 
@@ -94,9 +105,9 @@ This takes under 15 seconds.
 
 ## Phase 2: Match — Find Relevant Projects
 
-**If reading from cache (Step 0.3 = YES):** scan the `Known Pitfalls`, `Reusable Patterns`, and `Coding Conventions` sections of `$DOC_HUB/_exp_memory.md`. Match entries to the current task by keywords and context. Skip the project-tag matching below. After matching → go to Phase 4 to synthesize the briefing from cache entries.
+**If reading from cache (Step 0.2 = YES):** scan the `Known Pitfalls`, `Reusable Patterns`, and `Coding Conventions` sections of `$DOC_HUB/_exp_memory.md`. Match entries to the current task by keywords and context. Skip the project-tag matching below. After matching → go to Phase 4 to synthesize the briefing from cache entries.
 
-**If running full cycle (Step 0.3 = NO):** read the frontmatter tags of each project document and compare against the current task:
+**If running full cycle (Step 0.2 = NO):** read the frontmatter tags of each project document and compare against the current task:
 
 | Match dimension | How to check | Example |
 |-----------------|-------------|---------|
@@ -158,7 +169,7 @@ Compose a briefing and output it to the conversation. It serves as a persistent 
 - Test coverage: [inferred]
 ```
 
-**When reading from cache (Step 0.3 = YES), use this simpler briefing format** — the cache already has distilled entries, no project names needed:
+**When reading from cache (Step 0.2 = YES), use this simpler briefing format** — the cache already has distilled entries, no project names needed:
 
 ```markdown
 ## Project Experience Briefing (from cache)
@@ -180,7 +191,7 @@ The briefing is your constraint system. For every subsequent decision:
 1. **Choose a library** → check Pitfalls to Avoid
 2. **Design a module** → check Reusable Patterns
 3. **Write boilerplate** → check Coding Preferences
-4. **In doubt** → cache mode: re-read `$DOC_HUB/_exp_memory.md`; full-cycle mode: re-read the relevant project document in `$DOC_HUB/<ProjectName>/`
+4. **In doubt** → cache mode: first re-read `$DOC_HUB/_exp_memory.md`; if still unclear, locate the project documents sourcing that entry and read `$DOC_HUB/<ProjectName>/<ProjectName>.md`. If source projects can't be identified, state uncertainty explicitly.
 
 **Reference the briefing explicitly in your responses:**
 
@@ -212,20 +223,21 @@ After completing the full extraction cycle (Phases 1–5), save the distilled ex
 ```
 
 **Content rules:**
-- **Known Pitfalls**: Only bugs you actually encountered and spent time fixing. Include symptom, root cause, and fix. Merge entries that are the same pitfall across projects — append source project names in parentheses.
-- **Reusable Patterns**: Only patterns observed in ≥2 projects, or highly generalizable single-project patterns. Exclude project-specific glue code. Include what problem it solves and how it works.
+- **Known Pitfalls**: Only bugs you actually encountered and spent time fixing. Include symptom, root cause, and fix. Merge two pitfalls when they share the same root cause AND the same fix pattern. If root cause differs but symptom is similar → keep separate. If root cause is same but fix differs per context → keep separate with cross-references.
+- **Reusable Patterns**: Only patterns observed in ≥2 projects, or highly generalizable single-project patterns. A single-project pattern qualifies as highly generalizable only if it would apply to any project in the same language/framework. Ask: "Would this pattern be useful in a completely different domain app using the same tech stack?" Exclude project-specific glue code. Include what problem it solves and how it works.
 - **Coding Conventions**: Only preferences stable across projects. List only conventions that differ from common defaults — skip universal ones.
-- **Hard cap**: Keep the entire file under ~40 lines. If exceeding, merge similar entries and drop the least impactful.
+- **Hard cap**: Keep the entire file under ~40 lines. If exceeding, apply in order: (1) Merge pitfalls with identical fix patterns even if symptoms differ. (2) Drop single-project patterns not meeting the generalizable test. (3) Drop conventions already common practice. (4) Drop least frequently applicable entries (count projects that exhibited the pattern/pitfall). Priority to keep: pitfalls > patterns > conventions.
 
-**This cache is read by future invocations** — if it exists, Phase 1 and Phase 3 are skipped (see Step 0.3). When new projects are completed, the user can delete this file and re-run project-experience (triggered by ADD Phase 6). Cache regeneration is manual-only — project completion is a human judgment call.
+**This cache is read by future invocations** — if it exists, Phase 1 and Phase 3 are skipped (see Step 0.2). When new projects are completed, the user can delete this file and re-run project-experience (triggered by ADD Phase 6). Cache regeneration is manual-only — project completion is a human judgment call.
 
 ## Quick Reference
 
 | Phase | Action | Time |
 |-------|--------|------|
-| 0. Locate | Discover $DOC_HUB via ~/_exp_memory.md | 5s |
-| 0.3 Cache | Check $DOC_HUB/_exp_memory.md → skip Phase 1+3 if exists | 2s |
-| 1. Survey | Read index + glob $DOC_HUB/*/*.md | 10s |
+| 0. Locate | Discover $DOC_HUB via glob `**/_exp_memory.md` in `~` | 5s |
+| 0.2 Cache | Check $DOC_HUB/_exp_memory.md → skip Phase 1+3 if exists | 2s |
+| 0.3 Find | Glob $DOC_HUB/*/*.md, filter to `<DirName>/<DirName>.md` | 3s |
+| 1. Survey | Read index + read project docs via $DOC_HUB | 10s |
 | 2. Match | Compare tags vs task (or cache entries vs task) | 5s |
 | 3. Extract | Read targeted sections from 1-2 project docs | 30-60s |
 | 4. Synthesize | Write briefing to context | 30s |
@@ -239,7 +251,7 @@ After completing the full extraction cycle (Phases 1–5), save the distilled ex
 | Mistake | Why it happens | Fix |
 |---------|---------------|-----|
 | Using relative paths | Working directory may be anywhere | Always use absolute paths from `$DOC_HUB` |
-| Skipping Phase 0 | "I already know where the docs are" | Always verify: search ~/_exp_memory.md first, then fallback to ask. |
+| Skipping Phase 0 | "I already know where the docs are" | Always verify: glob `**/_exp_memory.md` in `~` first, then fallback to ask. |
 | Not writing the briefing | "I'll remember what I read" | Without a written briefing, lessons fade within 10 message turns. Write it down. |
 | Ignoring ✅ resolved items | "That's already fixed, not relevant" | Resolved items show exactly what patterns to use INSTEAD. |
 | Reading entire project docs | "More context is better" | Trust the section mapping table. Targeted reading is faster and cleaner. |

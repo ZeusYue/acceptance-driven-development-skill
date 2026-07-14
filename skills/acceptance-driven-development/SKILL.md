@@ -7,7 +7,7 @@ description: Use when building features, fixing bugs, or adding capabilities to 
 
 Execute against a verifiable acceptance criteria checklist, looping until every criterion passes.
 
-**Core principle:** Completion has two layers. Agent work is done when zero `[ ]` remain — all requested code is written and self-reviewed. Project is complete when every item has a settled outcome: `[x]` (user-verified), `[>]` (explicitly deferred), or `[-]` (explicitly deprecated).
+**Core principle:** Completion has two layers. Agent work is done when no `[ ]` or `[~]` remain — all items are either implemented (`[!]`/`[x]`), deferred (`[>]`), or deprecated (`[-]`). Project is complete when every item has a settled outcome: `[x]` (user-verified), `[>]` (explicitly deferred), or `[-]` (explicitly deprecated).
 
 ## 🚨 FIRST RULE — Check Before You Code
 
@@ -174,6 +174,8 @@ For each `[ ]` AC, read the "How to Verify" column and classify:
 | **MANUAL** | ⚠️ | GUI/visual judgment needed | Phase 4 implements → mark `[!]` at Phase 5 |
 | **BLOCKED** | 🚫 | Environment unavailable | Mark `[!]` at Phase 5 with reason |
 
+**AUTO classification requires an executable command in the "How to Verify" column** (e.g., `pytest`, `npm test`). Vague descriptions like "check it works" → classify as MANUAL.
+
 **AUTO → BLOCKED fallback:** Verification fails due to environment (compiler not found, DLL missing) → reclassify as BLOCKED. Stop at first failure — record the reason, mark BLOCKED, continue to next item.
 
 ---
@@ -188,11 +190,11 @@ Before writing code, grep for callers of the function(s) you're about to modify.
 
 ### Behavioral changes (requires AC update + discussion):
 
-**Requires Phase 3.5 full process:** Adding/removing/changing buttons, UI state, data display, filters, validation, interaction behavior, **performance optimization** (user-perceptible behavior change — "laggy → smooth" is a behavioral change, not cosmetic). **Improving an existing AC's behavior** also requires Phase 3.5 if the improvement changes how the feature works.
+**Requires Phase 3.5 full process:** Adding/removing/changing buttons, UI state, data display, filters, validation, interaction behavior, **performance optimization** (user-perceptible behavior change — "laggy → smooth" is a behavioral change, not cosmetic). **Improving an existing AC's behavior** follows the standard Phase 3.5 process if the improvement changes how the feature works.
 
 **Does NOT require AC update (fast lane — impact analysis only):** Pure cosmetic (color, font, spacing) with no user-perceptible behavior change, code refactoring preserving identical behavior, build/config changes, **bug fixes that restore the originally intended behavior**.
 
-**Fast lane exit:** After impact analysis, announce `"Phase 4 Mode B — fix bug, N AC"` before writing code. The announcement is the gate into Phase 4. **If the buggy feature has no AC entry** (e.g., it was built before ADD was adopted), append a one-line AC to the appropriate category section with the next sequential ID. Use the standard 5-column format. Then proceed with the fix.
+**Fast lane exit:** After impact analysis, announce `"Phase 4 Mode B — fix bug, N AC"` before writing code. The announcement is the gate into Phase 4. **If the buggy feature has no AC entry** (e.g., it was built before ADD was adopted), append a one-line AC to the appropriate category section with the next sequential ID. Use the standard 5-column format. Present the new AC entry to the user: "I added AC-N: [description] to track this fix. OK to proceed?" Wait for confirmation before writing code. Then proceed with the fix.
 
 **How to handle — depends on size:**
 
@@ -236,6 +238,7 @@ Phase 4 has two modes. **Every code change must go through one of them.**
 - **Impact re-verification:** Phase 3.5 already demoted affected ACs. In Phase 4.8, re-verify those ACs after implementation. Restore their status to `[x]` only if they pass.
 - **Surgical changes:** Touch only what the AC requires. Every changed line must trace directly to the AC. Mention unrelated issues to the user — don't fix them.
 - **Root cause before fixing:** Trace the full call chain before editing. Fix in the shared root, not in every caller.
+- **Re-verify definition:** For AUTO items, re-run the verification command from the AC's "How to Verify" column. For MANUAL items, re-assess the feature against the criterion manually.
 
 ### Mode A: Batch
 
@@ -245,6 +248,7 @@ When the skill first loads with multiple `[ ]` items remaining: process ALL of t
 1. **First: list all [ ] AC items to be implemented** — copy their IDs and descriptions into the conversation for tracking. No code before this list is established.
 2. Implement all items sequentially. For interdependent items, implement them as a group.
 3. **After all items are implemented** — Phase 4.8: dispatch ONE review subagent for the entire batch. Prefer subagent (independent eyes). Self-review is acceptable if subagent is unavailable or project is MANUAL-heavy. PASS → continue. FAIL → fix, re-review.
+4. **Restore demoted ACs** — if Phase 3.5 impact analysis demoted any ACs from `[x]`/`[!]` to `[ ]`, re-verify them now. Restore to `[x]` if they still pass.
 
 **Interdependent ACs:** If 2+ ACs share the same code change, implement them as one group. **Every group goes through the same batch review.**
 
@@ -252,7 +256,7 @@ Marking happens in Phase 5, not here. Process all items without pausing for user
 
 **Stop when:** all items have completed steps 1-2 → Phase 5, or BLOCKED → record + continue, or CRITICAL failure → escalate.
 
-**Failure threshold:** If the same AC fails verification 3 times in Mode A (Phase 5 marks it `[ ]`, back to Phase 4, re-implement, re-verify, still fails), STOP. The verification command or the approach is likely wrong. Present findings to the user before attempting a 4th time.
+**Failure threshold:** If any AC (AUTO or MANUAL) fails verification or user testing 3 times in Mode A (Phase 5 marks it `[ ]`, back to Phase 4, re-implement, re-verify, still fails), STOP. The verification command or the approach is likely wrong. Present findings to the user before attempting a 4th time.
 
 For `[~]` items: review what's incomplete, implement the remaining part, then proceed as with `[ ]` items.
 
@@ -260,12 +264,12 @@ If AC table is large (30+ items): log a one-line progress update every 10 items 
 
 ### Mode B: Lightweight (user requests a specific change)
 
-**Skip Phase 1-3 only.** Phase 3.5 is still REQUIRED for ALL code changes including Mode B — it is the entry point. Only the batch-processing phases (1: triage, 2: sort, 3: classify) are skipped. Go from Phase 3.5 to implementation.
+**Skip Phases 1-3 (triage, sort, classify).** Phase 3.5 is still REQUIRED — it is the single entry point for all code changes. Go from Phase 3.5 to implementation.
 
 **Mode B mandatory steps (execute sequentially):**
 1. **Implement** the change
 2. **Phase 4.8** — self-review against 6-item checklist (Wiring, Safety, Fidelity, State, Impact, Framework). PASS → continue. FAIL → fix, re-review.
-3. **Restore demoted ACs** — if Phase 3.5 impact analysis demoted any ACs from `[x]`/`[!]` to `[ ]`, re-verify them now. Restore to `[x]` if they still pass. These are already-implemented features that just needed re-validation after the change.
+3. **Restore demoted ACs** — if Phase 3.5 impact analysis demoted any ACs from `[x]`/`[!]` to `[ ]`, re-verify them now. Restore to `[x]` if they still pass. If re-verification fails, the change introduced a regression. Announce: "This change broke AC-N which previously passed. Options: (a) fix the regression now, (b) accept the tradeoff and mark AC-N as `[!]` with a note." Do not silently leave it as `[ ]`. These are already-implemented features that just needed re-validation after the change.
 4. **Mark `[!]`** in AC table (implemented, awaiting user verification)
 5. Done — this change only. Batch mode is for initial full scans, not for Mode B.
 
@@ -275,7 +279,7 @@ Step 1 → Step 2 → Step 3 → Step 4 — execute sequentially. Step 4 only af
 
 > "This feature has failed 3 times. The approach might be wrong. Want to switch approaches? (a) redesign via Phase 3.5, (b) try once more with guidance, (c) defer — mark [>]."
 
-Wait for the user to decide before continuing.
+Wait for the user to decide before continuing. If deferring (option c), also revert demotion notes on affected ACs — restore them to their original `[x]`/`[!]` status since the change that would have affected them is being deferred.
 
 **Execution methods (both modes):**
 - New features (no code exists): `Skill("writing-plans")` → `Skill("subagent-driven-development")`
@@ -304,9 +308,9 @@ After code compiles. Mode A marks in Phase 5, not here. Mode B marks `[!]` after
 
 **Mode B (lightweight):** Self-review inline against the 6-item checklist above.
 
-PASS → one line. FAIL → file:line + severity (CRITICAL/HIGH/MEDIUM/LOW) + fix.
+PASS → output one line per checklist item (e.g., "1. Wiring: OK. 2. Safety: OK..."). FAIL → file:line + severity (CRITICAL/HIGH/MEDIUM/LOW) + fix.
 
-**Framework-specific (both modes):** Apply relevant section from `references/framework-review-checklist.md`.
+**Framework-specific (both modes):** Apply relevant section from `references/framework-review-checklist.md`. If `references/framework-review-checklist.md` does not exist, skip item 6 and note "No framework checklist available".
 
 ---
 
@@ -318,13 +322,13 @@ Two separate paths based on implementation mode:
 
 | Classification | Action |
 |----------------|--------|
-| **AUTO** | Run verification command from AC table. Match → mark `[x]`. Mismatch → mark `[ ]`, return to Phase 4. |
+| **AUTO** | Run verification command from AC table. Present the verification output: command run, expected result, actual result. Only then mark `[x]`. Mismatch → mark `[ ]`, return to Phase 4. |
 | **MANUAL** | Mark `[!]`. Note: `⚠️ Needs user verification: [what to test]` |
 | **BLOCKED** | Mark `[!]`. Note: `🚫 BLOCKED: [reason]` |
 
 **Path B — Mode B items** (skip Phase 1-3, no AUTO/MANUAL/BLOCKED classification):
 - Verify they are marked `[!]` (should have been set in Phase 4.8 step 4).
-- If any Mode B item is still `[ ]`, it was missed — return to Phase 4 Mode B for that item.
+- If any Mode B item is still `[ ]`, it was missed — mark it `[!]` now with a note: "Implemented but review marking was missed." Then proceed.
 - All Mode B items require user verification — no AUTO marking allowed.
 
 **Presentation:** Combine all `[!]` items from both paths into one checklist. Present to the user with specific verification instructions. After user confirms each item works → mark `[x]`.
@@ -343,8 +347,8 @@ After marking all items, proceed to Phase 6 to check completion.
 
 ```
 Phase 5 →
-  ├── Any AUTO [ ] remaining? → Phase 4 (MANDATORY)
-  └── No [ ] items? → [!] checklist → user test → [x]
+  ├── Any [ ] remaining? → Phase 4 (MANDATORY)
+  └── No [ ] remaining? → [!] checklist → user test → [x]
                      → [~] items → settle: [x] / [>] / [-]
                      → All [x] [>] [-]? → project doc
 ```
@@ -353,6 +357,8 @@ Phase 5 →
 
 - **Demotion note** (`⚠️ Affected by [AC-ID] change`) → this item was previously `[x]`/`[!]` and just needs re-verification. Re-verify now; restore to `[x]` if passing, or escalate if not.
 - **No demotion note** → genuinely unimplemented. Process them: 1-2 items → Phase 4 Mode B; 3+ items → Phase 4 Mode A.
+
+If zero `[!]` items exist, skip this step and proceed directly to `[~]` settling or project document.
 
 **`[!]` → `[x]` loop:** When `[!]` items exist, present them as a user checklist with specific instructions. Wait for the user to test and confirm each one. After each confirmation → immediately mark `[x]`. Repeat until zero `[!]` remain.
 
