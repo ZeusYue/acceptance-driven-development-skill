@@ -49,7 +49,7 @@ Project doc auto-generated ──► Next project learns from this one ✦
 |-----------|----------|
 | "Done" means code compiled | "Done" means every AC box is `[x]` |
 | Agent assumes, you correct | Agent asks, you confirm, *then* builds |
-| Agent says "I fixed it" — you test and find 3 more bugs | Agent self-reviews against 5 checks *before* showing you |
+| Agent says "I fixed it" — you test and find 3 more bugs | Agent self-reviews against 6 checks *before* showing you |
 | Fixing one thing breaks another | Impact analysis demotes affected ACs before changing code |
 | 3 failed attempts → agent keeps patching | 3 failures → agent stops and asks "wrong approach?" |
 | Each project starts from scratch | `project-experience` learns from past projects; cache makes it ~15s |
@@ -124,7 +124,7 @@ ADD works great standalone. But if you have [Superpowers](https://github.com/obr
 
 ## 🔗 The Experience Loop
 
-ADD ships with `project-experience` — a companion skill that reads your past project docs and extracts reusable patterns, known pitfalls, and coding conventions. First run scans all projects (~2 min) and generates an `exp_memory.md` cache. Every subsequent run hits the cache in ~15 seconds. ADD also reads the cache during feature design (Phase 3.5), so past project experience surfaces at every decision point.
+ADD ships with `project-experience` — a companion skill that reads your past project docs and extracts reusable patterns, known pitfalls, and coding conventions. First run scans all projects (~2 min) and generates an `_exp_memory.md` cache. Every subsequent run hits the cache in ~15 seconds. ADD also reads the cache during feature design (Phase 3.5), so past project experience surfaces at every decision point.
 
 > "You used Generation Counter in 3 projects for async race conditions — I'll use it here too."
 > "You fixed vcpkg hardcoding with `$$PWD/bin` — let's do that from the start."
@@ -195,6 +195,18 @@ A: Phase 0 detects this and triggers the full setup — brainstorming → design
 
 ## Changelog
 
+### v1.3 — Robustness Audit (2026-07-11)
+
+- **`_exp_memory.md` renamed** (from `.exp_memory.md`): visible in Obsidian and file managers that hide dot-files
+- **Two-layer completion refined**: agent work done = no `[ ]` or `[~]`; project complete = only `[x]` `[>]` `[-]` remain
+- **Mode A + Mode B both restore demoted ACs**: impact-analysis demotions are re-verified and restored after implementation, not left for Phase 6 to catch
+- **AUTO classification requires an executable command**: vague "check it works" descriptions are classified MANUAL instead
+- **AUTO verification shows its work**: command, expected, and actual output presented before marking `[x]`
+- **Self-review reports per-item**: Phase 4.8 PASS outputs one line per checklist item — no silent "PASS"
+- **Experience cache validates content**: placeholder or empty caches trigger a full scan instead of a false hit
+- **Cache merge/overflow rules defined**: explicit criteria for merging pitfalls, judging pattern generalizability, and priority when trimming to the size cap
+- **20+ consistency fixes**: Mode A step count, demotion-restore exception, fast-lane confirmation wording, Phase 6 flow diagram, failure thresholds for both modes, regression handling, and more
+
 ### v1.2 — Unified Document Hub (2026-07-10)
 
 - **`$DOC_HUB` centralized architecture**: all ACs, project docs, templates, and experience cache under one directory independent of code
@@ -211,7 +223,7 @@ A: Phase 0 detects this and triggers the full setup — brainstorming → design
 
 ### v1.1 — Experience Cache & Quality Audit (2026-07-09)
 
-- **Experience cache**: `project-experience` generates `exp_memory.md` — ~15s fast path after first scan
+- **Experience cache**: `project-experience` generates `_exp_memory.md` — ~15s fast path after first scan
 - **Cache-aware Phase 3.5 & Gate 1**: past project pitfalls surface at every decision point
 - **Event-driven AC updates**: user confirms test → `[x]` immediately, no waiting
 - **Transparency rule**: every phase/mode entry announced to user for supervision
@@ -219,4 +231,4 @@ A: Phase 0 detects this and triggers the full setup — brainstorming → design
 
 ### v1.0 — Initial Release (2026-07-03)
 
-- Full 9-phase workflow, dual-mode implementation (batch/lightweight), 5-item self-review, hard-gate completion
+- Full 9-phase workflow, dual-mode implementation (batch/lightweight), 6-item self-review, hard-gate completion
