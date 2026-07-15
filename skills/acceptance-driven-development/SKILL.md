@@ -16,7 +16,7 @@ Before writing ANY code, in EVERY conversation turn: **Phase 3.5 first, then Pha
 
 Phase 3.5 is the **single entry point** for all code changes:
 - New feature / behavioral change → update AC → discuss → confirm → Phase 4
-- Bug fix on existing AC → impact analysis → demote affected ACs → Phase 4 (fast lane, no discussion needed)
+- Bug fix on existing AC → impact analysis → demote affected ACs → Phase 4 (fast lane, no discussion needed — unless the buggy feature has no AC yet, then confirm the new AC once)
 - Improvement to existing AC → check if behavioral change → if yes: update AC → discuss → confirm; if no: impact analysis → demote → Phase 4
 
 Phase 3.5 is the only path to Phase 4. Every code change goes through Phase 3.5. **Before writing any code, announce which Phase 4 mode you're entering** (e.g., "Phase 4 Mode B — fix bug, 1 AC"). This is a structural guardrail — awareness of it does not create an exception.
@@ -46,6 +46,7 @@ Phase 3.5 is the only path to Phase 4. Every code change goes through Phase 3.5.
 | "Entering Phase 4 for a one-line fix is overkill" | Phase 4 Mode B is lightweight: implement → self-review → mark [!]. |
 | "I can just self-review, subagent is overhead" | Prefer subagent (independent eyes catch what you missed). Self-review is acceptable for MANUAL-heavy projects. |
 | "User said test passed, I'll update AC later" | User confirming test passed = update AC to `[x]` NOW. Not "later" — immediately. |
+| "Self-review is enough, I'll skip the checklist" | Phase 4.8 is an exit gate. Output all 6 checklist items explicitly — no silent PASS. |
 
 ## Prerequisites
 
@@ -94,12 +95,20 @@ User says "implement X" or "add Y feature"
 
 All project ACs, project docs, templates, and the experience cache live under a single **document hub** (`$DOC_HUB`). This is independent of code directories — the hub is shared across all projects, sessions, and windows.
 
-**Step 0.1 — Discover $DOC_HUB via the cache anchor:**
+**Step 0.1 — Discover $DOC_HUB (three-tier, most reliable first):**
+(Expand `~` to the user's home directory — `$HOME` on Unix, `%USERPROFILE%` on Windows. Do not look for a literal `~` folder.)
 
-1. `Glob pattern="**/_exp_memory.md" path="~"` — search home directory for the experience cache anchor file
-   - **Found** → `$DOC_HUB` = the directory containing `_exp_memory.md`. Skip to Step 0.2.
-   - **Not found** → ask the user once: "I need a central directory to store acceptance criteria and project experience for ALL your projects. This directory will be shared across projects, so pick a stable location — don't put it inside a specific project folder. Suggested: ~/project-docs/ (just give me the path; I'll create the needed files there.)"
-     → `$DOC_HUB` = user's answer. Create the directory. **Immediately create `$DOC_HUB/_exp_memory.md`** with `# Project Experience Cache\n\n> No completed projects yet.` so other sessions discover the hub immediately.
+1. **Read the pointer file** `~/.add-hub` — a one-line file whose content is the absolute path to `$DOC_HUB`.
+   - **Exists** → read the path, then verify the directory exists AND contains `_exp_memory.md`. If both hold → `$DOC_HUB` = that path (trimmed), go to Step 0.2 (direct read, reliable across all agents). If the path is missing or has no `_exp_memory.md` → the pointer is stale; ignore it and fall through to tier 2 (which will rewrite `~/.add-hub`).
+   - **Not found** → try tier 2.
+2. **Fallback search** `Glob pattern="**/_exp_memory.md" path="~"` — the cache anchor.
+   - **Found** → `$DOC_HUB` = the directory containing `_exp_memory.md`. If multiple `_exp_memory.md` files match: prefer the directory that also contains project subfolders with `AC.md` or holds `ac-template.md`/`project-index.md`; if still ambiguous, ask the user which to use before proceeding. **Write `~/.add-hub`** with the chosen path so future sessions skip the search (never write the pointer from an ambiguous, unconfirmed match). Go to Step 0.2.
+   - **Not found** → tier 3.
+3. **Ask the user once:** "I need a central directory to store acceptance criteria and project experience for ALL your projects. This directory will be shared across projects, so pick a stable location — don't put it inside a specific project folder. Suggested: ~/project-docs/ (just give me the path; I'll create the needed files there.)"
+   → `$DOC_HUB` = user's answer. Then perform ALL THREE actions in order (none optional):
+   1. Create the directory `$DOC_HUB` if it doesn't exist.
+   2. Create `$DOC_HUB/_exp_memory.md` with content `# Project Experience Cache\n\n> No completed projects yet.`
+   3. **Write `~/.add-hub`** — a one-line file whose entire content is the absolute `$DOC_HUB` path. This is what lets every future session (any agent, any window) find the hub by a single direct read. Skipping this step means the next session has to ask the user again.
 
 **Step 0.2 — Find project AC:**
 
@@ -242,13 +251,13 @@ Phase 4 has two modes. **Every code change must go through one of them.**
 
 ### Mode A: Batch
 
-When the skill first loads with multiple `[ ]` items remaining: process ALL of them sequentially.
+Triggered two ways: (a) the skill first loads with multiple `[ ]` items, or (b) a confirmed Phase 3.5 change spans 3+ ACs. Process ALL target items sequentially.
 
 **Mode A mandatory steps (execute sequentially):**
 1. **First: list all [ ] AC items to be implemented** — copy their IDs and descriptions into the conversation for tracking. No code before this list is established.
 2. Implement all items sequentially. For interdependent items, implement them as a group.
 3. **After all items are implemented** — Phase 4.8: dispatch ONE review subagent for the entire batch. Prefer subagent (independent eyes). Self-review is acceptable if subagent is unavailable or project is MANUAL-heavy. PASS → continue. FAIL → fix, re-review.
-4. **Restore demoted ACs** — if Phase 3.5 impact analysis demoted any ACs from `[x]`/`[!]` to `[ ]`, re-verify them now. Restore to `[x]` if they still pass. (This restoration is the one exception to "marking happens in Phase 5" — demoted ACs were already `[x]`, so restoring their prior status is not new marking.)
+4. **Restore demoted ACs** — if Phase 3.5 impact analysis demoted any ACs from `[x]`/`[!]` to `[ ]`, re-verify them now. Restore to `[x]` if they still pass. (This restoration is the one exception to Mode A's rule that "marking happens in Phase 5" — demoted ACs were already `[x]`, so restoring their prior status is not new marking.)
 
 **Interdependent ACs:** If 2+ ACs share the same code change, implement them as one group. **Every group goes through the same batch review.**
 
@@ -271,7 +280,7 @@ If AC table is large (30+ items): log a one-line progress update every 10 items 
 2. **Phase 4.8** — self-review against 6-item checklist (Wiring, Safety, Fidelity, State, Impact, Framework). PASS → continue. FAIL → fix, re-review.
 3. **Restore demoted ACs** — if Phase 3.5 impact analysis demoted any ACs from `[x]`/`[!]` to `[ ]`, re-verify them now. Restore to `[x]` if they still pass. If re-verification fails, the change introduced a regression. Announce: "This change broke AC-N which previously passed. Options: (a) fix the regression now, (b) accept the tradeoff and mark AC-N as `[!]` with a note." Do not silently leave it as `[ ]`. These are already-implemented features that just needed re-validation after the change.
 4. **Mark `[!]`** in AC table (implemented, awaiting user verification)
-5. Done — this change only. Batch mode is for initial full scans, not for Mode B.
+5. Done — this change only. Batch mode handles multi-item work (initial scan or 3+ AC change); Mode B handles single small changes.
 
 Step 1 → Step 2 → Step 3 → Step 4 — execute sequentially. Step 4 only after Step 2+3 pass. The user verifies in Phase 5 and marks `[x]`.
 
@@ -327,7 +336,7 @@ Two separate paths based on implementation mode:
 | **BLOCKED** | Mark `[!]`. Note: `🚫 BLOCKED: [reason]` |
 
 **Path B — Mode B items** (skip Phase 1-3, no AUTO/MANUAL/BLOCKED classification):
-- Verify they are marked `[!]` (should have been set in Phase 4.8 step 4).
+- Verify they are marked `[!]` (should have been set in Mode B step 4).
 - If any Mode B item is still `[ ]`, it was missed — mark it `[!]` now with a note: "Implemented but review marking was missed." Then proceed.
 - All Mode B items require user verification — no AUTO marking allowed.
 
@@ -343,7 +352,7 @@ After marking all items, proceed to Phase 6 to check completion.
 
 ## Phase 6: Complete (HARD GATE)
 
-**Agent work done when:** No `[ ]` remains. **Project complete (docs ready) when:** Every AC is `[x]`, `[>]`, or `[-]` — no `[ ]`, `[!]`, or `[~]`.
+**Agent work done when:** No `[ ]` or `[~]` remains. **Project complete (docs ready) when:** Every AC is `[x]`, `[>]`, or `[-]` — no `[ ]`, `[!]`, or `[~]`.
 
 ```
 Phase 5 →
@@ -381,7 +390,7 @@ If zero `[!]` items exist, skip this step and proceed directly to `[~]` settling
 | Phase | Action | Key |
 |-------|--------|-----|
 | 🚨 | **FIRST RULE** | ALL code changes → Phase 3.5 first. Phase 3.5 is the only path to Phase 4. |
-| 0 | Locate doc hub + AC | Search ~/_exp_memory.md → $DOC_HUB. New project → Gate 1 (brainstorm) → Gate 2 (AC) |
+| 0 | Locate doc hub + AC | Read ~/.add-hub → search ~/_exp_memory.md → ask user. New project → Gate 1 → Gate 2 |
 | 1 | Triage statuses | `[ ]` `[~]` `[x]` `[-]` `[!]` `[>]` |
 | 2 | Sort by dependency | Features→Compat→Perf→Quality. No labels? Infer from content |
 | 3 | Classify verifiability | AUTO ✅ / MANUAL ⚠️ / BLOCKED 🚫 |

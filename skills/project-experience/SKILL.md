@@ -62,21 +62,28 @@ New task received ──► Is it code/architecture/dependency related?
 
 All project documents and the experience cache live under a single directory (`$DOC_HUB`), independent of code directories. Use **absolute paths only**.
 
-### Step 0.1: Discover $DOC_HUB via the cache anchor
+### Step 0.1: Discover $DOC_HUB (three-tier, most reliable first)
 
-1. `Glob pattern="**/_exp_memory.md" path="~"` — search home directory for the experience cache anchor
-   - **Found** → `$DOC_HUB` = the directory containing `_exp_memory.md`. If multiple `_exp_memory.md` files are found, pick the one closest to the home directory root (shortest path). If tied, pick the most recently modified. Warn the user: "Multiple experience caches found — using [path]." Skip to Step 0.2.
-   - **Not found** → ask the user once: "I need a central directory to store acceptance criteria and project experience for ALL your projects. This directory will be shared across projects, so pick a stable location — don't put it inside a specific project folder. Suggested: ~/project-docs/ (just give me the path; I'll create the needed files there.)"
-     → `$DOC_HUB` = user's answer. Create directory if needed. **Immediately create `$DOC_HUB/_exp_memory.md`** with `# Project Experience Cache\n\n> No completed projects yet.` so other sessions discover the hub immediately.
+(Expand `~` to the user's home directory — `$HOME` on Unix, `%USERPROFILE%` on Windows. Do not look for a literal `~` folder.)
+
+1. **Read the pointer file** `~/.add-hub` — a one-line file whose content is the absolute path to `$DOC_HUB`.
+   - **Exists** → read the path, then verify the directory exists AND contains `_exp_memory.md`. If both hold → `$DOC_HUB` = that path (trimmed), go to Step 0.2 (direct read, reliable across all agents). If the path is missing or has no `_exp_memory.md` → the pointer is stale; ignore it and fall through to tier 2 (which will rewrite `~/.add-hub`).
+   - **Not found** → try tier 2.
+2. **Fallback search** `Glob pattern="**/_exp_memory.md" path="~"` — the cache anchor.
+   - **Found** → `$DOC_HUB` = the directory containing `_exp_memory.md`. If multiple match: prefer the directory that also contains project subfolders with `AC.md` or holds `ac-template.md`/`project-index.md`; if still ambiguous, ask the user which to use before proceeding. **Write `~/.add-hub`** with the chosen path so future sessions skip the search (never write the pointer from an ambiguous, unconfirmed match). Go to Step 0.2.
+   - **Not found** → tier 3.
+3. **Ask the user once:** "I need a central directory to store acceptance criteria and project experience for ALL your projects. This directory will be shared across projects, so pick a stable location — don't put it inside a specific project folder. Suggested: ~/project-docs/ (just give me the path; I'll create the needed files there.)"
+   → `$DOC_HUB` = user's answer. Then perform ALL THREE actions in order (none optional):
+   1. Create the directory `$DOC_HUB` if it doesn't exist.
+   2. Create `$DOC_HUB/_exp_memory.md` with content `# Project Experience Cache\n\n> No completed projects yet.`
+   3. **Write `~/.add-hub`** — a one-line file whose entire content is the absolute `$DOC_HUB` path. This is what lets every future session find the hub by a single direct read. Skipping this step means the next session has to ask the user again.
 
 ### Step 0.2: Check experience cache
 
 Check if `$DOC_HUB/_exp_memory.md` exists:
 
-- **YES** → read it. If it contains only the placeholder (`> No completed projects yet.`) or has no entries under `## Known Pitfalls` or `## Reusable Patterns`, treat as NO (full cycle). Otherwise skip Phase 1 and 3, go directly to Phase 2.
+- **YES (with real content)** → read it. Skip Phase 1 and 3, go directly to Phase 2. **Content validation:** if the file contains only the placeholder (`> No completed projects yet.`), or has no `## Known Pitfalls` / `## Reusable Patterns` heading, or those sections are empty → treat as NO (full cycle).
 - **NO** → proceed with full Phase 1–5. After Phase 5, save the cache (see Phase 6).
-
-After reading, validate: if the file has no `## Known Pitfalls` or `## Reusable Patterns` heading, or if content under those headings is empty, treat as NO (full cycle).
 
 ### Step 0.3: Find project documents
 
@@ -90,14 +97,16 @@ Store `$DOC_HUB` for all subsequent paths.
 
 Read the project index (`$DOC_HUB/project-index.md`) if it exists.
 
-Also run a direct file listing to discover all project documents:
+If Step 0.3 already produced the filtered project list, reuse it — skip the glob below. Otherwise run a direct file listing:
 
 ```
 Glob pattern="$DOC_HUB/*/*.md"
 ```
 
+Filter to project docs only: keep files matching `<DirName>/<DirName>.md` (named after their containing directory). Ignore `AC.md`, `design.md`, `ac-template.md`, `project-doc-template.md`, `project-index.md`.
+
 From the survey, extract:
-- How many projects exist (each subdirectory under `$DOC_HUB` = one project)
+- How many projects exist (each subdirectory under `$DOC_HUB` with a `<Dir>/<Dir>.md` = one project)
 - Their tags (languages, frameworks, domains) — read frontmatter of each project document found
 - Their status (maintained, completed, archived)
 
@@ -234,7 +243,7 @@ After completing the full extraction cycle (Phases 1–5), save the distilled ex
 
 | Phase | Action | Time |
 |-------|--------|------|
-| 0. Locate | Discover $DOC_HUB via glob `**/_exp_memory.md` in `~` | 5s |
+| 0. Locate | Read ~/.add-hub → fallback glob `**/_exp_memory.md` → ask user | 2s |
 | 0.2 Cache | Check $DOC_HUB/_exp_memory.md → skip Phase 1+3 if exists | 2s |
 | 0.3 Find | Glob $DOC_HUB/*/*.md, filter to `<DirName>/<DirName>.md` | 3s |
 | 1. Survey | Read index + read project docs via $DOC_HUB | 10s |
@@ -251,7 +260,7 @@ After completing the full extraction cycle (Phases 1–5), save the distilled ex
 | Mistake | Why it happens | Fix |
 |---------|---------------|-----|
 | Using relative paths | Working directory may be anywhere | Always use absolute paths from `$DOC_HUB` |
-| Skipping Phase 0 | "I already know where the docs are" | Always verify: glob `**/_exp_memory.md` in `~` first, then fallback to ask. |
+| Skipping Phase 0 | "I already know where the docs are" | Always run Step 0.1: read `~/.add-hub` → fallback glob `**/_exp_memory.md` → ask user. |
 | Not writing the briefing | "I'll remember what I read" | Without a written briefing, lessons fade within 10 message turns. Write it down. |
 | Ignoring ✅ resolved items | "That's already fixed, not relevant" | Resolved items show exactly what patterns to use INSTEAD. |
 | Reading entire project docs | "More context is better" | Trust the section mapping table. Targeted reading is faster and cleaner. |

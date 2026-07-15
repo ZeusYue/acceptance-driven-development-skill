@@ -195,6 +195,14 @@ A: Phase 0 detects this and triggers the full setup — brainstorming → design
 
 ## Changelog
 
+### v1.4 — Reliable Hub Discovery (2026-07-14)
+
+- **`~/.add-hub` pointer file**: Phase 0 now discovers `$DOC_HUB` by directly reading a one-line pointer file instead of a fragile recursive glob — works reliably across Claude Code, Codex, opencode, and any agent (a recursive `~` search failed or timed out on some agents' file tools)
+- **Three-tier discovery**: (1) read `~/.add-hub` → (2) fallback glob `**/_exp_memory.md` → (3) ask user, then write the pointer. Load once, found forever
+- **Stale-pointer handling**: if the pointer path was moved/deleted, it's detected and rebuilt automatically
+- **Multi-cache tie-breaker**: ambiguous glob matches ask before writing the pointer — no silent misdirection
+- **9 consistency fixes**: `[~]` in agent-done condition, Mode A trigger scope (initial scan OR 3+ AC change), Phase 5 cross-reference, Phase 4.8 rationalization row, Windows `~` expansion note, and more
+
 ### v1.3 — Robustness Audit (2026-07-11)
 
 - **`_exp_memory.md` renamed** (from `.exp_memory.md`): visible in Obsidian and file managers that hide dot-files
