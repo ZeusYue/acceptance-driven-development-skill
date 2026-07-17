@@ -1,116 +1,68 @@
-# Codex 适配指南
+﻿# Codex Adaptation Guide
 
-## 安装
+## Installation
 
-### Skill 文件位置
+Copy the two skill folders into Codex's configured skills directory (commonly `~/.codex/skills/`):
 
-```
-~/.codex/skills/acceptance-driven-development/SKILL.md
-~/.codex/skills/acceptance-driven-development/IMPROVEMENT-GUIDE.md
-~/.codex/skills/acceptance-driven-development/references/...
-~/.codex/skills/project-experience/SKILL.md
+```text
+~/.codex/skills/acceptance-driven-development/
+~/.codex/skills/project-experience/
 ```
 
-或跨平台共享路径：`~/.agents/skills/`
+Restart Codex and confirm that the skills are discoverable in the current host. The project-document hub is **not** a code-project folder: ADD discovers or creates it on first use through `~/.add-hub`.
 
-### 配置多 Agent 支持
+## Current ADD Model
 
-编辑 `~/.codex/config.toml`：
-
-```toml
-[features]
-multi_agent = true
+```text
+~/.add-hub                         → absolute path to $DOC_HUB
+$DOC_HUB/
+  _exp_memory.md                   → optional cache, not Hub identity
+  ac-template.md
+  project-doc-template.md
+  project-index.md
+  <ProjectName>/AC.md
+  <ProjectName>/<ProjectName>.md
 ```
 
-这是 Phase 4 Mode A 深度审查所需的——`spawn_agent` / `wait_agent` / `close_agent` 需要此配置。
+An existing directory referenced by `~/.add-hub` remains the active Hub even if `_exp_memory.md` is missing. A missing cache triggers a full rebuild in that same Hub; it must not trigger a new Hub search.
 
-### Vault 文件
+## Capability Mapping
 
-同 Claude 版本，复制到你的 Obsidian Vault 的 `claude/` 目录。
+ADD describes capabilities, not mandatory tool names. In Codex, use the native tool available in the active host:
 
----
+| ADD need | Codex-compatible behavior |
+|----------|---------------------------|
+| Read/edit files | Use the current file/shell editing tool; preserve UTF-8 and inspect the surrounding context first. |
+| Enumerate files | Use the current host's native listing/search command. On Windows PowerShell, prefer `Get-ChildItem`; do not assume Unix `find` or `cat`. |
+| Track multi-step work | Use the current plan/task mechanism when present; otherwise state the next checked step inline. |
+| Independent batch review | Dispatch a review subagent only when the host exposes one **and** the current policy permits it. Otherwise perform and report the six-point self-review. |
+| Invoke companion skills | Follow the host's skill-discovery mechanism. If a companion skill is unavailable, apply ADD's documented fallback instead of blocking. |
 
-## 工具映射
+## Phase 0 in Codex
 
-SKILL.md 中的 Claude Code 工具调用，在 Codex 中对应：
+1. Read `~/.add-hub`.
+2. If its trimmed path is an existing directory, use it as `$DOC_HUB`.
+3. Only if the pointer is absent or invalid, search for `_exp_memory.md`; resolve ambiguity with the user before rewriting the pointer.
+4. Check `_exp_memory.md` separately. It controls the experience-cache fast path, not the Hub identity.
 
-| SKILL.md 写法 | Codex 等价 |
-|--------------|-----------|
-| `Read file_path="path"` | `shell` → `cat path` |
-| `Glob pattern="..."` | `shell` → `find` / `ls` |
-| `Write file_path="path"` | `apply_patch` |
-| `Edit file_path="path"` | `apply_patch` |
-| `Bash command` | `shell` |
-| `Skill("name")` | 技能原生加载，按说明执行 |
-| `TaskCreate` / `TaskUpdate` | `update_plan` |
-| 子 Agent（Phase 4.8 Mode A） | `spawn_agent` + `wait_agent` + `close_agent` |
+## Phase 4.8 Review in Codex
 
----
+For Mode A, prefer an independent review when the host and policy permit it. For Mode B, or when delegation is unavailable, report all six checks explicitly:
 
-## SKILL.md 中需要替换的文本
+1. Wiring
+2. Safety
+3. Fidelity
+4. State
+5. Impact on other ACs
+6. Framework-specific checks
 
-将以下内容替换为 Codex 等价写法：
+## Cache Refresh
 
-### Phase 0 — 定位 Vault
+After a completed project, ADD may request: `Refresh the experience cache for the current $DOC_HUB.` `project-experience` then performs a forced rebuild, writes `_exp_memory.md.tmp`, validates it, and replaces the cache only after success. Never delete the cache merely to force a refresh.
 
-```
-# Claude 版本
-Glob pattern="**/.obsidian"
-Read file_path="<VAULT>/projects/<ProjectName>/验收标准.md"
+## Quick Verification
 
-# Codex 版本
-shell: find ~ -maxdepth 4 -name ".obsidian" -type d
-shell: cat "<VAULT>/projects/<ProjectName>/验收标准.md"
-```
+Ask for a small implementation using ADD. A correct run announces Phase 0, then either:
 
-### Phase 4 — 子 Agent 审查
-
-```
-# Claude 版本
-dispatch a review subagent
-
-# Codex 版本
-spawn_agent → wait_agent → close_agent
-```
-
-### Phase 4 — 任务跟踪
-
-```
-# Claude 版本
-TaskCreate / TaskUpdate
-
-# Codex 版本
-update_plan
-```
-
-### 指令文件
-
-```
-# Claude 版本
-CLAUDE.md / CLAUDE.local.md
-
-# Codex 版本
-AGENTS.md / AGENTS.override.md (~/.codex/AGENTS.md for global)
-```
-
----
-
-## Codex 特有注意事项
-
-1. **子 Agent 配置**：必须在 `config.toml` 中启用 `multi_agent = true`，否则 `spawn_agent` 不可用
-2. **文件操作**：Codex 使用 `apply_patch`（结构化 diff），不是直接 Write/Edit
-3. **技能加载**：`Skill("name")` 在 Codex 中是原生加载，不需要显式调用工具——技能匹配后直接按说明执行
-4. **AGENTS.md 路径**：Codex 从项目根目录向下遍历，合并所有 `AGENTS.md`（最大 32KiB）。在项目根目录放置你的项目级 `AGENTS.md`
-5. **沙箱限制**：Codex App 可能在沙箱中运行，无法执行 git push/branch 操作。Phase 6 finishing 时需用 App 原生控件
-
----
-
-## 快速验证
-
-安装后在 Codex 中输入：
-
-```
-帮我实现一个简单功能，使用 ADD 技能
-```
-
-如果 Codex 自动进入 Phase 0（定位 Vault + 读取验收标准），说明安装成功。
+- Phase 3.5A for already-approved `[ ]` / `[~]` backlog work, followed by Mode A; or
+- Phase 3.5B for a mid-development change, followed by the appropriate confirmed Mode.

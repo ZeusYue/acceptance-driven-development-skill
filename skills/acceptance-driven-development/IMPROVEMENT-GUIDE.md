@@ -31,6 +31,40 @@ Skill 的核心循环是：`AC 表有 [ ] → 做 → 验 → 标记 → 还有 
 
 ---
 
+## v2.0（2026-07-17）发行与安装契约
+
+### 发行包结构
+
+- 保持仓库根目录的 `skills/` 作为可安装 Skill 集合；这让 CC Switch 可以通过 `Owner=ZeusYue`、`Name=acceptance-driven-development-skill`、`Branch=main`、`Subdirectory=skills` 直接发现两个 Skill。
+- README 是 GitHub 产品首页；复杂的 CC Switch UI 步骤放入 `docs/CCSWITCH.md` 和 `docs/CCSWITCH-zh.md`，避免首页被平台细节淹没。
+- 每次发行前运行 `tests/validate-release.ps1`。它必须验证 README 的安装路径、CC Switch 配置、迁移说明、旧用户名清理和核心工作流契约。
+
+### 用户文档的边界
+
+1. 明确区分“ADD 核心能力”“可选 Skill”“宿主能力”，不要声称所有 Agent 行为完全一致。
+2. 手动安装文档始终要求同时复制 ADD 和 project-experience；后者运行时可选，但完整体验推荐安装。
+3. `$DOC_HUB`、`~/.add-hub`、缓存刷新和 v2.0 迁移规则属于首页必需信息；框架审查细节不应塞入 README。
+4. GitHub 用户名、LICENSE 署名、远程链接和 CC Switch 配置必须同时更新，避免身份漂移。
+
+## v1.5（2026-07-17）工作流契约加固
+
+### 已修复的设计断点
+
+| 断点 | 新规则 | 原因 |
+|------|--------|------|
+| Hub 指针依赖缓存文件 | 指针目录存在即有效；缓存是独立状态 | 刷新缓存时删除 `_exp_memory.md` 会把正确的 Hub 误判为失效 |
+| 首次批处理绕过 Phase 3.5 | 已批准积压走 Phase 3.5A → Mode A | “所有代码先走 3.5”与“Phase 1–3 直接 Mode A”不再矛盾 |
+| `[!]` 语义混杂 | `[manual]` / `[affected]` / `[blocked]` 注释 | Phase 6 能正确区分用户测试、回归验证和环境阻塞 |
+| 可选技能被写成必装 | 核心流程 + optional enhancement + host capability 三层 | 缺少子 Agent 或外部 Skill 时不能阻塞 ADD |
+| 缓存刷新删除旧文件 | 强制重建写 `_exp_memory.md.tmp`，验证后替换 | 刷新失败不丢失原缓存 |
+
+### 修改这套规则时的约束
+
+1. 不要让新的流程绕过 Phase 3.5A 或 Phase 3.5B；二者共同构成唯一入口。
+2. 不要再将 `_exp_memory.md` 当成 `$DOC_HUB` 的身份标识。
+3. 不要新增第七个主状态；先用 `[!]` 的标准注释表达验证子状态。
+4. 每次修改状态机、Hub 发现或跨 Agent 指南，都要运行 `tests/validate-release.ps1` 并同步 README、Codex 适配文档和 Vault 设计记录。
+
 ## 改进时的原则
 
 ### 1. 加规则前，先确认问题不是执行层的

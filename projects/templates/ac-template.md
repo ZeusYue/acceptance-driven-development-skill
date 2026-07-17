@@ -1,4 +1,6 @@
-# {{Project Name}} Acceptance Criteria
+﻿# {{Project Name}} Acceptance Criteria
+
+> **ID rule:** Use one monotonic numeric sequence. Every new top-level criterion is `AC-<next integer>` (the current maximum numeric ID + 1). Never renumber existing rows; record requirement inserts in the Change Log.
 
 ## 🎯 Project Goal
 
@@ -8,59 +10,73 @@
 
 ---
 
-## 📋 Acceptance Criteria
+## 🧾 Acceptance Criteria
 
 ### Features
 
 | ID | Criterion | Status | How to Verify | Expected Result |
 |----|-----------|--------|---------------|-----------------|
-| AC-1 | {{description}} | [ ] | {{command / test / UI action}} | {{what to see when passing}} |
+| AC-<next integer> | {{description}} | [ ] | {{command / test / UI action}} | {{what to see when passing}} |
 
 ### Performance
 
 | ID | Criterion | Status | How to Verify | Expected Result |
 |----|-----------|--------|---------------|-----------------|
-| AC-10 | {{description}} | [ ] | | |
+| AC-<next integer> | {{description}} | [ ] | {{executable benchmark command}} | {{measurable threshold}} |
 
 ### Compatibility
 
 | ID | Criterion | Status | How to Verify | Expected Result |
 |----|-----------|--------|---------------|-----------------|
-| AC-20 | {{description}} | [ ] | | |
+| AC-<next integer> | {{description}} | [ ] | {{environment + command}} | {{supported behavior}} |
 
 ### Quality
 
 | ID | Criterion | Status | How to Verify | Expected Result |
 |----|-----------|--------|---------------|-----------------|
-| AC-30 | {{description}} | [ ] | | |
+| AC-<next integer> | {{description}} | [ ] | {{test command}} | {{passing test result}} |
 
 ### Backlog / Deferred
 
-<!-- Features you want but don't need now. Status: [>] -->
+| ID | Criterion | Status | How to Verify | Expected Result |
+|----|-----------|--------|---------------|-----------------|
+| AC-<next integer> | {{future work}} | [>] | {{why deferred / revisit trigger}} | {{explicit user decision}} |
 
-| ID | Criterion | Status | Reason Deferred | Upgrade Trigger |
-|----|-----------|--------|-----------------|-----------------|
-| AC-X | {{description}} | [>] | {{why not now}} | {{when to reconsider (e.g., "when user count > 1000")}} |
+---
+
+## Status Annotation Convention
+
+The primary marker remains one of `[ ]`, `[~]`, `[x]`, `[!]`, `[>]`, or `[-]`. When a row is `[!]`, add one annotation in the same Status cell or an adjacent note:
+
+- `[!] [manual]` — implemented; waiting for the user's hands-on verification.
+- `[!] [affected]` — a previously verified criterion affected by another change; AUTO items must be re-run, MANUAL items require fresh user verification.
+- `[!] [blocked]` — verification is unavailable; include the reason and a concrete unblock condition.
 
 ---
 
 ## 📊 Status Summary
 
-| Category | Total | Passed | Pending | Notes |
-|----------|-------|--------|---------|-------|
-| Features | | | | |
-| Performance | | | | |
-| Compatibility | | | | |
-| Quality | | | | |
+- `[ ]` Not implemented
+- `[~]` Partially implemented
+- `[x]` Freshly verified passing
+- `[!] [manual]` Implemented; waiting for user verification
+- `[!] [affected]` Needs re-verification because another change may affect it
+- `[!] [blocked]` Cannot currently be verified; unblock condition recorded
+- `[>]` Explicitly deferred by the user
+- `[-]` Explicitly deprecated
 
 ---
 
 ## 🔄 Change Log
 
-| Date | AC-ID | Change | Reason |
-|------|-------|--------|--------|
-| | | | |
+| Date | Change | Affected ACs | Decision / Rationale |
+|------|--------|--------------|----------------------|
+| {{YYYY-MM-DD}} | Initial AC draft | AC-1… | {{approved design reference}} |
 
 ---
 
-**Status key:** `[ ]` Not implemented / `[~]` Partially done / `[x]` Verified / `[-]` Deprecated / `[!]` Implemented, needs user verification / `[>]` Deferred
+## Notes
+
+- AUTO rows require an executable command in **How to Verify**.
+- MANUAL rows must describe the exact UI/action the user should check.
+- Use `[>]` only after an explicit user decision; ADD does not silently implement deferred rows.

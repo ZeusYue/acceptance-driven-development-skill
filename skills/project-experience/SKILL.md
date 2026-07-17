@@ -67,7 +67,7 @@ All project documents and the experience cache live under a single directory (`$
 (Expand `~` to the user's home directory — `$HOME` on Unix, `%USERPROFILE%` on Windows. Do not look for a literal `~` folder.)
 
 1. **Read the pointer file** `~/.add-hub` — a one-line file whose content is the absolute path to `$DOC_HUB`.
-   - **Exists** → read the path, then verify the directory exists AND contains `_exp_memory.md`. If both hold → `$DOC_HUB` = that path (trimmed), go to Step 0.2 (direct read, reliable across all agents). If the path is missing or has no `_exp_memory.md` → the pointer is stale; ignore it and fall through to tier 2 (which will rewrite `~/.add-hub`).
+   - **Exists** → read and trim the path. If the directory exists, the pointer is valid and `$DOC_HUB` = that path; go to Step 0.2. `_exp_memory.md` is a cache, not a hub-identity requirement. If the path is missing or is not a directory → the pointer is stale; ignore it and fall through to tier 2 (which will rewrite `~/.add-hub`).
    - **Not found** → try tier 2.
 2. **Fallback search** `Glob pattern="**/_exp_memory.md" path="~"` — the cache anchor.
    - **Found** → `$DOC_HUB` = the directory containing `_exp_memory.md`. If multiple match: prefer the directory that also contains project subfolders with `AC.md` or holds `ac-template.md`/`project-index.md`; if still ambiguous, ask the user which to use before proceeding. **Write `~/.add-hub`** with the chosen path so future sessions skip the search (never write the pointer from an ambiguous, unconfirmed match). Go to Step 0.2.
@@ -80,10 +80,12 @@ All project documents and the experience cache live under a single directory (`$
 
 ### Step 0.2: Check experience cache
 
-Check if `$DOC_HUB/_exp_memory.md` exists:
+**Forced rebuild:** If the user explicitly says "update experience cache", "refresh experience cache", or "rebuild experience cache", or ADD invokes this skill after project completion with a forced-rebuild request, keep `$DOC_HUB` fixed, skip the cache fast path, and run the full Phase 1–5 extraction. Preserve the old cache until the new cache is written successfully.
+
+Otherwise check whether `$DOC_HUB/_exp_memory.md` exists:
 
 - **YES (with real content)** → read it. Skip Phase 1 and 3, go directly to Phase 2. **Content validation:** if the file contains only the placeholder (`> No completed projects yet.`), or has no `## Known Pitfalls` / `## Reusable Patterns` heading, or those sections are empty → treat as NO (full cycle).
-- **NO** → proceed with full Phase 1–5. After Phase 5, save the cache (see Phase 6).
+- **NO** → remain in this same `$DOC_HUB` and proceed with full Phase 1–5. After Phase 5, save the cache atomically (see Phase 6). Do not rediscover the Hub merely because the cache is absent.
 
 ### Step 0.3: Find project documents
 
@@ -213,7 +215,7 @@ After completing the full extraction cycle (Phases 1–5), save the distilled ex
 ```markdown
 # Project Experience Cache
 
-> Auto-generated from completed projects. Delete and re-run project-experience to refresh.
+> Auto-generated from completed projects. Refresh with an explicit "update experience cache" request; replacement is atomic.
 
 ## Known Pitfalls
 <!-- Actual bugs that took >10min to fix. Merge duplicates across projects. -->
@@ -237,21 +239,23 @@ After completing the full extraction cycle (Phases 1–5), save the distilled ex
 - **Coding Conventions**: Only preferences stable across projects. List only conventions that differ from common defaults — skip universal ones.
 - **Hard cap**: Keep the entire file under ~40 lines. If exceeding, apply in order: (1) Merge pitfalls with identical fix patterns even if symptoms differ. (2) Drop single-project patterns not meeting the generalizable test. (3) Drop conventions already common practice. (4) Drop least frequently applicable entries (count projects that exhibited the pattern/pitfall). Priority to keep: pitfalls > patterns > conventions.
 
-**This cache is read by future invocations** — if it exists, Phase 1 and Phase 3 are skipped (see Step 0.2). When new projects are completed, the user can delete this file and re-run project-experience (triggered by ADD Phase 6). Cache regeneration is manual-only — project completion is a human judgment call.
+**Atomic save rule:** Render the complete refreshed cache to `$DOC_HUB/_exp_memory.md.tmp`, validate that it contains the required headings, then replace `$DOC_HUB/_exp_memory.md` in one operation. If rendering or validation fails, retain the old cache and report the failure.
+
+**This cache is read by future invocations** — if it exists, Phase 1 and Phase 3 are skipped unless a forced rebuild was requested (see Step 0.2). When new projects are completed, the user can request "update experience cache"; ADD Phase 6 issues that request after explicit user approval. Cache regeneration remains a human-approved action.
 
 ## Quick Reference
 
 | Phase | Action | Time |
 |-------|--------|------|
-| 0. Locate | Read ~/.add-hub → fallback glob `**/_exp_memory.md` → ask user | 2s |
-| 0.2 Cache | Check $DOC_HUB/_exp_memory.md → skip Phase 1+3 if exists | 2s |
+| 0. Locate | Read ~/.add-hub (existing directory is authoritative) → fallback glob only when pointer is absent/invalid → ask user | 2s |
+| 0.2 Cache | Valid cache → fast path; missing/invalid/forced rebuild → full extraction in the same hub | 2s |
 | 0.3 Find | Glob $DOC_HUB/*/*.md, filter to `<DirName>/<DirName>.md` | 3s |
 | 1. Survey | Read index + read project docs via $DOC_HUB | 10s |
 | 2. Match | Compare tags vs task (or cache entries vs task) | 5s |
 | 3. Extract | Read targeted sections from 1-2 project docs | 30-60s |
 | 4. Synthesize | Write briefing to context | 30s |
 | 5. Apply | Reference briefing in all subsequent decisions | Ongoing |
-| 6. Save | Write briefing to $DOC_HUB/_exp_memory.md (first run only) | 10s |
+| 6. Save | Write `_exp_memory.md.tmp`, validate, then atomically replace the cache | 10s |
 
 **Total overhead: ~2 minutes (first run) / ~15 seconds (cache hit).**
 

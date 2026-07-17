@@ -15,9 +15,10 @@ Execute against a verifiable acceptance criteria checklist, looping until every 
 Before writing ANY code, in EVERY conversation turn: **Phase 3.5 first, then Phase 4.**
 
 Phase 3.5 is the **single entry point** for all code changes:
+- Approved `[ ]` / `[~]` backlog work → Phase 3.5A baseline impact analysis → Phase 4 Mode A (no duplicate design approval)
 - New feature / behavioral change → update AC → discuss → confirm → Phase 4
-- Bug fix on existing AC → impact analysis → demote affected ACs → Phase 4 (fast lane, no discussion needed — unless the buggy feature has no AC yet, then confirm the new AC once)
-- Improvement to existing AC → check if behavioral change → if yes: update AC → discuss → confirm; if no: impact analysis → demote → Phase 4
+- Bug fix on existing AC → impact analysis → affected passed ACs become `[!] [affected]` for re-verification → Phase 4 (fast lane, no discussion needed — unless the buggy feature has no AC yet, then confirm the new AC once)
+- Improvement to existing AC → check if behavioral change → if yes: update AC → discuss → confirm; if no: impact analysis → affected passed ACs become `[!] [affected]` → Phase 4
 
 Phase 3.5 is the only path to Phase 4. Every code change goes through Phase 3.5. **Before writing any code, announce which Phase 4 mode you're entering** (e.g., "Phase 4 Mode B — fix bug, 1 AC"). This is a structural guardrail — awareness of it does not create an exception.
 
@@ -48,21 +49,21 @@ Phase 3.5 is the only path to Phase 4. Every code change goes through Phase 3.5.
 | "User said test passed, I'll update AC later" | User confirming test passed = update AC to `[x]` NOW. Not "later" — immediately. |
 | "Self-review is enough, I'll skip the checklist" | Phase 4.8 is an exit gate. Output all 6 checklist items explicitly — no silent PASS. |
 
-## Prerequisites
+## Capabilities and Optional Enhancements
 
-| Skill | Required for | Install |
-|-------|-------------|---------|
-| `brainstorming` | Gate 1 design, Phase 3.5 large changes | Superpowers pack |
-| `writing-plans` | Phase 4 task decomposition | Superpowers pack |
-| `subagent-driven-development` | Phase 4 task execution | Superpowers pack |
-| `test-driven-development` | Phase 4 quality ACs | Superpowers pack |
-| `verification-before-completion` | Phase 5 verification | Superpowers pack |
-| `finishing-a-development-branch` | Phase 6 completion | Superpowers pack |
-| `project-experience` | Phase 4 prior-project learning | Included in share kit |
+ADD's **core workflow is self-contained**: AC parsing, status updates, impact analysis, review, verification, and completion checks must work even when no companion skill or host-specific tool is available.
 
-**Graceful degradation:** Missing skill → engine continues but loses that capability. Tell the user what's missing. For brainstorming specifically: if unavailable, large changes (Phase 3.5) → ask user to describe requirements manually, then update AC.
+| Capability | Enhances | Fallback when unavailable |
+|------------|----------|---------------------------|
+| `brainstorming` | Gate 1 design and Phase 3.5B large changes | Ask one requirement question at a time; record decisions before drafting ACs. |
+| `writing-plans` | New-feature task decomposition | Write a concise file-by-file implementation checklist inline. |
+| `subagent-driven-development` / review subagent | Independent batch execution or review | Perform an explicit independent self-review and disclose that no subagent was available. |
+| `test-driven-development` | Quality ACs and behavior changes | Write the smallest relevant regression test before implementation when the project can run tests. |
+| `verification-before-completion` | Phase 5 fresh verification | Run the AC command and report command, expected result, actual result, and exit status. |
+| `finishing-a-development-branch` | Phase 6 branch completion | Report verification evidence and offer the host's supported integration/cleanup action. |
+| `project-experience` | Reuse of prior project knowledge | Scan `$DOC_HUB/_exp_memory.md` directly if present; otherwise state that cross-project experience is unavailable. |
 
-**Standalone by default:** ADD works independently with direct implementation. **Optional upgrade:** Install Superpowers skills for enhanced workflows — `brainstorming` for interactive design, `writing-plans` for structured task decomposition, `subagent-driven-development` for independent subagent execution, etc. If a Superpowers skill is available, ADD automatically uses it. If not, ADD proceeds with direct implementation — no errors, no blocking.
+**Host capability check:** Before relying on a subagent, a glob command, an editor, or a plan tool, check whether the current host exposes it. Use equivalent native file operations where possible. A missing optional capability never blocks the ADD core workflow.
 
 **Project docs structure:** All documents live under `$DOC_HUB/<ProjectName>/`. Templates are auto-created in `$DOC_HUB/` on first use:
 - `$DOC_HUB/ac-template.md` — AC document template (format described inline in Gate 2 if missing)
@@ -99,7 +100,7 @@ All project ACs, project docs, templates, and the experience cache live under a 
 (Expand `~` to the user's home directory — `$HOME` on Unix, `%USERPROFILE%` on Windows. Do not look for a literal `~` folder.)
 
 1. **Read the pointer file** `~/.add-hub` — a one-line file whose content is the absolute path to `$DOC_HUB`.
-   - **Exists** → read the path, then verify the directory exists AND contains `_exp_memory.md`. If both hold → `$DOC_HUB` = that path (trimmed), go to Step 0.2 (direct read, reliable across all agents). If the path is missing or has no `_exp_memory.md` → the pointer is stale; ignore it and fall through to tier 2 (which will rewrite `~/.add-hub`).
+   - **Exists** → read and trim the path. If the directory exists → the pointer is valid and `$DOC_HUB` = that path; go to Step 0.2. Cache presence is checked separately in Step 0.2. If the path is missing or is not a directory → the pointer is stale; ignore it and fall through to tier 2 (which will rewrite `~/.add-hub`).
    - **Not found** → try tier 2.
 2. **Fallback search** `Glob pattern="**/_exp_memory.md" path="~"` — the cache anchor.
    - **Found** → `$DOC_HUB` = the directory containing `_exp_memory.md`. If multiple `_exp_memory.md` files match: prefer the directory that also contains project subfolders with `AC.md` or holds `ac-template.md`/`project-index.md`; if still ambiguous, ask the user which to use before proceeding. **Write `~/.add-hub`** with the chosen path so future sessions skip the search (never write the pointer from an ambiguous, unconfirmed match). Go to Step 0.2.
@@ -137,7 +138,7 @@ All project ACs, project docs, templates, and the experience cache live under a 
 7. **HARD GATE: Wait for user to say they're ready for AC creation**
 
 #### Gate 2: Acceptance Criteria
-1. Draft AC table from approved design. **Format**: `| ID | Criterion | Status | How to Verify | Expected Result |` (5 columns). Use sequential numbering (AC-1, AC-2, ...). Group by category (Features/Performance/Compatibility/Quality) using table section headers. Include status summary, change log, and Backlog sections.
+1. Draft AC table from approved design. **Format**: `| ID | Criterion | Status | How to Verify | Expected Result |` (5 columns). Use one monotonic numeric sequence: every new top-level row uses `AC-<next integer>` (the current maximum numeric ID + 1). Do not renumber existing IDs; use the Change Log to explain inserted requirements. Group by category (Features/Performance/Compatibility/Quality) using table section headers. Include status summary, change log, and Backlog sections.
 2. Present draft to user
 3. **HARD GATE: Wait for approval**
 4. Save as `$DOC_HUB/<ProjectName>/AC.md`
@@ -157,10 +158,12 @@ Read the AC table. For each row, read the status column:
 | `[~]` | Partially done | → Phase 2 with note |
 | `[x]` | Verified passing | Skip |
 | `[-]` | Deprecated | Skip |
-| `[!]` | Implemented, awaiting user | Present in Phase 6; user tests → mark `[x]` |
+| `[!]` | Verification pending (see annotation) | `[manual]` user test; `[affected]` regression re-verification; `[blocked]` environment unblock |
 | `[>]` | Deferred / backlog | Skip. This is a user-facing marker — agent does NOT suggest implementing it unless the user explicitly requests it. |
 
-No `[ ]` items? → the AC table is up to date. If the user requested a change, proceed to Phase 3.5. If just checking status, present the `[!]` checklist.
+**`[!]` annotation contract:** Use `[!] [manual]` for implemented rows awaiting hands-on testing, `[!] [affected]` for previously verified rows whose verification became stale, and `[!] [blocked]` for unavailable verification environments. Keep the primary marker unchanged; annotations decide the Phase 5/6 action.
+
+No `[ ]` items? → the AC table is up to date. If the user requested a change, proceed to Phase 3.5. If just checking status, present the annotation-aware `[!]` report.
 
 ## Phase 2: Sort by Dependency
 
@@ -180,8 +183,8 @@ For each `[ ]` AC, read the "How to Verify" column and classify:
 | Class | Icon | Criteria | Action |
 |-------|------|----------|--------|
 | **AUTO** | ✅ | Programmable verification | Phase 4 implements, Phase 5 verifies |
-| **MANUAL** | ⚠️ | GUI/visual judgment needed | Phase 4 implements → mark `[!]` at Phase 5 |
-| **BLOCKED** | 🚫 | Environment unavailable | Mark `[!]` at Phase 5 with reason |
+| **MANUAL** | ⚠️ | GUI/visual judgment needed | Phase 4 implements → mark `[!] [manual]` at Phase 5 |
+| **BLOCKED** | 🚫 | Environment unavailable | Mark `[!] [blocked]` at Phase 5 with reason and an unblock condition |
 
 **AUTO classification requires an executable command in the "How to Verify" column** (e.g., `pytest`, `npm test`). Vague descriptions like "check it works" → classify as MANUAL.
 
@@ -189,13 +192,26 @@ For each `[ ]` AC, read the "How to Verify" column and classify:
 
 ---
 
-## Phase 3.5: Mid-Development Requirement Changes (SINGLE ENTRY POINT)
+## Phase 3.5: Code-Change Entry (SINGLE ENTRY POINT)
 
-**ALL code changes enter through Phase 3.5.** Phase 3.5 is the only path to Phase 4.
+**ALL code changes enter through Phase 3.5.** Choose exactly one entry below before Phase 4.
+
+### Phase 3.5A: Approved Backlog Entry
+
+Use this entry after Phases 1–3 when working on already-approved `[ ]` or `[~]` AC rows. It is not a new requirement change, so do **not** rewrite the approved AC or ask for duplicate design approval.
+
+1. Announce: `Phase 3.5A — Approved backlog impact analysis: N triaged ACs`.
+2. Establish the exact target list and trace the relevant call paths before editing.
+3. For any already verified AC affected by the planned work, mark it `[!] [affected]` with note: `⚠️ Affected by [AC-ID] implementation — needs re-verification`.
+4. **Initial triaged AC work always enters Phase 4 Mode A**, even when the target list has one or two rows. This preserves the AUTO/MANUAL/BLOCKED classification from Phase 3.
+
+### Phase 3.5B: Mid-Development Requirement Changes
+
+Use this entry for a user-requested new feature, behavioral change, bug fix, or improvement after the AC table already represents the active baseline.
 
 ### Impact analysis (before any code change):
 
-Before writing code, grep for callers of the function(s) you're about to modify. For each caller, check: which AC does it belong to? **Demote affected ACs** — if an affected AC is currently `[x]` or `[!]`, change its status to `[ ]` with a note: `⚠️ Affected by [AC-ID] change — needs re-verification`. After implementation and review, re-verify before restoring status.
+Before writing code, grep for callers of the function(s) you're about to modify. For each caller, check: which AC does it belong to? **Mark affected verified ACs for re-verification** — if an affected AC is currently `[x]`, change it to `[!] [affected]` with note: `⚠️ Affected by [AC-ID] change — needs re-verification`. If already `[!]`, keep its status annotation and add/update the affected note. The feature is still implemented; only its verification is stale.
 
 ### Behavioral changes (requires AC update + discussion):
 
@@ -231,7 +247,7 @@ Present findings to the user as part of the options discussion.
 
 **🚨 HARD GATE: Wait for the user to explicitly say "approved"/"go ahead"/"confirm" before writing any code.** "The user described the problem" is not confirmation. "The user seems to want this" is not confirmation. The user must use an explicit approval word.
 
-After user confirms → Phase 4 (1-2 related ACs → Mode B, 3+ → Mode A).
+After user confirms a Phase 3.5B change → Phase 4 (1-2 related ACs → Mode B, 3+ → Mode A). Phase 3.5A always proceeds to Mode A.
 
 **Violation trap:** User says "just do X first, then follow ADD" or "it's a small optimization" → still requires Phase 3.5. Any behavioral change, regardless of how the user phrases it, must update AC first.
 
@@ -244,20 +260,20 @@ Phase 4 has two modes. **Every code change must go through one of them.**
 **Entering Phase 4:** Announce which mode you're using and why. E.g., "Phase 4 Mode B — fix bug, 1 AC" or "Phase 4 Mode A — batch 12 [ ] items". This creates a public commitment that makes it harder to skip steps.
 
 **Rules for both modes:**
-- **Impact re-verification:** Phase 3.5 already demoted affected ACs. In Phase 4.8, re-verify those ACs after implementation. Restore their status to `[x]` only if they pass.
+- **Impact re-verification:** Phase 3.5 already marked affected ACs as `[!]`. In Phase 4.8, re-verify AUTO items after implementation; restore to `[x]` only if they pass. MANUAL items stay `[!] [manual]` until the user confirms.
 - **Surgical changes:** Touch only what the AC requires. Every changed line must trace directly to the AC. Mention unrelated issues to the user — don't fix them.
 - **Root cause before fixing:** Trace the full call chain before editing. Fix in the shared root, not in every caller.
 - **Re-verify definition:** For AUTO items, re-run the verification command from the AC's "How to Verify" column. For MANUAL items, re-assess the feature against the criterion manually.
 
 ### Mode A: Batch
 
-Triggered two ways: (a) the skill first loads with multiple `[ ]` items, or (b) a confirmed Phase 3.5 change spans 3+ ACs. Process ALL target items sequentially.
+Triggered two ways: (a) initial triaged `[ ]` / `[~]` work from Phase 3.5A, regardless of item count, or (b) a confirmed Phase 3.5B change spans 3+ ACs. Process ALL target items sequentially.
 
 **Mode A mandatory steps (execute sequentially):**
 1. **First: list all [ ] AC items to be implemented** — copy their IDs and descriptions into the conversation for tracking. No code before this list is established.
 2. Implement all items sequentially. For interdependent items, implement them as a group.
 3. **After all items are implemented** — Phase 4.8: dispatch ONE review subagent for the entire batch. Prefer subagent (independent eyes). Self-review is acceptable if subagent is unavailable or project is MANUAL-heavy. PASS → continue. FAIL → fix, re-review.
-4. **Restore demoted ACs** — if Phase 3.5 impact analysis demoted any ACs from `[x]`/`[!]` to `[ ]`, re-verify them now. Restore to `[x]` if they still pass. (This restoration is the one exception to Mode A's rule that "marking happens in Phase 5" — demoted ACs were already `[x]`, so restoring their prior status is not new marking.)
+4. **Re-verify affected ACs** — if Phase 3.5 marked any ACs `[!]` with `⚠️ Affected by...`, re-verify AUTO items now and restore to `[x]` if they pass. MANUAL items remain `[!] [manual]` for user testing.
 
 **Interdependent ACs:** If 2+ ACs share the same code change, implement them as one group. **Every group goes through the same batch review.**
 
@@ -271,16 +287,16 @@ For `[~]` items: review what's incomplete, implement the remaining part, then pr
 
 If AC table is large (30+ items): log a one-line progress update every 10 items (e.g., "Completed 10/30 items"). Continue processing uninterrupted. Only stop if context is approaching limits — then report which items are done and which remain; the session can resume from the AC table state.
 
-### Mode B: Lightweight (user requests a specific change)
+### Mode B: Lightweight (confirmed Phase 3.5B change)
 
 **Skip Phases 1-3 (triage, sort, classify).** Phase 3.5 is still REQUIRED — it is the single entry point for all code changes. Go from Phase 3.5 to implementation.
 
 **Mode B mandatory steps (execute sequentially):**
 1. **Implement** the change
 2. **Phase 4.8** — self-review against 6-item checklist (Wiring, Safety, Fidelity, State, Impact, Framework). PASS → continue. FAIL → fix, re-review.
-3. **Restore demoted ACs** — if Phase 3.5 impact analysis demoted any ACs from `[x]`/`[!]` to `[ ]`, re-verify them now. Restore to `[x]` if they still pass. If re-verification fails, the change introduced a regression. Announce: "This change broke AC-N which previously passed. Options: (a) fix the regression now, (b) accept the tradeoff and mark AC-N as `[!]` with a note." Do not silently leave it as `[ ]`. These are already-implemented features that just needed re-validation after the change.
-4. **Mark `[!]`** in AC table (implemented, awaiting user verification)
-5. Done — this change only. Batch mode handles multi-item work (initial scan or 3+ AC change); Mode B handles single small changes.
+3. **Re-verify affected ACs** — if Phase 3.5 marked any ACs `[!]` with `⚠️ Affected by...`, re-verify AUTO items now and restore to `[x]` if they pass. MANUAL items remain `[!] [manual]` for user testing. If re-verification fails, the change introduced a regression; ask the user whether to fix it now or accept the tradeoff.
+4. **Mark `[!] [manual]`** in AC table (implemented, awaiting user verification)
+5. Done — this change only. Mode A handles every initial triaged batch and confirmed 3+ AC changes; Mode B handles confirmed Phase 3.5B changes spanning one or two ACs.
 
 Step 1 → Step 2 → Step 3 → Step 4 — execute sequentially. Step 4 only after Step 2+3 pass. The user verifies in Phase 5 and marks `[x]`.
 
@@ -288,20 +304,20 @@ Step 1 → Step 2 → Step 3 → Step 4 — execute sequentially. Step 4 only af
 
 > "This feature has failed 3 times. The approach might be wrong. Want to switch approaches? (a) redesign via Phase 3.5, (b) try once more with guidance, (c) defer — mark [>]."
 
-Wait for the user to decide before continuing. If deferring (option c), also revert demotion notes on affected ACs — restore them to their original `[x]`/`[!]` status since the change that would have affected them is being deferred.
+Wait for the user to decide before continuing. If deferring (option c), also remove `⚠️ Affected by...` notes added for this change — restore affected ACs to their original `[x]`/`[!]` status since the change that would have affected them is being deferred.
 
 **Execution methods (both modes):**
 - New features (no code exists): `Skill("writing-plans")` → `Skill("subagent-driven-development")`
 - Gaps/improvements (feature exists): direct implementation
 - Test ACs (Quality): one test file per AC
 
-**REQUIRED:** Load `Skill("project-experience")` on first Phase 4 entry of the session. Subsequent Mode B calls in the same session do NOT need to reload it. **If project-experience is not installed**, skip experience loading and proceed with direct implementation. Warn the user: "project-experience is not installed, skipping project experience loading. Install it to get cross-project experience reuse."
+**Optional enhancement:** On the first Phase 4 entry of a session, use `project-experience` when the host makes it available. Subsequent Mode B calls in the same session do not need to reload it. If it is unavailable, proceed with direct implementation and say that cross-project experience reuse was unavailable.
 
 **🚨 EXIT GATE: Phase 5 opens only after Phase 4.8 completes for every item.** Code written ≠ code done. Code reviewed = code done. Go to Phase 4.8 now.
 
 ### Phase 4.8: Review
 
-After code compiles. Mode A marks in Phase 5, not here. Mode B marks `[!]` after review passes. **Match review mode to execution mode** — Mode A execution → Mode A review. Mode B execution → Mode B review.
+After the applicable baseline validation succeeds (build, type-check, lint, or relevant test). Mode A marks in Phase 5, not here. Mode B marks `[!] [manual]` after review passes. **Match review mode to execution mode** — Mode A execution → Mode A review. Mode B execution → Mode B review.
 
 **Review checklist (6 items, for both modes):**
 1. **Wiring** — events, callbacks, signal/slot connections correct? Targets alive?
@@ -332,15 +348,20 @@ Two separate paths based on implementation mode:
 | Classification | Action |
 |----------------|--------|
 | **AUTO** | Run verification command from AC table. Present the verification output: command run, expected result, actual result. Only then mark `[x]`. Mismatch → mark `[ ]`, return to Phase 4. |
-| **MANUAL** | Mark `[!]`. Note: `⚠️ Needs user verification: [what to test]` |
-| **BLOCKED** | Mark `[!]`. Note: `🚫 BLOCKED: [reason]` |
+| **MANUAL** | Mark `[!]`. Note: `[manual] ⚠️ Needs user verification: [what to test]` |
+| **BLOCKED** | Mark `[!]`. Note: `[blocked] 🚫 BLOCKED: [reason]. Unblock condition: [what is needed]` |
 
 **Path B — Mode B items** (skip Phase 1-3, no AUTO/MANUAL/BLOCKED classification):
 - Verify they are marked `[!]` (should have been set in Mode B step 4).
-- If any Mode B item is still `[ ]`, it was missed — mark it `[!]` now with a note: "Implemented but review marking was missed." Then proceed.
+- If any Mode B item is still `[ ]`, it was missed — mark it `[!] [manual]` now with a note: "Implemented but review marking was missed." Then proceed.
 - All Mode B items require user verification — no AUTO marking allowed.
 
-**Presentation:** Combine all `[!]` items from both paths into one checklist. Present to the user with specific verification instructions. After user confirms each item works → mark `[x]`.
+**Presentation:** Split `[!]` rows by annotation before presenting them:
+- `[manual]` → user checklist with specific verification instructions;
+- `[affected]` → AUTO rows are re-run now, while MANUAL rows join the user checklist;
+- `[blocked]` → report the reason and unblock condition; do not present it as an ordinary user-test item.
+
+After fresh verification succeeds, mark the corresponding AC `[x]`.
 
 **🚨 User confirmation is event-driven, not phase-locked.** The user may test and report back at any time — minutes or hours after you presented the `[!]` list. When the user says "test passed" / "works" / "looks good" — **immediately update the corresponding AC from `[!]` to `[x]`**. The moment the user confirms = the moment you update. This applies regardless of what phase you think you're in.
 
@@ -356,21 +377,17 @@ After marking all items, proceed to Phase 6 to check completion.
 
 ```
 Phase 5 →
-  ├── [ ] with demotion note? → re-verify only (was previously [x]/[!])
   ├── [ ] genuinely unimplemented? → Phase 4 (MANDATORY)
-  └── No [ ] remaining? → [!] checklist → user test → [x]
+  └── No [ ] remaining? → [!] checklist → user test / AUTO re-verify → [x]
                      → [~] items → settle: [x] / [>] / [-]
                      → All [x] [>] [-]? → project doc
 ```
 
-**🚨 Exit condition: zero `[ ]` items.** Before saying "done": re-read AC, count `[ ]`. If any remain, check their notes:
-
-- **Demotion note** (`⚠️ Affected by [AC-ID] change`) → this item was previously `[x]`/`[!]` and just needs re-verification. Re-verify now; restore to `[x]` if passing, or escalate if not.
-- **No demotion note** → genuinely unimplemented. Process them: 1-2 items → Phase 4 Mode B; 3+ items → Phase 4 Mode A.
+**🚨 Exit condition: zero `[ ]` items.** Before saying "done": re-read AC and count `[ ]`. Any remaining triaged `[ ]` item is genuinely unimplemented: return the target set through Phase 3.5A and Phase 4 Mode A so its Phase 3 classification remains valid.
 
 If zero `[!]` items exist, skip this step and proceed directly to `[~]` settling or project document.
 
-**`[!]` → `[x]` loop:** When `[!]` items exist, present them as a user checklist with specific instructions. Wait for the user to test and confirm each one. After each confirmation → immediately mark `[x]`. Repeat until zero `[!]` remain.
+**`[!]` → `[x]` loop:** Resolve rows by annotation. `[manual]` rows receive a user checklist with specific instructions. `[affected]` AUTO rows are re-run immediately; `[affected]` MANUAL rows receive a user checklist. `[blocked]` rows remain pending until their documented unblock condition is met; do not ask the user to perform an unavailable verification. After fresh verification succeeds, immediately mark the corresponding row `[x]`. Repeat until zero `[!]` remain.
 
 **`[~]` → settle:** When `[~]` items exist, ask the user: fix remaining issues → `[x]`, or defer → `[>]`, or deprecate → `[-]`. Every item needs a settled outcome.
 
@@ -378,9 +395,9 @@ If zero `[!]` items exist, skip this step and proceed directly to `[~]` settling
 
 **Experience cache update:** After the project document is created, ask the user:
 
-> "Project complete. Update the experience cache? Recommended — this writes today's pitfalls and reusable patterns into cache so future projects get a ~15s fast path instead of a full scan."
+> "Project complete. Update the experience cache? Recommended — this rebuilds the current hub's pitfalls and reusable patterns without changing its location pointer."
 
-- **Yes** → delete `$DOC_HUB/_exp_memory.md` (so project-experience sees no cache and runs full extraction), then `Skill("project-experience")`. It will detect the missing cache, run Phase 1–5 across all projects (including the newly completed one), and save the updated cache. Tell the user: "Next project loads experience in ~15 seconds."
+- **Yes** → invoke `project-experience` with an explicit **forced rebuild** request: `Refresh the experience cache for the current $DOC_HUB.` Do **not** delete `$DOC_HUB/_exp_memory.md`. `project-experience` skips the cache fast path, writes a replacement to `_exp_memory.md.tmp`, and replaces the old cache only after the rebuild succeeds. Tell the user: "Next project can use the refreshed cache fast path."
 - **No** → completion is done. Remind the user they can update the cache later by saying "update experience cache".
 
 ---
@@ -394,11 +411,11 @@ If zero `[!]` items exist, skip this step and proceed directly to `[~]` settling
 | 1 | Triage statuses | `[ ]` `[~]` `[x]` `[-]` `[!]` `[>]` |
 | 2 | Sort by dependency | Features→Compat→Perf→Quality. No labels? Infer from content |
 | 3 | Classify verifiability | AUTO ✅ / MANUAL ⚠️ / BLOCKED 🚫 |
-| 3.5 | Single entry point | Impact analysis + demote ACs. New feature → update+discuss. Bug fix → fast lane → Phase 4 |
-| 4 | Implement | Mode A: batch all [ ] / Mode B: lightweight (user-requested change) |
+| 3.5 | Single entry point | 3.5A approved backlog → Mode A; 3.5B change → impact analysis + AC update/discussion or bug fast lane |
+| 4 | Implement | Mode A: all initial triaged AC work or 3+ change ACs / Mode B: confirmed 1-2 AC Phase 3.5B change |
 | 4.8 | Review | Mode A: subagent / Mode B: self. 6-item checklist (Wiring + Safety + Fidelity + State + Impact + Framework) |
-| 5 | Verify + mark | Path A: AUTO→cmd→`[x]`, MANUAL/BLOCKED→`[!]`. Path B: all Mode B items→user confirms→`[x]` |
-| 6 | Complete | [ ] with demotion note? → re-verify. Genuine [ ] → Phase 4. Project doc when all `[x]` `[>]` `[-]` |
+| 5 | Verify + mark | AUTO→cmd→`[x]`; MANUAL→`[!] [manual]`; BLOCKED→`[!] [blocked]`; affected rows re-verify by annotation |
+| 6 | Complete | Triaged [ ] → Phase 3.5A → Mode A. [!] → annotation-aware re-verification. Project doc when all `[x]` `[>]` `[-]` |
 
 ---
 
@@ -411,9 +428,10 @@ Phase 0: No AC → Greenfield rule
 Gate 1: search libraries → brainstorming → design.md → user reviews → ready for AC
 Gate 2: draft ACs → user approves → AC.md
 Phase 1-3: triage + sort + classify
+Phase 3.5A: approved backlog impact analysis
 Phase 4 Mode A: implement all AUTO items in batch
 Phase 4.8 Mode A: one subagent reviews the batch → PASS
-Phase 5: verify AUTO → [x], mark MANUAL/BLOCKED → [!]
+Phase 5: verify AUTO → [x], mark MANUAL → [!] [manual], BLOCKED → [!] [blocked]
 Phase 6: present [!] checklist → user tests → mark [x] → project doc → done
 ```
 
@@ -431,9 +449,9 @@ Phase 6: done
 ```
 User: "Tags can't be deleted from images — add that"
 FIRST RULE: not in AC table → stop
-Phase 3.5: add AC-33b → propose: "Add × button next to tag chips, confirm dialog on click"
+Phase 3.5B: add AC-34 → propose: "Add × button next to tag chips, confirm dialog on click"
          → user says "approved" → confirmed
-Phase 4 Mode B: implement → self-review → PASS → mark [!]
+Phase 4 Mode B: implement → self-review → PASS → mark [!] [manual]
 Phase 5: user verifies → mark [x] (event-driven, anytime user says "passed")
 Phase 6: check if more [ ]/[!] remain; if all settled → project doc → done
 ```
@@ -445,8 +463,8 @@ Phase 6: check if more [ ]/[!] remain; if all settled → project doc → done
 | Flag | Action |
 |------|--------|
 | About to write code not in AC table | Update AC first (Phase 3.5) |
-| About to say "done" while any `[ ]` exists | Check notes: demotion → re-verify; genuine → Phase 4 |
-| Demoted ACs (⚠️ Affected by...change) still `[ ]` after Mode B | Mode B step 3: restore them. Re-verify, mark [x] if passing |
+| About to say "done" while any `[ ]` exists | Genuine [ ] → Phase 4 |
+| `[!] [affected]` ACs remain after Mode B | Re-verify AUTO items; keep MANUAL items as `[!] [manual]` for user testing |
 | Same AC fails 3 times in a row | Stop patching. Ask user: switch approach, continue with guidance, or defer [>] |
 | No `AC.md` and user declines | Abort |
 | Greenfield: AC written without user seeing draft | Delete, back to Gate 1 |

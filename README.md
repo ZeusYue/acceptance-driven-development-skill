@@ -1,242 +1,282 @@
-# Acceptance-Driven Development (ADD)
+﻿# Acceptance-Driven Development (ADD) v2.0
 
 <p align="center">
-  <b>The AI skill pack that makes "done" a checklist, not a feeling.</b><br>
-  Works with Claude Code · Codex CLI · Gemini CLI · Copilot CLI<br>
-  <sub>English | <a href="README-zh.md">中文</a></sub>
+  <strong>Turn “it compiles” into a visible, verifiable definition of done.</strong><br>
+  Acceptance criteria, impact analysis, fresh verification, and project memory — in one workflow.
 </p>
 
-## The Problem We've All Had
-
-You ask an AI agent to build something. It writes code. It compiles. It says **"Done!"**
-
-You open the app. Three features are missing. A button doesn't work. Something else broke mysteriously. And the agent has already moved on, cheerfully oblivious.
-
-**AI agents are optimists. They ship code and call it complete. You're the one who discovers what's actually missing.**
-
-We built ADD to fix this permanently.
+<p align="center">
+  <a href="./README-zh.md">简体中文</a> ·
+  <a href="#install-add">Install</a> ·
+  <a href="#how-add-works">How it works</a> ·
+  <a href="#migrating-to-v20">Migrate to v2.0</a>
+</p>
 
 ---
 
-## How It Works
+## What ADD solves
 
-```
-YOUR IDEA
-    │
-    ▼
-Agent asks clarifying questions ──► No silent guessing
-    │
-    ▼
-Agent writes Acceptance Criteria ──► You review & approve
-    │
-    ▼
-Agent builds EVERY item in batch ──► Self-reviews each one
-    │
-    ▼
-[ ] → [!] → You test → [x] ──► Loop until nothing's [ ]
-    │
-    ▼
-Project doc auto-generated ──► Next project learns from this one ✦
-```
+Coding agents are fast at producing changes, but weak definitions of “done” create the familiar failure loop:
 
-**Here's what actually happens:** The agent can't say "done" while any AC still shows `[ ]`. It can't skip self-review. It can't silently change your requirements. It can't patch the same bug 10 times without asking if the approach is wrong. Every line of code traces back to an AC item.
+- Code was written, but no acceptance command was run.
+- A follow-up feature silently changes a previously working behavior.
+- A visual/manual check gets forgotten after the implementation message.
+- The same bug is patched repeatedly because the approach was never reconsidered.
+- Lessons from finished projects disappear before the next project starts.
+
+**ADD is a workflow skill that keeps an acceptance-criteria table (`AC.md`) as the visible contract.** Every implementation path is tied to a criterion, reviewed, verified, and given a settled status.
+
+> **v2.0 highlights:** stable document-hub discovery, safe cache refresh, explicit backlog entry via Phase 3.5A, clearer `[!]` verification annotations, and installation instructions for multiple agent hosts.
 
 ---
 
-## Before ADD vs After ADD
+## Install ADD
 
-| 😟 Before | 😎 After |
-|-----------|----------|
-| "Done" means code compiled | "Done" means every AC box is `[x]` |
-| Agent assumes, you correct | Agent asks, you confirm, *then* builds |
-| Agent says "I fixed it" — you test and find 3 more bugs | Agent self-reviews against 6 checks *before* showing you |
-| Fixing one thing breaks another | Impact analysis demotes affected ACs before changing code |
-| 3 failed attempts → agent keeps patching | 3 failures → agent stops and asks "wrong approach?" |
-| Each project starts from scratch | `project-experience` learns from past projects; cache makes it ~15s |
+Choose one installation path. **Install both skills**: `acceptance-driven-development` is the workflow engine; `project-experience` is the companion that reuses project knowledge and rebuilds the experience cache.
+
+### Option 1 — CC Switch (recommended)
+
+[CC Switch](https://github.com/farion1231/cc-switch) provides a graphical skill manager for Claude Code, Codex, OpenCode, Gemini CLI, and other supported agent applications.
+
+1. Install and open CC Switch, then select the agent application you want to configure.
+2. Open **Skills** → **Repository Management** → **Add Repository**.
+3. Add this repository with these exact values:
+
+   - Owner: `ZeusYue`
+   - Name: `acceptance-driven-development-skill`
+   - Branch: `main`
+   - Subdirectory: `skills`
+
+4. Refresh the repository list, then install:
+   - `acceptance-driven-development`
+   - `project-experience`
+5. Restart or reload the target agent session.
+
+For screenshots, updates, verification, and troubleshooting, see [the CC Switch installation guide](./docs/CCSWITCH.md).
+
+### Option 2 — Manual installation
+
+Copy **both directories** from this repository’s `skills/` folder into your agent’s skill directory:
+
+```text
+skills/
+├── acceptance-driven-development/
+└── project-experience/
+```
+
+| Agent host | Typical skills directory |
+|---|---|
+| Claude Code | `~/.claude/skills/` |
+| Codex | `~/.codex/skills/` |
+| Gemini CLI | `~/.gemini/skills/` |
+| OpenCode | `~/.config/opencode/skills/` |
+| Hermes | `~/.hermes/skills/` |
+
+For example, a Codex installation should end up as:
+
+```text
+~/.codex/skills/
+├── acceptance-driven-development/
+│   ├── SKILL.md
+│   ├── IMPROVEMENT-GUIDE.md
+│   └── references/
+└── project-experience/
+    └── SKILL.md
+```
+
+The exact discovery path can vary by host version or custom configuration. If your host documents a different skills directory, use the host-documented path and preserve the two folder names exactly.
+
+### Option 3 — Download a release archive
+
+Download the repository or a GitHub release archive, extract it, and follow **Option 2**. You do not need Obsidian, a Git repository, or Superpowers to run the ADD core workflow.
 
 ---
 
-## 60-Second Quick Start
+## First Run: Create or Reuse a Document Hub
 
-### Load the skill (once per session)
-```
-/acceptance-driven-development
-```
+ADD keeps acceptance criteria and project knowledge in one shared **document hub** (`$DOC_HUB`) that is separate from your code repositories.
 
-### Tell it what you want
-```
-"I want to build an alarm clock app with countdown timers."
+On first use, ask your agent for an implementation using ADD. If no hub is configured, it will ask for a stable directory. A good answer is a location such as:
+
+```text
+~/project-docs/
 ```
 
-### Agent handles the rest
-- Asks you clarifying questions (not silent guessing)
-- Writes an Acceptance Criteria document (you review and approve)
-- Builds everything — batch mode, no interruptions
-- Self-reviews each change against a 6-item checklist
-- Marks items `[x]` (verified) or `[!]` (needs your test)
-- Loops until nothing is `[ ]` — then generates your project documentation
+ADD then writes `~/.add-hub`, a one-line pointer to that directory. The hub typically contains:
 
-### For existing projects
-```
-"Continue developing ImageView"
-→ Agent reads your AC table, finds remaining [ ] items, batch-processes all of them
+```text
+$DOC_HUB/
+├── _exp_memory.md                 # optional experience cache
+├── ac-template.md
+├── project-doc-template.md
+├── project-index.md
+└── <ProjectName>/
+    ├── design.md                  # created for greenfield design work
+    ├── AC.md                      # acceptance source of truth
+    └── <ProjectName>.md           # completed project document
 ```
 
-### Adding features mid-project
-```
-"Add a snooze button"
-→ Agent updates AC FIRST, proposes approach, waits for your confirmation, THEN codes
-```
+**Important:** `_exp_memory.md` is a cache, not the identity of the hub. If the cache is missing, ADD rebuilds it in the same `$DOC_HUB`; it does not silently choose a new document location.
 
 ---
 
-## The 6 AC Statuses (Simple Markdown Table)
+## Your first request
+
+### New project
+
+```text
+Build a photo browser with ADD.
+```
+
+ADD enters the two design gates:
+
+1. clarify and save a design;
+2. draft `AC.md`, let you approve it, then implement against it.
+
+### Existing project with pending ACs
+
+```text
+Continue developing ImageView with ADD.
+```
+
+ADD reads the existing `AC.md`, classifies pending criteria, enters **Phase 3.5A**, and processes the approved backlog in Mode A.
+
+### Mid-project change
+
+```text
+Add a snooze button. Use ADD.
+```
+
+ADD enters **Phase 3.5B**: it updates the AC first, proposes the approach, waits for your approval, then implements and verifies the change.
+
+---
+
+## How ADD works
+
+### The two implementation entrances
+
+| Entrance | Use it for | What happens next |
+|---|---|---|
+| **Phase 3.5A — Approved Backlog Entry** | Existing approved `[ ]` / `[~]` rows | Baseline impact analysis, then Mode A. No duplicate design approval. |
+| **Phase 3.5B — Mid-Development Change** | New feature, behavior change, bug fix, or improvement | Impact analysis; AC update and approval when behavior changes; then Mode A or Mode B. |
+
+This removes a common workflow loophole: the initial backlog is now explicitly inside the same code-change gate as mid-project changes.
+
+### The six AC states
 
 | Mark | Meaning |
-|------|---------|
-| `[ ]` | Not yet — agent will work on it |
-| `[~]` | Partially done — known edge issues |
-| `[x]` | Verified and passing |
-| `[!]` | Implemented — needs your hands-on test |
-| `[-]` | Deprecated |
-| `[>]` | Deferred — user's decision to postpone. Agent skips entirely unless user asks |
+|---|---|
+| `[ ]` | Not implemented yet |
+| `[~]` | Partially implemented; remaining work is known |
+| `[x]` | Freshly verified passing |
+| `[!] [manual]` | Implemented; waiting for a hands-on user check |
+| `[!] [affected]` | Previously verified but affected by another change; requires fresh re-verification |
+| `[!] [blocked]` | Verification cannot run yet; reason and unblock condition are recorded |
+| `[>]` | Explicitly deferred by the user |
+| `[-]` | Explicitly deprecated |
 
-Your entire project lives in one markdown file — a single source of truth that both you and the agent can read.
+### Mode A and Mode B
 
----
+- **Mode A — Batch:** all initial triaged AC work, or a confirmed change spanning three or more ACs. AUTO criteria run their verification commands before `[x]` is recorded.
+- **Mode B — Lightweight:** a confirmed Phase 3.5B change spanning one or two ACs. It still requires implementation, the six-point review, impact re-verification, and a `[!] [manual]` handoff.
 
-## 🔥 Optional: Install Superpowers for an Upgrade
+### The review and verification loop
 
-ADD works great standalone. But if you have [Superpowers](https://github.com/obra/superpowers), it levels up:
+Every implementation goes through:
 
-| Superpowers Skill | What ADD Unlocks |
-|-------------------|------------------|
-| `brainstorming` | Deep interactive design sessions for new projects |
-| `writing-plans` | Structured task decomposition |
-| `subagent-driven-development` | Independent subagent execution per task |
-| `test-driven-development` | Quality ACs automatically drive TDD |
-| `verification-before-completion` | Mandatory fresh verification before `[x]` |
-| `finishing-a-development-branch` | Clean branch wrap-up |
-
-**Think of it like this:** ADD alone is a sports car. ADD + Superpowers is the same car with a professional pit crew. Install whenever you're ready.
-
----
-
-## 🔗 The Experience Loop
-
-ADD ships with `project-experience` — a companion skill that reads your past project docs and extracts reusable patterns, known pitfalls, and coding conventions. First run scans all projects (~2 min) and generates an `_exp_memory.md` cache. Every subsequent run hits the cache in ~15 seconds. ADD also reads the cache during feature design (Phase 3.5), so past project experience surfaces at every decision point.
-
-> "You used Generation Counter in 3 projects for async race conditions — I'll use it here too."
-> "You fixed vcpkg hardcoding with `$$PWD/bin` — let's do that from the start."
-> "Your quality baseline is 70%+ test coverage on core algorithms."
-
-Every project you build makes every future project better. Use Obsidian for auto-indexing (Dataview). Don't use Obsidian? Any folder works — the skill auto-discovers your documents.
-
----
-
-## Works With Your Agent
-
-| Claude Code | Codex CLI | Gemini CLI | Copilot CLI | Any SKILL.md agent |
-|:-----------:|:---------:|:----------:|:-----------:|:------------------:|
-| ✅ | ✅ | ✅ | ✅ | ✅ |
-
-Standard `SKILL.md` format. Drop it in, restart, done.
-
----
-
-## Installation
-
-```bash
-skills/acceptance-driven-development/  →  ~/.claude/skills/acceptance-driven-development/
-skills/project-experience/             →  ~/.claude/skills/project-experience/
-projects/templates/                    →  your-project-docs-folder/
+```text
+AC scope → impact analysis → implementation → 6-point review → fresh verification → status update
 ```
 
-Restart your agent. Type `/skills` to verify.
-
-**First use:** At the start of each coding session, load ADD once with `/acceptance-driven-development`. The rules stay active for the entire session. If the agent ever skips a step, just say "Phase 3.5?" — that snaps it back. New session? Load once again.
+The review checks wiring, safety, fidelity, state consistency, impact on other ACs, and framework-specific risks. After three failed attempts on the same AC, ADD stops patching and asks whether to redesign, continue with guidance, or defer the item.
 
 ---
 
-## Real Example
+## Optional enhancements and host limits
 
-See `projects/AlarmClock/`:
-- `AC.md` — 23 acceptance criteria (features, performance, compatibility, quality)
-- `AlarmClock.md` — Project doc that `project-experience` reads
+ADD’s AC state machine, impact analysis, review checklist, and verification rules are core behavior. These optional capabilities improve the workflow when the current host provides them:
 
-Built entirely with ADD. Features: timed alarms, countdowns, always-on-top window, transparency slider, click-through lock mode, daily and weekday-only repeat, snooze, full-screen flash notifications, compact card mode.
+| Optional capability | What it adds | Fallback |
+|---|---|---|
+| `brainstorming` | Interactive design exploration | Ask and record requirements directly |
+| `writing-plans` | File-by-file implementation plan | Write a concise implementation checklist |
+| Subagents | Independent batch review | Explicit self-review against all six checks |
+| `test-driven-development` | Test-first quality work | Add the smallest feasible regression test |
+| `project-experience` | Reuse past project patterns and pitfalls | Proceed without cross-project briefing |
+
+Hosts differ in skill discovery, file tools, and subagent policy. ADD checks available capabilities and continues with its documented fallback rather than blocking the core workflow.
+
+---
+
+## Migrating to v2.0
+
+v2.0 is a workflow-contract release. Existing `AC.md` files remain usable.
+
+1. **Keep your current `~/.add-hub` pointer.** A valid hub no longer depends on `_exp_memory.md` being present.
+2. **Do not delete `_exp_memory.md` to refresh it.** Ask for “update experience cache” instead. The replacement is built as `_exp_memory.md.tmp` and applied only after validation succeeds.
+3. **Annotate pending verification rows.** Use `[!] [manual]`, `[!] [affected]`, or `[!] [blocked]`.
+4. **Use numeric IDs for new top-level criteria.** Add `AC-<next integer>`; do not renumber old rows. Existing historical IDs can remain unchanged.
+5. **Install or update both skills.** `project-experience` is optional at runtime, but recommended for the complete experience loop.
+
+---
+
+## What is included
+
+```text
+skills/
+├── acceptance-driven-development/
+│   ├── SKILL.md
+│   ├── IMPROVEMENT-GUIDE.md
+│   └── references/framework-review-checklist.md
+└── project-experience/
+    └── SKILL.md
+
+projects/
+├── templates/
+└── AlarmClock/                    # example AC and completed project document
+```
+
+- `acceptance-driven-development` — acceptance-driven implementation workflow
+- `project-experience` — project-document mining and cache refresh workflow
+- `projects/templates` — optional starter templates
+- `projects/AlarmClock` — a worked example
 
 ---
 
 ## FAQ
 
-**Q: Does this slow me down?**
-A: ~2 minutes of overhead per change. It saves hours of debugging and rework. We've tested this on real projects for months.
+**Do I need Obsidian?**
+No. `$DOC_HUB` is a normal directory. Obsidian is optional and useful only if you want note navigation, backlinks, or Dataview views.
 
-**Q: Do I need Superpowers?**
-A: Not at all. ADD is complete on its own. Superpowers adds optional professional workflows when you want them.
+**Do I need Superpowers or subagents?**
+No. ADD runs standalone. Optional skills and subagents deepen the workflow when available.
 
-**Q: What's the recommended setup?**
-A: The author's daily driver — and what we recommend — is **ADD + Superpowers + Obsidian**. Superpowers deepens every phase (brainstorming, planning, subagent execution, TDD, verification), while Obsidian gives you a beautiful dashboard for your project documents with wiki-links and Dataview auto-indexing. That said, ADD works perfectly with any folder structure and any agent.
+**Will ADD implement deferred `[>]` items?**
+No. Deferred work is a user-facing decision and stays out of implementation unless you explicitly request it.
 
-**Q: Do I need to load ADD in every conversation?**
-A: No — load it once at the start of your first session. The agent remembers the rules for the rest of that session. If it ever skips a step, just say "Phase 3.5?" or "Did you self-review?" — that's usually enough to snap it back. When you start a brand new session, load ADD once at the beginning. Think of it like turning on the ignition, not holding the accelerator.
+**Why not mark every completed item `[x]` immediately?**
+`[x]` means fresh verification succeeded. Manual work and unavailable environments must remain visible as `[!]` until they have a valid outcome.
 
-**Q: What if the agent skips the process?**
-A: ADD has 8 defensive layers. If the agent still manages to skip, asking "Did you go through Mode B?" is your final safety net.
-
-**Q: What about non-code projects?**
-A: ADD works best for software. The AC table structure needs verifiable, testable behavior.
-
-**Q: My project doesn't have AC docs yet?**
-A: Phase 0 detects this and triggers the full setup — brainstorming → design doc → AC creation. Takes about 5 minutes.
+**Can I use ADD with an existing project?**
+Yes. Create or import `AC.md` into the project’s `$DOC_HUB/<ProjectName>/` directory, then ask the agent to continue with ADD.
 
 ---
 
-## Changelog
+## Support and Contributions
 
-### v1.4 — Reliable Hub Discovery (2026-07-14)
+- Report workflow gaps, unclear instructions, or host-specific installation issues through [GitHub Issues](https://github.com/ZeusYue/acceptance-driven-development-skill/issues).
+- Contributions are welcome. Please update the relevant README(s), the improvement guide, and `tests/validate-release.ps1` whenever you change the workflow contract.
+- For a substantial workflow change, add an explicit migration note and preserve a fallback for hosts without optional capabilities.
 
-- **`~/.add-hub` pointer file**: Phase 0 now discovers `$DOC_HUB` by directly reading a one-line pointer file instead of a fragile recursive glob — works reliably across Claude Code, Codex, opencode, and any agent (a recursive `~` search failed or timed out on some agents' file tools)
-- **Three-tier discovery**: (1) read `~/.add-hub` → (2) fallback glob `**/_exp_memory.md` → (3) ask user, then write the pointer. Load once, found forever
-- **Stale-pointer handling**: if the pointer path was moved/deleted, it's detected and rebuilt automatically
-- **Multi-cache tie-breaker**: ambiguous glob matches ask before writing the pointer — no silent misdirection
-- **9 consistency fixes**: `[~]` in agent-done condition, Mode A trigger scope (initial scan OR 3+ AC change), Phase 5 cross-reference, Phase 4.8 rationalization row, Windows `~` expansion note, and more
+---
 
-### v1.3 — Robustness Audit (2026-07-11)
+## v2.0 release notes
 
-- **`_exp_memory.md` renamed** (from `.exp_memory.md`): visible in Obsidian and file managers that hide dot-files
-- **Two-layer completion refined**: agent work done = no `[ ]` or `[~]`; project complete = only `[x]` `[>]` `[-]` remain
-- **Mode A + Mode B both restore demoted ACs**: impact-analysis demotions are re-verified and restored after implementation, not left for Phase 6 to catch
-- **AUTO classification requires an executable command**: vague "check it works" descriptions are classified MANUAL instead
-- **AUTO verification shows its work**: command, expected, and actual output presented before marking `[x]`
-- **Self-review reports per-item**: Phase 4.8 PASS outputs one line per checklist item — no silent "PASS"
-- **Experience cache validates content**: placeholder or empty caches trigger a full scan instead of a false hit
-- **Cache merge/overflow rules defined**: explicit criteria for merging pitfalls, judging pattern generalizability, and priority when trimming to the size cap
-- **20+ consistency fixes**: Mode A step count, demotion-restore exception, fast-lane confirmation wording, Phase 6 flow diagram, failure thresholds for both modes, regression handling, and more
+- Stable Hub pointer and safe, atomic experience-cache refresh.
+- Explicit Phase 3.5A / 3.5B split.
+- Annotation-aware `[!]` verification states.
+- Monotonic AC IDs for new top-level criteria.
+- Rewritten multi-agent installation guidance with a CC Switch path.
+- Updated project attribution to **ZeusYue**.
 
-### v1.2 — Unified Document Hub (2026-07-10)
-
-- **`$DOC_HUB` centralized architecture**: all ACs, project docs, templates, and experience cache under one directory independent of code
-- **`~/_exp_memory.md` anchor discovery**: auto-locate hub across sessions and windows — no repeated path prompts
-- **Immediate placeholder**: `_exp_memory.md` created on first setup, not waiting for project completion — prevents parallel-session conflicts
-- **Improved onboarding prompt**: explains purpose (shared across all projects), warns against project-specific paths
-- **`memory.md` → `exp_memory.md`**: renamed to avoid name collisions with Claude's own memory files
-- **6-item review checklist**: Framework-specific checks added as the 6th item (Wiring, Safety, Fidelity, State, Impact, Framework)
-- **Mode B AC restoration**: explicitly restores ACs demoted by impact analysis after self-review
-- **Phase 5 path split**: Mode A items (AUTO/MANUAL/BLOCKED) and Mode B items handled in separate clear paths
-- **3-failure threshold for Mode A**: prevents infinite re-implementation loops on failing verifications
-- **`[~]` settlement step**: partially-done items must be resolved (fix/defer/deprecate) before project doc generation
-- **All paths use `$DOC_HUB`**: zero hardcoded `projects/` or `<VAULT>/<DOCS>` references remain
-
-### v1.1 — Experience Cache & Quality Audit (2026-07-09)
-
-- **Experience cache**: `project-experience` generates `_exp_memory.md` — ~15s fast path after first scan
-- **Cache-aware Phase 3.5 & Gate 1**: past project pitfalls surface at every decision point
-- **Event-driven AC updates**: user confirms test → `[x]` immediately, no waiting
-- **Transparency rule**: every phase/mode entry announced to user for supervision
-- **12+ logic gaps fixed**, 16+ negative phrasings cleaned
-
-### v1.0 — Initial Release (2026-07-03)
-
-- Full 9-phase workflow, dual-mode implementation (batch/lightweight), 6-item self-review, hard-gate completion
+Released under the [MIT License](./LICENSE). Copyright © 2026 ZeusYue.
