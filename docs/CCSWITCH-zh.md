@@ -52,10 +52,10 @@ https://github.com/ZeusYue/acceptance-driven-development-skill/archive/refs/head
 
 出现“`创建符号链接失败：……`”这类报错时，问题通常在本地安装权限或存储位置，而不是仓库发现。
 
-1. 打开 CC Switch **设置**，将 **Skills 存储位置**改为 `~/.agents/skills`。
-2. 如果 CC Switch 提供 Skill 同步方式，选择 **Copy / 复制**，不要选择符号链接方式。
-3. 重启 CC Switch，刷新**发现技能**，再重新安装两个 Skill。
-4. 如果必须使用符号链接，请以**管理员身份**启动 CC Switch，或启用 Windows 开发人员模式后重试。
+1. **符号链接可正常创建时应优先使用**：它保持一个共享 Skill 来源，不会让目标 Agent 显示重复 Skill。
+2. 若无法创建链接，打开 CC Switch **设置**，将 **Skills 存储位置**改为 `~/.agents/skills`，重启 CC Switch 后重新安装两个 Skill。
+3. 若仍失败，请以**管理员身份**启动 CC Switch，或启用 Windows 开发人员模式后重试。
+4. **Copy / 复制仅作为临时兜底**。它会生成独立的物理副本；先移除或重新安装旧的目标 Agent 副本，避免同一 Skill 被发现两次。
 
 修改存储位置或同步方式后，所选目标 Agent 的 Skill 可能需要重新安装。
 

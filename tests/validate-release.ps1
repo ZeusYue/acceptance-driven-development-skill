@@ -47,7 +47,7 @@ Require-Match $projectTemplate '(?m)^date:' 'Release project template must provi
 foreach ($skillFile in $skillDirs) { if (-not (Test-Path -LiteralPath $skillFile)) { $failures.Add("Missing discoverable skill file: $skillFile") } }
 
 # v2.3 README narrative, CC Switch network, and compressed-core contract.
-Require-Match $readme '# Acceptance-Driven Development \(ADD\) v2\.3' 'English README must identify v2.3.'
+Require-Match $readme '# Acceptance-Driven Development \(ADD\) v2\.3\.1' 'English README must identify v2.3.1.'
 Require-Match $readme '## Your agent said “done.” You disagree.' 'English README must open with the human problem story.'
 Require-Match $readme '## How ADD closes the loop' 'English README must show the ADD closed loop.'
 Require-Match $readme '## Before ADD / After ADD' 'English README must include before/after proof.'
@@ -61,7 +61,10 @@ Require-NoMatch $readme 'Subdirectory:' 'English README must not require a Subdi
 Require-NoMatch $readme '\bmian\b' 'English README must reject the mistyped branch.'
 Require-Match $readme 'Failed to create symbolic link' 'English README must include Windows symbolic-link troubleshooting.'
 Require-Match $readme '~/.agents/skills' 'English README must document the shared skills storage fallback.'
-Require-Match $readmeZh '# 验收驱动开发（ADD）v2\.3' 'Chinese README must identify v2.3.'
+Require-Match $readme 'Prefer symbolic links when they work' 'English README must prefer symbolic links to avoid duplicate skills.'
+Require-Match $readme 'Copy is only a temporary fallback' 'English README must limit Copy to a duplicate-prone fallback.'
+Require-NoMatch $readme 'prefer \*\*Copy\*\* instead' 'English README must not recommend Copy ahead of symbolic links.'
+Require-Match $readmeZh '# 验收驱动开发（ADD）v2\.3\.1' 'Chinese README must identify v2.3.1.'
 Require-Match $readmeZh '## 你的 Agent 说“完成了”。你并不相信。' 'Chinese README must open with the human problem story.'
 Require-Match $readmeZh '## ADD 如何闭环' 'Chinese README must show the ADD closed loop.'
 Require-Match $readmeZh '## 使用 ADD 前后' 'Chinese README must include before/after proof.'
@@ -74,6 +77,9 @@ Require-NoMatch $readmeZh '子目录：' 'Chinese README must not require a Subd
 Require-NoMatch $readmeZh '\bmian\b' 'Chinese README must reject the mistyped branch.'
 Require-Match $readmeZh '创建符号链接失败' 'Chinese README must include Windows symbolic-link troubleshooting.'
 Require-Match $readmeZh '~/.agents/skills' 'Chinese README must document the shared skills storage fallback.'
+Require-Match $readmeZh '符号链接可正常创建时应优先使用' 'Chinese README must prefer symbolic links to avoid duplicate skills.'
+Require-Match $readmeZh 'Copy / 复制仅作为临时兜底' 'Chinese README must limit Copy to a duplicate-prone fallback.'
+Require-NoMatch $readmeZh '优先选择 \*\*Copy / 复制\*\*' 'Chinese README must not recommend Copy ahead of symbolic links.'
 foreach ($guide in @($ccSwitchGuide, $ccSwitchGuideZh)) {
     if (-not (Test-Path -LiteralPath $guide)) { $failures.Add("Missing CC Switch guide: $guide"); continue }
     Require-Match $guide 'main' 'CC Switch guide must include branch main.'
@@ -81,6 +87,8 @@ foreach ($guide in @($ccSwitchGuide, $ccSwitchGuideZh)) {
     Require-NoMatch $guide 'Subdirectory:' 'CC Switch guide must not require a Subdirectory field.'
     Require-NoMatch $guide '\bmian\b' 'CC Switch guide must not include the mistyped branch.'
 Require-Match $guide 'agents/skills|\.agents/skills' 'CC Switch guide must document a shared skills storage fallback.'
+Require-Match $guide 'symbolic links when they work|符号链接可正常创建时应优先使用' 'CC Switch guides must prefer symbolic links when they work.'
+Require-Match $guide 'temporary fallback|临时兜底' 'CC Switch guides must limit Copy to a fallback.'
 }
 
 # Portable release package: no private workstation paths.

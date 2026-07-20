@@ -1,4 +1,4 @@
-# 验收驱动开发（ADD）v2.3
+# 验收驱动开发（ADD）v2.3.1
 
 <p align="center">
   <strong>让编码 Agent 用清单和证据证明“真的完成了”。</strong><br>
@@ -208,10 +208,10 @@ CC Switch 发现仓库时需要下载 GitHub 的分支压缩包。如果 GitHub 
 
 这通常是本地 Skill 安装的权限或存储位置问题，不是仓库 URL、分支或仓库结构问题。
 
-1. 打开 CC Switch **设置**，将 **Skills 存储位置**改为 `~/.agents/skills`。
-2. 如果设置中提供 Skill 同步方式，优先选择 **Copy / 复制**，不要使用符号链接方式。
-3. 重启 CC Switch，刷新“发现技能”，再重新安装两个 Skill。
-4. 如果必须保留符号链接方式，请以**管理员身份**启动 CC Switch，或启用 Windows 开发人员模式后重试。
+1. **符号链接可正常创建时应优先使用**：它保持一个共享 Skill 来源，不会让目标 Agent 显示重复 Skill。
+2. 若无法创建链接，打开 CC Switch **设置**，将 **Skills 存储位置**改为 `~/.agents/skills`，重启 CC Switch 后重新安装。
+3. 若仍失败，请以**管理员身份**启动 CC Switch，或启用 Windows 开发人员模式后重试。
+4. **Copy / 复制仅作为临时兜底**。它会生成独立的物理副本，可能让同一 Skill 重复显示；使用前请先移除或重新安装旧的目标 Agent 副本。
 
 完整恢复顺序见 [CC Switch 安装指南](./docs/CCSWITCH-zh.md)。
 
@@ -238,6 +238,16 @@ CC Switch 发现仓库时需要下载 GitHub 的分支压缩包。如果 GitHub 
 ```
 
 ADD 会写入 `~/.add-hub`，并将 AC、项目文档、模板和可选经验缓存保存在其中。Obsidian 有帮助，但不是必需条件。
+
+---
+
+## v2.3.1 安装文档热修复
+
+v2.3.1 不改变 ADD 工作流，只修正 Windows 下 CC Switch 的恢复路径：
+
+- 符号链接可用时优先使用，目标 Agent 只会看到一个共享 Skill 来源；
+- 链接失败时，可通过 `~/.agents/skills`、管理员启动或 Windows 开发人员模式恢复；
+- Copy / 复制只作为临时兜底，因为多个物理副本可能造成重复 Skill 条目。
 
 ---
 

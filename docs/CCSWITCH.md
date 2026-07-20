@@ -52,10 +52,10 @@ If the archive downloads successfully but CC Switch still reports zero skills, t
 
 A message such as `Failed to create symbolic link: …` is a local installation permission or storage-location problem, not a repository-discovery problem.
 
-1. Open CC Switch **Settings** and set the skills storage location to `~/.agents/skills`.
-2. If CC Switch offers a skill sync method, choose **Copy** rather than a symbolic-link method.
-3. Restart CC Switch, refresh **Discover Skills**, and install both skills again.
-4. If you must use symbolic links, run CC Switch as Administrator or enable Windows Developer Mode, then retry.
+1. **Prefer symbolic links when they work.** They keep one shared skill definition and avoid duplicate skills in the target agent.
+2. If the link cannot be created, open CC Switch **Settings**, set the skills storage location to `~/.agents/skills`, restart CC Switch, and install both skills again.
+3. If it still fails, run CC Switch as Administrator or enable Windows Developer Mode, then retry.
+4. **Copy is only a temporary fallback** when symbolic links cannot be used. It creates separate physical copies; remove or reinstall the old target-agent copy first so the same skill is not discovered twice.
 
 Changing the storage location or sync method may require reinstalling the skills for the selected target agent.
 

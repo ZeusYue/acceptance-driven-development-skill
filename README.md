@@ -1,4 +1,4 @@
-# Acceptance-Driven Development (ADD) v2.3
+# Acceptance-Driven Development (ADD) v2.3.1
 
 <p align="center">
   <strong>The AI skill pack that makes “done” a checklist, not a feeling.</strong><br>
@@ -207,10 +207,10 @@ CC Switch discovers a repository by downloading its GitHub branch archive. If Gi
 
 This is a local skill-installation permission or storage-location problem, not a repository URL or branch problem.
 
-1. In CC Switch **Settings**, change the skills storage location to `~/.agents/skills`.
-2. If CC Switch exposes a skills sync method, prefer **Copy** instead of a symbolic-link method.
-3. Restart CC Switch, refresh discovery, and install the skills again.
-4. If you must keep symbolic links, run CC Switch as Administrator or enable Windows Developer Mode, then retry.
+1. **Prefer symbolic links when they work:** they keep one shared skill definition and avoid duplicate entries in the target agent.
+2. If the link cannot be created, in CC Switch **Settings** change the skills storage location to `~/.agents/skills`, then restart CC Switch and retry the installation.
+3. If the link still fails, run CC Switch as Administrator or enable Windows Developer Mode, then retry.
+4. **Copy is only a temporary fallback** when symbolic links cannot be used. It can create separate physical copies and make the same skill appear more than once; remove or reinstall the old target-agent copy before using it.
 
 See [CC Switch installation](./docs/CCSWITCH.md) for the full recovery sequence.
 
@@ -237,6 +237,16 @@ On the first code-related request, ADD asks for one stable directory shared acro
 ```
 
 ADD writes `~/.add-hub` and keeps project ACs, documents, templates, and the optional experience cache there. Obsidian is helpful but not required.
+
+---
+
+## v2.3.1 installation documentation hotfix
+
+v2.3.1 does not change the ADD workflow. It corrects the Windows CC Switch recovery path:
+
+- prefer symbolic links when they work, so the target agent sees one shared skill definition;
+- use `~/.agents/skills`, Administrator mode, or Windows Developer Mode to recover a failed link;
+- use Copy only as a temporary fallback, because duplicate physical copies can produce duplicate skill entries.
 
 ---
 
