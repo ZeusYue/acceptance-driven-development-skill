@@ -46,27 +46,34 @@ Require-Match $projectTemplate '(?m)^status:' 'Release project template must pro
 Require-Match $projectTemplate '(?m)^date:' 'Release project template must provide date frontmatter.'
 foreach ($skillFile in $skillDirs) { if (-not (Test-Path -LiteralPath $skillFile)) { $failures.Add("Missing discoverable skill file: $skillFile") } }
 
-# v2.1 README story and actual CC Switch UI contract.
-Require-Match $readme '# Acceptance-Driven Development \(ADD\) v2\.1' 'English README must identify v2.1.'
-Require-Match $readme '## Why ADD changes agent development' 'English README must explain value before installation.'
-Require-Match $readme '## See ADD in one request' 'English README must include a concrete walkthrough before installation.'
+# v2.2 README narrative and CC Switch network contract.
+Require-Match $readme '# Acceptance-Driven Development \(ADD\) v2\.2' 'English README must identify v2.2.'
+Require-Match $readme '## Your agent said “done.” You disagree.' 'English README must open with the human problem story.'
+Require-Match $readme '## How ADD closes the loop' 'English README must show the ADD closed loop.'
+Require-Match $readme '## Before ADD / After ADD' 'English README must include before/after proof.'
+Require-Match $readme '## Try ADD in 60 seconds' 'English README must include a 60-second experience before installation.'
 Require-Match $readme '## Install ADD' 'English README must retain installation instructions.'
 Require-Match $readme 'Skills → Discover Skills → Repository Management → Add Skill Repository' 'English README must use the actual CC Switch discovery path.'
 Require-Match $readme 'Branch: main' 'English README must require branch main.'
-Require-Match $readme '## “0 skills found” in CC Switch' 'English README must include 0-skills troubleshooting.'
+Require-Match $readme 'Network and proxy' 'English README must include network/proxy diagnosis.'
+Require-Match $readme '0 skills found in CC Switch' 'English README must include 0-skills troubleshooting.'
 Require-NoMatch $readme 'Subdirectory:' 'English README must not require a Subdirectory field.'
 Require-NoMatch $readme '\bmian\b' 'English README must reject the mistyped branch.'
-Require-Match $readmeZh '# 验收驱动开发（ADD）v2\.1' 'Chinese README must identify v2.1.'
-Require-Match $readmeZh '## 为什么 ADD 会改变 Agent 开发' 'Chinese README must explain value before installation.'
-Require-Match $readmeZh '## 一条请求看懂 ADD' 'Chinese README must include a concrete walkthrough before installation.'
+Require-Match $readmeZh '# 验收驱动开发（ADD）v2\.2' 'Chinese README must identify v2.2.'
+Require-Match $readmeZh '## 你的 Agent 说“完成了”。你并不相信。' 'Chinese README must open with the human problem story.'
+Require-Match $readmeZh '## ADD 如何闭环' 'Chinese README must show the ADD closed loop.'
+Require-Match $readmeZh '## 使用 ADD 前后' 'Chinese README must include before/after proof.'
+Require-Match $readmeZh '## 一条请求看懂 ADD' 'Chinese README must include a 60-second experience before installation.'
 Require-Match $readmeZh '技能 → 发现技能 → 仓库管理 → 添加技能仓库' 'Chinese README must use the actual CC Switch discovery path.'
 Require-Match $readmeZh '分支：main' 'Chinese README must require branch main.'
+Require-Match $readmeZh '网络与代理' 'Chinese README must include network/proxy diagnosis.'
 Require-Match $readmeZh '## CC Switch 显示“识别到 0 个技能”' 'Chinese README must include 0-skills troubleshooting.'
 Require-NoMatch $readmeZh '子目录：' 'Chinese README must not require a Subdirectory field.'
 Require-NoMatch $readmeZh '\bmian\b' 'Chinese README must reject the mistyped branch.'
 foreach ($guide in @($ccSwitchGuide, $ccSwitchGuideZh)) {
     if (-not (Test-Path -LiteralPath $guide)) { $failures.Add("Missing CC Switch guide: $guide"); continue }
     Require-Match $guide 'main' 'CC Switch guide must include branch main.'
+    Require-Match $guide 'GitHub archive' 'CC Switch guide must include archive/network diagnosis.'
     Require-NoMatch $guide 'Subdirectory:' 'CC Switch guide must not require a Subdirectory field.'
     Require-NoMatch $guide '\bmian\b' 'CC Switch guide must not include the mistyped branch.'
 }

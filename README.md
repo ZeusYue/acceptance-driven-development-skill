@@ -1,63 +1,109 @@
-# Acceptance-Driven Development (ADD) v2.1
+﻿# Acceptance-Driven Development (ADD) v2.2
 
 <p align="center">
-  <strong>Make coding agents prove that a change works — not merely claim that it is finished.</strong><br>
-  ADD turns every meaningful change into an acceptance contract, an impact check, a review, and fresh evidence.
+  <strong>The AI skill pack that makes “done” a checklist, not a feeling.</strong><br>
+  Turn coding-agent output into acceptance criteria, review evidence, and a project memory that survives the session.
 </p>
 
 <p align="center">
   <a href="./README-zh.md">简体中文</a> ·
-  <a href="#see-add-in-one-request">See it work</a> ·
+  <a href="#try-add-in-60-seconds">Try it</a> ·
   <a href="#install-add">Install</a> ·
-  <a href="#cc-switch-shows-0-skills-found">Troubleshoot CC Switch</a>
+  <a href="#0-skills-found-in-cc-switch">CC Switch help</a>
 </p>
 
 ---
 
-## Why ADD changes agent development
+## Your agent said “done.” You disagree.
 
-Most agent workflows optimize for producing code quickly. ADD optimizes for **knowing when the work is actually safe to call done**.
+You ask an agent to build a feature. It writes code, maybe the build passes, and it confidently says **“Done.”**
+
+Then you open the app:
+
+- a button does nothing;
+- one edge case is missing;
+- the requested behavior was misunderstood;
+- the fix broke another screen;
+- the agent has already moved on.
+
+**Coding agents are optimistic. They can produce code faster than they can prove that the result satisfies your intent.**
+
+ADD exists to close that gap. It gives the agent a visible contract for what must be built, what must be checked, and what still needs your hands-on confirmation.
+
+---
+
+## How ADD closes the loop
+
+```text
+YOUR IDEA
+    │
+    ▼
+Agent clarifies intent ───────────────► no silent guessing
+    │
+    ▼
+Acceptance criteria (AC.md) ──────────► you review the contract
+    │
+    ▼
+Impact analysis before code ───────────► working behavior is protected
+    │
+    ▼
+Implement + six-point review ─────────► code is not the exit condition
+    │
+    ▼
+Fresh verification / your test ────────► [ ] → [!] → [x]
+    │
+    ▼
+Living project document ──────────────► the next project starts smarter
+```
+
+The practical rule is simple:
+
+> The agent cannot honestly call a feature complete while its acceptance criteria still say it is unfinished, unverified, blocked, or only partially done.
+
+---
+
+## Before ADD / After ADD
 
 | Without ADD | With ADD |
 |---|---|
-| “Implemented.” | “AC-12 passed `ctest`; here is the output.” |
-| A small fix quietly breaks a working feature. | Impact analysis marks dependent criteria for fresh verification. |
-| The agent remembers your architecture for a few messages. | Project documents and experience cache carry proven lessons forward. |
-| A GUI feature is declared complete without anyone clicking it. | It remains `[!] [manual]` until someone verifies the exact interaction. |
-| The same bug receives endless patches. | Three failures trigger diagnosis, redesign, guidance, or deferral. |
-
-ADD is not a test framework and not a project manager. It is a **workflow contract** around your existing codebase, tests, tools, and judgment.
-
----
-
-## See ADD in one request
-
-Ask an agent:
-
-```text
-Add a bulk-delete action to the image browser. Use ADD.
-```
-
-A correct run should make its reasoning observable:
-
-```text
-Phase 3.5B — Impact analysis: bulk delete
-→ Update the relevant acceptance criterion
-→ Propose the approach and wait for approval
-→ Phase 4 Mode B — implement 1 AC
-→ Phase 4.8 — six-point review
-→ Phase 5 — mark [!] [manual] with exact test steps
-```
-
-For an existing approved backlog, the agent instead announces **Phase 3.5A**, lists the target ACs, and enters Mode A without asking you to re-approve already approved requirements.
-
-If you cannot see the phase announcement, the affected AC, the review result, or fresh verification evidence, you have a concrete question to ask — not a vague feeling that the agent skipped something.
+| “It compiles, so it is done.” | “AC-12 passed its verification command; here is the result.” |
+| The agent assumes your intent. | You approve behavior changes before implementation. |
+| A small fix breaks another feature unnoticed. | Impact analysis marks affected criteria for re-verification. |
+| GUI work is declared complete without being clicked. | It stays visible as `[!] [manual]` until someone verifies it. |
+| A repeated failure receives another patch. | Three failures trigger diagnosis, redesign, guidance, or deferral. |
+| Each project starts from zero. | Project documents and evidence-backed experience inform the next task. |
 
 ---
 
-## What ADD gives you
+## Try ADD in 60 seconds
 
-### An AC table that remains honest
+Load the skill once for the session, then send a request like:
+
+```text
+Build a photo browser with ADD.
+```
+
+For a new project, ADD asks questions, records a design, drafts an acceptance table, and waits for approval before building.
+
+For an existing project, try:
+
+```text
+Continue ImageView with ADD.
+```
+
+For a change to a working project, try:
+
+```text
+Add a bulk-delete action. Use ADD.
+```
+
+You should see phase announcements, the affected acceptance criteria, a review result, and either fresh command output or a specific user-test checklist. That is the point: the workflow should be inspectable, not mysterious.
+
+---
+
+## What you get as the project grows
+
+### An honest acceptance table
 
 `AC.md` is the acceptance source of truth.
 
@@ -66,42 +112,31 @@ If you cannot see the phase announcement, the affected AC, the review result, or
 | `[ ]` | Not implemented |
 | `[~]` | Partially implemented |
 | `[x]` | Freshly verified passing |
-| `[!] [manual]` | Implemented; needs hands-on verification |
-| `[!] [affected]` | A prior pass was affected by another change; needs re-verification |
-| `[!] [blocked]` | Verification is unavailable; reason and unblock condition recorded |
+| `[!] [manual]` | Implemented; needs a hands-on check |
+| `[!] [affected]` | Previously passed but affected by another change |
+| `[!] [blocked]` | Verification unavailable; unblock condition recorded |
 | `[>]` | Explicitly deferred |
 | `[-]` | Explicitly deprecated |
 
-### A document trail that survives the session
+### A project record that stays useful during development
 
 ```text
 $DOC_HUB/<ProjectName>/
 ├── AC.md                  # acceptance state
-├── design.md              # greenfield design, when applicable
-└── <ProjectName>.md       # living architecture and engineering record
+├── design.md              # approved design, when needed
+└── <ProjectName>.md       # living architecture, risks, patterns, and evidence
 ```
 
-ADD creates and updates the project document. `project-experience` reads it, finds relevant lessons, and later distills evidence-backed patterns into `_exp_memory.md`.
+ADD owns the project-document lifecycle. `project-experience` reads these documents and turns proven cross-project lessons into a compact experience cache.
 
-### A safety valve for active projects
+### A workflow that becomes more precise when needed
 
-Development projects can document real code, tests, resolved incidents, and architectural decisions immediately. Plans and uncertain conclusions remain visibly labeled instead of being promoted into “reusable knowledge” too early.
+You do not need to learn internal terms before trying ADD. Later, when you want to inspect the workflow:
 
----
-
-## How the workflow works
-
-```text
-Approved backlog       → Phase 3.5A → Mode A → review → verification
-Mid-project change     → Phase 3.5B → approval/fast lane → Mode A or B → verification
-Project completion     → finalize project document → optional safe cache rebuild
-```
-
-- **Phase 3.5A** handles already-approved `[ ]` / `[~]` work.
-- **Phase 3.5B** handles new features, behavior changes, bug fixes, and improvements.
-- **Mode A** processes initial triaged work and larger changes.
-- **Mode B** handles a confirmed 1–2 AC change, but still requires the same impact check and six-point review.
-- Cache refresh never deletes the old cache: it writes `_exp_memory.md.tmp`, validates it, then replaces the old file.
+- **Phase 3.5A** means “implement approved backlog safely.”
+- **Phase 3.5B** means “change behavior, fix a bug, or add a feature safely.”
+- **Mode A** is batch implementation; **Mode B** is a lightweight confirmed change.
+- Both still require impact analysis, review, and verification.
 
 ---
 
@@ -114,14 +149,12 @@ acceptance-driven-development
 project-experience
 ```
 
-The first controls the acceptance workflow; the second gives the workflow cross-project memory when the host makes it available.
+The first enforces the acceptance workflow. The second provides reusable project experience when the host supports it.
 
 ### Option 1 — CC Switch
 
-Use the standard CC Switch skill-repository flow:
-
-1. Select the target agent application in CC Switch.
-2. Go to **Skills → Discover Skills → Repository Management → Add Skill Repository**.
+1. Select the target agent application.
+2. Open **Skills → Discover Skills → Repository Management → Add Skill Repository**.
 3. Enter:
 
    ```text
@@ -129,12 +162,12 @@ Use the standard CC Switch skill-repository flow:
    Branch: main
    ```
 
-4. Add the repository, return to **Discover Skills**, refresh if needed, and install:
+4. Return to **Discover Skills**, refresh if needed, and install:
    - `acceptance-driven-development`
    - `project-experience`
-5. Start a new session in the target agent.
+5. Start a new agent session.
 
-The repository already exposes the expected layout:
+The repository already uses the discovery layout CC Switch scans recursively:
 
 ```text
 skills/
@@ -142,22 +175,37 @@ skills/
 └── project-experience/SKILL.md
 ```
 
-Do not point CC Switch at an individual `SKILL.md` file. For the complete UI walkthrough, see [CC Switch installation](./docs/CCSWITCH.md).
+For detailed troubleshooting, see [CC Switch installation](./docs/CCSWITCH.md).
 
-### “0 skills found” in CC Switch
+### 0 skills found in CC Switch
 
-If the repository is added but CC Switch reports zero skills, check these in order:
+After URL and branch are correct, zero skills can still be a temporary **GitHub archive download or refresh** failure rather than a repository-layout problem.
 
-1. **Branch spelling:** it must be exactly `main`.
-2. **Repository URL:** use the repository root, not a file URL and not a `tree/...` URL.
-3. **Refresh:** return to Discover Skills and refresh the repository scan after adding it.
-4. **Repository record:** if the saved branch cannot be edited, delete that repository record and add it again with `main`.
-5. **Agent session:** restart the target agent or create a new session after installing.
-6. **Current release:** use the repository’s latest release branch before diagnosing the skill layout.
+Check in this order:
+
+1. Repository URL is the repository root — not a file URL or `tree/...` URL.
+2. Branch is exactly `main`.
+3. Return to Discover Skills and refresh the scan.
+4. Restart CC Switch, then refresh again.
+5. If the saved record cannot be corrected, delete it and add it again.
+
+#### Network and proxy
+
+CC Switch discovers a repository by downloading its GitHub branch archive. If GitHub access is restricted or unstable, the UI may show zero skills without explaining the download failure.
+
+- Open this address in a browser to verify the archive path is reachable:
+
+  ```text
+  https://github.com/ZeusYue/acceptance-driven-development-skill/archive/refs/heads/main.zip
+  ```
+
+- If it does not download, switch networks or configure the system / CC Switch network proxy according to your environment.
+- After network or proxy changes, restart CC Switch and refresh Discover Skills.
+- If the archive downloads but discovery still shows zero, use manual installation and report the result in an issue with your CC Switch version and screenshots.
 
 ### Option 2 — Manual installation
 
-Copy both skill directories from `skills/` into the directory documented by your agent host:
+Copy both folders from `skills/` into the skill directory documented by your host:
 
 | Agent host | Typical skills directory |
 |---|---|
@@ -167,59 +215,36 @@ Copy both skill directories from `skills/` into the directory documented by your
 | OpenCode | `~/.config/opencode/skills/` |
 | Hermes | `~/.hermes/skills/` |
 
-The final structure for Codex, for example, is:
-
-```text
-~/.codex/skills/
-├── acceptance-driven-development/
-│   ├── SKILL.md
-│   └── references/
-└── project-experience/
-    └── SKILL.md
-```
-
 ---
 
-## First Run: Choose a document hub
+## First Run: choose a document hub
 
-On the first code-related request, ADD asks for a stable shared directory for project documents. A good answer is:
+On the first code-related request, ADD asks for one stable directory shared across projects. A good answer is:
 
 ```text
 ~/project-docs/
 ```
 
-It writes `~/.add-hub`, then keeps all ACs, project documents, templates, and experience cache under that hub. Obsidian is optional; a plain directory works.
+ADD writes `~/.add-hub` and keeps project ACs, documents, templates, and the optional experience cache there. Obsidian is helpful but not required.
 
 ---
 
-## Migrating to v2.1
+## Migrating to v2.2
 
-v2.1 keeps every v2.0 AC compatible. It adds:
+Existing AC tables remain compatible. v2.2 adds:
 
-- an explicit living-project-document lifecycle for active projects;
-- schema-2 metadata for the next user-approved cache rebuild;
-- portable release tests without private workstation paths;
-- corrected CC Switch instructions for the actual URL + branch repository form;
-- a README that explains the value before asking you to install anything.
+- a problem-first README and a quick experiential path;
+- clear CC Switch network/proxy diagnosis after URL and branch checks;
+- living-project-document and schema-2 cache contracts from v2.1;
+- portable release validation that contains no private workstation paths.
 
-Existing caches remain readable. Do not delete `_exp_memory.md`; ask to update the experience cache when you are ready to rebuild it safely.
+Do not delete `_exp_memory.md` to refresh it. Ask to update the experience cache so it can be rebuilt safely.
 
 ---
 
 ## Support and contributions
 
-- Report workflow gaps, documentation problems, or host-specific installation issues through [GitHub Issues](https://github.com/ZeusYue/acceptance-driven-development-skill/issues).
-- For a workflow change, update the relevant skill, its reference/template, and `tests/validate-release.ps1` together.
-- Keep public release tests portable: do not embed private vault paths, cache hashes, usernames, or workstation-specific assumptions.
-
----
-
-## v2.1 release notes
-
-- Reframed README around outcomes and observable workflow evidence.
-- Corrected CC Switch installation to the current discovery UI and repository URL + `main` form.
-- Added a focused zero-skills recovery path.
-- Added living-project-document and schema-2 cache contracts to the release package.
-- Kept the canonical `skills/<skill>/SKILL.md` structure for repository discovery.
+- Report workflow gaps, documentation problems, or installation results through [GitHub Issues](https://github.com/ZeusYue/acceptance-driven-development-skill/issues).
+- When changing a workflow contract, update its skill, template/reference, README, and `tests/validate-release.ps1` together.
 
 Released under the [MIT License](./LICENSE). Copyright © 2026 ZeusYue.

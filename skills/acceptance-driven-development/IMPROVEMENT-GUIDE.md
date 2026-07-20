@@ -31,6 +31,20 @@ Skill 的核心循环是：`AC 表有 [ ] → 做 → 验 → 标记 → 还有 
 
 ---
 
+## v2.2（2026-07-20）：问题优先叙事与网络诊断
+
+### README 首屏原则
+
+- 首屏先让读者认出“Agent 说完成、用户发现缺陷”的真实问题，再展示 ADD 的闭环、前后对比和 60 秒体验。
+- Phase 3.5、Mode A/B、缓存 schema 等内部术语属于后半部分的可审计细节；不能替代对 ADD 整体价值的解释。
+- 参考早期 README 的问题叙事、流程图、Before/After 和 Quick Start，但不能重新引入旧的 demotion、缓存删除或单文件项目模型。
+
+### CC Switch 网络诊断
+
+- v3.17 的源码会递归扫描仓库中的 `SKILL.md`；`skills/<skill-name>/SKILL.md` 是兼容布局，不应因为一次 0 结果就重构或复制目录。
+- URL 与 `main` 分支已确认无误后，0 个技能可能表示 GitHub branch archive 下载或发现刷新暂时失败。
+- 公共指南应提供 archive URL 验证、网络/代理、重启与刷新步骤；不能假定所有用户的代理配置相同。
+
 ## v2.1（2026-07-20）：可发现性与 README 叙事
 
 ### CC Switch 发现规则

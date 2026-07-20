@@ -1,23 +1,10 @@
-# Install ADD with CC Switch
+﻿# Install ADD with CC Switch
 
-This guide uses the standard CC Switch flow that adds a skill repository through a repository URL and a branch.
-
-## Before you begin
-
-- Use the repository root, not an individual `SKILL.md` URL.
-- The branch is exactly `main`.
-- The repository already exposes discoverable skills at:
-
-  ```text
-  skills/acceptance-driven-development/SKILL.md
-  skills/project-experience/SKILL.md
-  ```
-
-- Install both skills after discovery.
+Use this guide after you understand what ADD does from the [main README](../README.md). CC Switch can recursively discover both skills in this repository; a temporary zero count can also mean that GitHub archive download or refresh failed.
 
 ## Add the repository
 
-1. Select the agent application you want to configure.
+1. Select the target agent application.
 2. Open **Skills → Discover Skills → Repository Management → Add Skill Repository**.
 3. Enter:
 
@@ -27,34 +14,40 @@ This guide uses the standard CC Switch flow that adds a skill repository through
    ```
 
 4. Save the repository record.
-5. Return to **Discover Skills** and refresh the scan if the list does not update immediately.
+5. Return to **Discover Skills** and refresh.
 
-## Install and verify
+The discoverable files are:
 
-1. Install `acceptance-driven-development`.
-2. Install `project-experience`.
-3. Start a new target-agent session.
-4. Ask:
+```text
+skills/acceptance-driven-development/SKILL.md
+skills/project-experience/SKILL.md
+```
 
-   ```text
-   Use ADD to implement a small feature.
-   ```
+Install both skills, then begin a new target-agent session.
 
-A correct run announces Phase 0. Existing approved backlog work later announces Phase 3.5A; a new mid-project change announces Phase 3.5B.
+## If discovery shows 0 skills
 
-## If CC Switch finds 0 skills
+1. Confirm the repository URL ends at `acceptance-driven-development-skill`.
+2. Confirm the branch is exactly `main`.
+3. Refresh Discover Skills and restart CC Switch if necessary.
+4. If the repository record cannot be corrected, delete and add it again.
 
-Check these in order:
+### GitHub archive, network, and proxy
 
-1. Confirm the saved branch is `main`, character for character.
-2. Confirm the repository URL ends at `acceptance-driven-development-skill`, not at a file or `tree/...` page.
-3. Refresh Discover Skills after adding the repository.
-4. If the saved branch cannot be changed, delete the repository record and add it again with `main`.
-5. Restart CC Switch and the target agent after a successful install.
-6. Only investigate repository layout after the URL and branch have been confirmed.
+CC Switch downloads the GitHub archive for the selected branch before it scans `SKILL.md`. Verify that the same archive is reachable in a browser:
+
+```text
+https://github.com/ZeusYue/acceptance-driven-development-skill/archive/refs/heads/main.zip
+```
+
+If it cannot download:
+
+- change network, or configure the system / CC Switch network proxy for your environment;
+- restart CC Switch after changing network or proxy settings;
+- refresh Discover Skills again.
+
+If the archive downloads successfully but CC Switch still reports zero skills, the repository layout is not the first suspect: the current archive contains two valid `SKILL.md` files. Use manual installation as a temporary workaround and file an issue with the CC Switch version, screenshots, and whether the archive URL downloaded.
 
 ## Update or remove
 
-Refresh the repository scan, then use the update action for both ADD skills. Uninstalling the skills does not delete your `$DOC_HUB`, AC files, project documents, or `~/.add-hub` pointer.
-
-For manual installation paths, see the [main README](../README.md#option-2--manual-installation).
+Refresh discovery, then update both ADD skills. Uninstalling them does not delete your `$DOC_HUB`, AC files, project documents, or `~/.add-hub` pointer.

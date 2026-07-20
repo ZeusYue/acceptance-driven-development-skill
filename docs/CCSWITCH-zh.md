@@ -1,23 +1,10 @@
-# 使用 CC Switch 安装 ADD
+﻿# 使用 CC Switch 安装 ADD
 
-本指南对应 CC Switch 中“仓库 URL + 分支”的技能仓库添加流程。
-
-## 开始前
-
-- 使用仓库根地址，不要填写单独的 `SKILL.md` URL。
-- 分支必须严格为 `main`。
-- 当前仓库已提供可发现的结构：
-
-  ```text
-  skills/acceptance-driven-development/SKILL.md
-  skills/project-experience/SKILL.md
-  ```
-
-- 发现后请同时安装两个 Skill。
+请先通过[主 README](../README-zh.md)了解 ADD 的作用，再使用本指南安装。CC Switch 可以递归发现本仓库的两个 Skill；短暂显示 0 个技能也可能是 GitHub 分支压缩包下载或发现刷新失败。
 
 ## 添加仓库
 
-1. 选择要配置的 Agent 应用；
+1. 选择目标 Agent 应用；
 2. 打开 **技能 → 发现技能 → 仓库管理 → 添加技能仓库**；
 3. 填写：
 
@@ -27,34 +14,40 @@
    ```
 
 4. 保存仓库记录；
-5. 回到**发现技能**，如列表未立即更新则刷新扫描。
+5. 回到**发现技能**并刷新。
 
-## 安装与验证
+可发现文件为：
 
-1. 安装 `acceptance-driven-development`；
-2. 安装 `project-experience`；
-3. 在目标 Agent 中新开会话；
-4. 发送：
+```text
+skills/acceptance-driven-development/SKILL.md
+skills/project-experience/SKILL.md
+```
 
-   ```text
-   使用 ADD 实现一个小功能。
-   ```
+请同时安装两个 Skill，然后在目标 Agent 中新开会话。
 
-正确运行会先公告 Phase 0。已有已批准积压项随后公告 Phase 3.5A；项目中途新增改动公告 Phase 3.5B。
+## 如果发现时显示 0 个技能
 
-## 如果 CC Switch 显示 0 个技能
+1. 确认仓库 URL 结尾为 `acceptance-driven-development-skill`；
+2. 确认分支严格为 `main`；
+3. 刷新“发现技能”，必要时重启 CC Switch；
+4. 仓库记录无法修正时，删除后重新添加。
 
-请按以下顺序排查：
+### GitHub archive、网络与代理
 
-1. 确认保存的分支逐字是 `main`；
-2. 确认仓库 URL 结尾是 `acceptance-driven-development-skill`，不是文件 URL，也不是 `tree/...` 页面；
-3. 添加仓库后刷新“发现技能”；
-4. 已保存的分支无法修改时，删除仓库记录后用 `main` 重新添加；
-5. 安装成功后重启 CC Switch 和目标 Agent；
-6. 只有 URL 与分支都确认无误后，才继续排查仓库布局。
+CC Switch 在扫描 `SKILL.md` 前，会下载所选分支的 GitHub archive。请先在浏览器中确认以下地址可访问：
+
+```text
+https://github.com/ZeusYue/acceptance-driven-development-skill/archive/refs/heads/main.zip
+```
+
+如果无法下载：
+
+- 切换网络，或按自身环境配置系统 / CC Switch 网络代理；
+- 网络或代理修改后重启 CC Switch；
+- 再次刷新“发现技能”。
+
+若 archive 可以下载、CC Switch 仍显示 0 个技能，不应首先怀疑仓库布局：当前 archive 已含两个有效 `SKILL.md`。可先用手动安装作为临时方案，并在 Issue 中提供 CC Switch 版本、截图和 archive 下载结果。
 
 ## 更新或卸载
 
-刷新仓库扫描后，分别更新两个 ADD Skill。卸载 Skill 不会删除 `$DOC_HUB`、AC 文件、项目文档或 `~/.add-hub` 指针。
-
-手动安装目录请见[主 README](../README-zh.md#方案二手动安装)。
+刷新发现结果后，分别更新两个 ADD Skill。卸载不会删除 `$DOC_HUB`、AC 文件、项目文档或 `~/.add-hub` 指针。
