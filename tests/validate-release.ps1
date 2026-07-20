@@ -22,52 +22,60 @@ $add = Join-Path $ReleaseRoot 'skills\acceptance-driven-development\SKILL.md'
 $experience = Join-Path $ReleaseRoot 'skills\project-experience\SKILL.md'
 $readme = Join-Path $ReleaseRoot 'README.md'
 $readmeZh = Join-Path $ReleaseRoot 'README-zh.md'
-$codex = Join-Path $ReleaseRoot 'codex-port\CODEX-ADAPTATION.md'
-$template = Join-Path $ReleaseRoot 'projects\templates\ac-template.md'
-$docs = Join-Path $ReleaseRoot 'docs'
-$ccSwitchGuide = Join-Path $docs 'CCSWITCH.md'
-$ccSwitchGuideZh = Join-Path $docs 'CCSWITCH-zh.md'
+$ccSwitchGuide = Join-Path $ReleaseRoot 'docs\CCSWITCH.md'
+$ccSwitchGuideZh = Join-Path $ReleaseRoot 'docs\CCSWITCH-zh.md'
+$acTemplate = Join-Path $ReleaseRoot 'projects\templates\ac-template.md'
+$projectTemplate = Join-Path $ReleaseRoot 'projects\templates\project-doc-template.md'
+$skillDirs = @(
+    (Join-Path $ReleaseRoot 'skills\acceptance-driven-development\SKILL.md')
+    (Join-Path $ReleaseRoot 'skills\project-experience\SKILL.md')
+)
 
+# Core workflow contracts retained from v2.0.
 Require-Match $add '### Phase 3\.5A: Approved Backlog Entry' 'ADD must define a Phase 3.5A entry for approved backlog work.'
-Require-Match $add 'Initial triaged AC work.*Mode A' 'Initial triaged AC work must route to Mode A.'
+Require-Match $add '### Step 0\.4 — Living Project Document' 'ADD must define the living-project-document lifecycle.'
+Require-Match $add 'project-doc-template\.md.*before creating or restructuring a project document' 'ADD must require template-first project-document creation.'
+Require-Match $add 'finalize the existing project document' 'ADD must finalize an existing project document.'
 Require-NoMatch $add '(?m)^- \*\*Yes\*\* → delete \$DOC_HUB/_exp_memory\.md' 'ADD must not delete the cache to request a refresh.'
-Require-Match $add '\[!\] \[manual\]' 'ADD must define the manual [!] annotation.'
-Require-Match $add '\[!\] \[affected\]' 'ADD must define the affected [!] annotation.'
-Require-Match $add '\[!\] \[blocked\]' 'ADD must define the blocked [!] annotation.'
-Require-Match $experience 'directory exists.*pointer is valid' 'An existing pointer directory must remain valid when its cache is absent.'
-Require-Match $experience 'Forced rebuild' 'project-experience must define a forced cache rebuild path.'
-Require-Match $experience '_exp_memory\.md\.tmp' 'project-experience must write a temporary cache before replacement.'
-Require-NoMatch $experience 'Delete and re-run project-experience to refresh' 'project-experience must not instruct users to delete cache files.'
-Require-NoMatch $readme 'demot|demotion' 'English README must not describe the retired demotion model.'
-Require-NoMatch $readmeZh '降级的\\s*AC|demoted AC' 'Chinese README must not describe the retired demotion model.'
-Require-NoMatch $codex '<VAULT>/projects|find ~ -maxdepth|cat "<VAULT>' 'Codex adaptation must not contain obsolete Vault/projects or Unix-only commands.'
-Require-Match $codex '\$DOC_HUB' 'Codex adaptation must use the document-hub model.'
-Require-Match $template 'AC-<next integer>' 'AC template must document the monotonic numeric ID scheme.'
-Require-Match $readme '# Acceptance-Driven Development \(ADD\) v2\.0' 'English README must identify the v2.0 release.'
-Require-Match $readme '## Install ADD' 'English README must have a dedicated installation section.'
-Require-Match $readme '### Option 1 — CC Switch' 'English README must describe CC Switch installation.'
-Require-Match $readme 'Owner: `ZeusYue`' 'English README must include the CC Switch repository owner.'
-Require-Match $readme 'Subdirectory: `skills`' 'English README must include the CC Switch skills subdirectory.'
-Require-Match $readme '## First Run: Create or Reuse a Document Hub' 'English README must explain the first-run document hub.'
-Require-Match $readme '## Migrating to v2\.0' 'English README must include migration guidance.'
-Require-Match $readme '## Support and Contributions' 'English README must include support/contribution guidance.'
-Require-Match $readmeZh '# 验收驱动开发（ADD）v2\.0' 'Chinese README must identify the v2.0 release.'
-Require-Match $readmeZh '## 安装 ADD' 'Chinese README must have a dedicated installation section.'
-Require-Match $readmeZh '### 方案一：CC Switch' 'Chinese README must describe CC Switch installation.'
-Require-Match $readmeZh '所有者：`ZeusYue`' 'Chinese README must include the CC Switch repository owner.'
-Require-Match $readmeZh '## 首次运行：创建或复用文档中枢' 'Chinese README must explain the first-run document hub.'
-Require-Match $readmeZh '## 迁移到 v2\.0' 'Chinese README must include migration guidance.'
-Require-Match $readmeZh '## 支持与贡献' 'Chinese README must include support/contribution guidance.'
-if (-not (Test-Path -LiteralPath $ccSwitchGuide)) { $failures.Add('English CC Switch installation guide must exist.') }
-if (-not (Test-Path -LiteralPath $ccSwitchGuideZh)) { $failures.Add('Chinese CC Switch installation guide must exist.') }
-if (Test-Path -LiteralPath $ccSwitchGuide) {
-    Require-Match $ccSwitchGuide 'Owner: `ZeusYue`' 'CC Switch guide must include the repository owner.'
-    Require-Match $ccSwitchGuide 'Name: `acceptance-driven-development-skill`' 'CC Switch guide must include the repository name.'
-    Require-Match $ccSwitchGuide 'Branch: `main`' 'CC Switch guide must include the release branch.'
-    Require-Match $ccSwitchGuide 'Subdirectory: `skills`' 'CC Switch guide must include the skills subdirectory.'
+Require-Match $experience 'Legacy cache fallback' 'project-experience must retain a legacy-cache fallback.'
+Require-Match $experience 'cache_schema: 2' 'project-experience must define cache schema 2 metadata.'
+Require-Match $experience 'Development-project evidence gate' 'project-experience must define active-project evidence rules.'
+Require-Match $acTemplate 'AC-<next integer>' 'AC template must document the monotonic numeric ID scheme.'
+Require-Match $projectTemplate '(?m)^tags:' 'Release project template must provide tags frontmatter.'
+Require-Match $projectTemplate '(?m)^status:' 'Release project template must provide status frontmatter.'
+Require-Match $projectTemplate '(?m)^date:' 'Release project template must provide date frontmatter.'
+foreach ($skillFile in $skillDirs) { if (-not (Test-Path -LiteralPath $skillFile)) { $failures.Add("Missing discoverable skill file: $skillFile") } }
+
+# v2.1 README story and actual CC Switch UI contract.
+Require-Match $readme '# Acceptance-Driven Development \(ADD\) v2\.1' 'English README must identify v2.1.'
+Require-Match $readme '## Why ADD changes agent development' 'English README must explain value before installation.'
+Require-Match $readme '## See ADD in one request' 'English README must include a concrete walkthrough before installation.'
+Require-Match $readme '## Install ADD' 'English README must retain installation instructions.'
+Require-Match $readme 'Skills → Discover Skills → Repository Management → Add Skill Repository' 'English README must use the actual CC Switch discovery path.'
+Require-Match $readme 'Branch: main' 'English README must require branch main.'
+Require-Match $readme '## “0 skills found” in CC Switch' 'English README must include 0-skills troubleshooting.'
+Require-NoMatch $readme 'Subdirectory:' 'English README must not require a Subdirectory field.'
+Require-NoMatch $readme '\bmian\b' 'English README must reject the mistyped branch.'
+Require-Match $readmeZh '# 验收驱动开发（ADD）v2\.1' 'Chinese README must identify v2.1.'
+Require-Match $readmeZh '## 为什么 ADD 会改变 Agent 开发' 'Chinese README must explain value before installation.'
+Require-Match $readmeZh '## 一条请求看懂 ADD' 'Chinese README must include a concrete walkthrough before installation.'
+Require-Match $readmeZh '技能 → 发现技能 → 仓库管理 → 添加技能仓库' 'Chinese README must use the actual CC Switch discovery path.'
+Require-Match $readmeZh '分支：main' 'Chinese README must require branch main.'
+Require-Match $readmeZh '## CC Switch 显示“识别到 0 个技能”' 'Chinese README must include 0-skills troubleshooting.'
+Require-NoMatch $readmeZh '子目录：' 'Chinese README must not require a Subdirectory field.'
+Require-NoMatch $readmeZh '\bmian\b' 'Chinese README must reject the mistyped branch.'
+foreach ($guide in @($ccSwitchGuide, $ccSwitchGuideZh)) {
+    if (-not (Test-Path -LiteralPath $guide)) { $failures.Add("Missing CC Switch guide: $guide"); continue }
+    Require-Match $guide 'main' 'CC Switch guide must include branch main.'
+    Require-NoMatch $guide 'Subdirectory:' 'CC Switch guide must not require a Subdirectory field.'
+    Require-NoMatch $guide '\bmian\b' 'CC Switch guide must not include the mistyped branch.'
 }
-$publicIdentityFiles = Get-ChildItem -Recurse -File $ReleaseRoot | Where-Object { ($_.Extension -in '.md','.ps1','.txt') -or $_.Name -eq 'LICENSE' } | Where-Object { $_.FullName -notmatch '[\\\\/]tests[\\\\/]' }
-$oldIdentity = $publicIdentityFiles | Select-String -Pattern 'thunderzeus036-creator' -CaseSensitive:$false
+
+# Portable release package: no private workstation paths.
+$releaseFiles = Get-ChildItem -Recurse -File $ReleaseRoot | Where-Object { ($_.Extension -in '.md','.ps1','.txt' -or $_.Name -eq 'LICENSE') -and $_.FullName -notmatch '[\\/]tests[\\/]' }
+$privatePath = $releaseFiles | Select-String -Pattern 'C:\\Users\\NINGMEI|claude\\_exp_memory\.md|expectedActiveCacheHash' -CaseSensitive:$false
+if ($privatePath) { $failures.Add('Release files must not reference private workstation paths or cache hashes.') }
+$oldIdentity = $releaseFiles | Where-Object { $_.FullName -notmatch '[\\/]tests[\\/]' } | Select-String -Pattern 'thunderzeus036-creator' -CaseSensitive:$false
 if ($oldIdentity) { $failures.Add('Public release files must not retain the former GitHub username.') }
 
 if ($failures.Count -gt 0) {

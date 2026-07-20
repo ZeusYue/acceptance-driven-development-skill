@@ -11,6 +11,8 @@ Read the project documentation library — a collection of structured project do
 
 **Core principle:** Past projects encode years of hard-won engineering judgment. A 3-minute read of their docs saves hours of repeating their mistakes.
 
+**Boundary:** ADD creates, updates, and finalizes `<ProjectName>.md` from the project-document template. `project-experience` consumes those documents, produces a briefing, and refreshes `_exp_memory.md`; it does not author project documentation.
+
 ## When to Use
 
 ```
@@ -82,10 +84,13 @@ All project documents and the experience cache live under a single directory (`$
 
 **Forced rebuild:** If the user explicitly says "update experience cache", "refresh experience cache", or "rebuild experience cache", or ADD invokes this skill after project completion with a forced-rebuild request, keep `$DOC_HUB` fixed, skip the cache fast path, and run the full Phase 1–5 extraction. Preserve the old cache until the new cache is written successfully.
 
+**Legacy cache fallback:** A cache without schema-2 frontmatter remains readable if it contains non-empty `## Known Pitfalls` and `## Reusable Patterns` sections. Match it by keywords only, state that provenance metadata is unavailable, and do not rewrite it unless the user explicitly requests a forced rebuild.
+
 Otherwise check whether `$DOC_HUB/_exp_memory.md` exists:
 
-- **YES (with real content)** → read it. Skip Phase 1 and 3, go directly to Phase 2. **Content validation:** if the file contains only the placeholder (`> No completed projects yet.`), or has no `## Known Pitfalls` / `## Reusable Patterns` heading, or those sections are empty → treat as NO (full cycle).
-- **NO** → remain in this same `$DOC_HUB` and proceed with full Phase 1–5. After Phase 5, save the cache atomically (see Phase 6). Do not rediscover the Hub merely because the cache is absent.
+- **YES (schema 2)** → read its `cache_schema`, `generated_at`, source-project metadata, entry tags, and source status. Match structured tags before free-text keywords, then go directly to Phase 2.
+- **YES (legacy)** → use the Legacy cache fallback above.
+- **NO / invalid** → remain in this same `$DOC_HUB` and proceed with full Phase 1–5. After Phase 5, save the cache atomically (see Phase 6). Do not rediscover the Hub merely because the cache is absent.
 
 ### Step 0.3: Find project documents
 
@@ -107,18 +112,23 @@ Glob pattern="$DOC_HUB/*/*.md"
 
 Filter to project docs only: keep files matching `<DirName>/<DirName>.md` (named after their containing directory). Ignore `AC.md`, `design.md`, `ac-template.md`, `project-doc-template.md`, `project-index.md`.
 
-From the survey, extract:
-- How many projects exist (each subdirectory under `$DOC_HUB` with a `<Dir>/<Dir>.md` = one project)
-- Their tags (languages, frameworks, domains) — read frontmatter of each project document found
-- Their status (maintained, completed, archived)
+From the survey, extract for every project document:
+- Project name and document path
+- Frontmatter tags, `status`, and `date`
+- Document modification time
+- Whether the document is active (`开发中` / `维护中`) or settled (`已完成` / `归档`)
+
+A Dataview-only `project-index.md` is navigation metadata, not a query result available to non-Obsidian hosts. Do not rely on it for project counts, tags, or status; scan actual project-document frontmatter instead.
 
 This takes under 15 seconds.
 
 ## Phase 2: Match — Find Relevant Projects
 
-**If reading from cache (Step 0.2 = YES):** scan the `Known Pitfalls`, `Reusable Patterns`, and `Coding Conventions` sections of `$DOC_HUB/_exp_memory.md`. Match entries to the current task by keywords and context. Skip the project-tag matching below. After matching → go to Phase 4 to synthesize the briefing from cache entries.
+**If reading from a schema-2 cache:** first match entry tags against the task’s technology, domain, and capability needs; then use free-text keywords as a tie-breaker. Return only the strongest matches. If no entry matches, state this explicitly and proceed with generic best practices.
 
-**If running full cycle (Step 0.2 = NO):** read the frontmatter tags of each project document and compare against the current task:
+**If reading from a legacy cache:** use keyword/context matching only and say that source metadata is unavailable. If no entry matches, state this explicitly and proceed with generic best practices.
+
+**If running the full cycle:** read the frontmatter tags of each project document and compare against the current task:
 
 | Match dimension | How to check | Example |
 |-----------------|-------------|---------|
@@ -127,9 +137,7 @@ This takes under 15 seconds.
 | **Architecture style** | Same pattern (MVC, pipeline, event-driven) | Desktop GUI → match Qt projects |
 | **Pattern reuse** | Task needs a specific pattern | Async processing → check Generation Counter in both projects |
 
-**Match threshold:** One dimension match = read that project. Two or more = mandatory deep read.
-
-If zero matches across all dimensions, state this explicitly and proceed with generic best practices.
+**Match threshold:** One dimension match = read that project. Two or more = mandatory deep read. If zero matches across all dimensions, state this explicitly and proceed with generic best practices.
 
 ## Phase 3: Extract — Targeted Reading
 
@@ -148,7 +156,9 @@ If zero matches across all dimensions, state this explicitly and proceed with ge
 | Export/report generation | Key Business Flows |
 | Cross-project consistency | Related Projects |
 
-**Constraint:** Read at most 2 project documents fully. For additional projects, extract only the Reusable Patterns and Technical Debt sections.
+**Extraction budget:** all project documents receive a lightweight extraction of frontmatter plus the sections for Tech Stack, Reusable Patterns, Technical Debt/Risks, Edge Cases, and Key Dependencies when present. Read at most 2 project documents fully; choose the most relevant by match threshold. This keeps cache coverage broad without spending full-document context on every project.
+
+**Development-project evidence gate:** A document with `status: 开发中` or `维护中` may contribute only facts already evidenced by code, configuration, tests, or an explicitly resolved incident. Label its source status in the cache. Planned features, guessed architecture, and unverified “would be useful” ideas must not become `Known Pitfalls` or `Reusable Patterns`.
 
 ## Phase 4: Synthesize — Write the Experience Briefing
 
@@ -180,8 +190,19 @@ Compose a briefing and output it to the conversation. It serves as a persistent 
 - Test coverage: [inferred]
 ```
 
-**When reading from cache (Step 0.2 = YES), use this simpler briefing format** — the cache already has distilled entries, no project names needed:
+**When reading from cache (Step 0.2 = YES), use this bounded briefing format** — return at most 2 pitfalls, 2 patterns, and 2 conventions. Preserve each entry’s tags, source project(s), and active/settled source status when schema 2 provides them:
 
+```markdown
+## Project Experience Briefing (from cache)
+
+### Relevant Pitfalls
+- **pitfall** `[tags]` — strategy (Sources: ProjectA [已完成])
+
+### Relevant Patterns
+- **pattern** `[tags]` — how to apply (Sources: ProjectB [开发中], ProjectC [已完成])
+
+### Coding Conventions
+- convention `[tags]` — source
 ```markdown
 ## Project Experience Briefing (from cache)
 
@@ -213,31 +234,43 @@ The briefing is your constraint system. For every subsequent decision:
 After completing the full extraction cycle (Phases 1–5), save the distilled experience to `$DOC_HUB/_exp_memory.md`:
 
 ```markdown
+---
+cache_schema: 2
+generated_at: YYYY-MM-DD
+source_projects:
+  - name: ProjectA
+    status: 已完成
+    document_mtime: YYYY-MM-DD
+  - name: ProjectB
+    status: 开发中
+    document_mtime: YYYY-MM-DD
+---
+
 # Project Experience Cache
 
-> Auto-generated from completed projects. Refresh with an explicit "update experience cache" request; replacement is atomic.
+> Auto-generated from evidence-backed project documents. Refresh with an explicit "update experience cache" request; replacement is atomic.
 
 ## Known Pitfalls
-<!-- Actual bugs that took >10min to fix. Merge duplicates across projects. -->
+<!-- Actual bugs that took >10min to fix. Include tags and source status. -->
 
-- **brief description**: symptom → root cause → fix (ProjectA, ProjectB)
+- **brief description** `[Qt, C++, Windows]`: symptom → root cause → fix (Sources: ProjectA [已完成], ProjectB [开发中])
 
 ## Reusable Patterns
-<!-- Patterns appearing in ≥2 projects, or single-project patterns highly generalizable. -->
+<!-- Observed in ≥2 projects, or highly generalizable and directly evidenced. -->
 
-- **Pattern Name**: what it solves → how it works (ProjectA, ProjectB)
+- **Pattern Name** `[Qt, C++, async]`: what it solves → how it works (Sources: ProjectA [已完成], ProjectB [开发中])
 
 ## Coding Conventions
 <!-- Cross-project stable preferences. Only conventions that differ from defaults. -->
 
-- convention description
+- convention description `[Qt, C++]` (Sources: ProjectA [已完成])
 ```
 
 **Content rules:**
-- **Known Pitfalls**: Only bugs you actually encountered and spent time fixing. Include symptom, root cause, and fix. Merge two pitfalls when they share the same root cause AND the same fix pattern. If root cause differs but symptom is similar → keep separate. If root cause is same but fix differs per context → keep separate with cross-references.
-- **Reusable Patterns**: Only patterns observed in ≥2 projects, or highly generalizable single-project patterns. A single-project pattern qualifies as highly generalizable only if it would apply to any project in the same language/framework. Ask: "Would this pattern be useful in a completely different domain app using the same tech stack?" Exclude project-specific glue code. Include what problem it solves and how it works.
+- **Known Pitfalls**: Only bugs you actually encountered and spent time fixing. Include symptom, root cause, fix, tags, and source project/status. Merge two pitfalls when they share the same root cause AND the same fix pattern. If root cause differs but symptom is similar → keep separate. If a source project is active, include it only when the incident and fix are directly evidenced.
+- **Reusable Patterns**: Only patterns observed in ≥2 projects, or highly generalizable single-project patterns. A single-project pattern qualifies as highly generalizable only if it would apply to any project in the same language/framework. Ask: "Would this pattern be useful in a completely different domain app using the same tech stack?" Exclude project-specific glue code. Include what problem it solves, how it works, tags, and source project/status. Active-project sources require direct code/config/test evidence.
 - **Coding Conventions**: Only preferences stable across projects. List only conventions that differ from common defaults — skip universal ones.
-- **Hard cap**: Keep the entire file under ~40 lines. If exceeding, apply in order: (1) Merge pitfalls with identical fix patterns even if symptoms differ. (2) Drop single-project patterns not meeting the generalizable test. (3) Drop conventions already common practice. (4) Drop least frequently applicable entries (count projects that exhibited the pattern/pitfall). Priority to keep: pitfalls > patterns > conventions.
+- **Hard cap**: Keep the entire file under ~55 lines, including frontmatter. If exceeding, apply in order: (1) Merge pitfalls with identical fix patterns even if symptoms differ. (2) Drop single-project patterns not meeting the generalizable test. (3) Drop conventions already common practice. (4) Drop least frequently applicable entries (count projects that exhibited the pattern/pitfall). Priority to keep: pitfalls > patterns > conventions.
 
 **Atomic save rule:** Render the complete refreshed cache to `$DOC_HUB/_exp_memory.md.tmp`, validate that it contains the required headings, then replace `$DOC_HUB/_exp_memory.md` in one operation. If rendering or validation fails, retain the old cache and report the failure.
 

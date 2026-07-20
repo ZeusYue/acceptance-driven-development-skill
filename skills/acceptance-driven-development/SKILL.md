@@ -119,6 +119,18 @@ All project ACs, project docs, templates, and the experience cache live under a 
 - New project → 🚨 Greenfield rule below
 - Project exists but AC missing → ask user
 
+### Step 0.4 — Living Project Document
+
+**ADD owns project-document creation, update, and finalization. `project-experience` only reads and mines project documents; it must not author them.**
+
+For an existing, non-trivial project with code or `AC.md`, check for `$DOC_HUB/<ProjectName>/<ProjectName>.md` before implementation. If it is missing, create a **living project document** before the next substantial implementation batch; this does not change AC statuses and does not require the project to be complete.
+
+1. **Read `$DOC_HUB/project-doc-template.md` before creating or restructuring a project document.** If the template is missing, create it from the bundled template structure before continuing.
+2. Populate facts using this evidence priority: code → configuration → comments → README → commit history → explicitly labeled inference.
+3. Frontmatter must include `tags`, `status`, and `date`. Use `status: `开发中` / `维护中` / `已完成` / `归档``.
+4. For an active project, record implemented architecture and verified patterns now; label plans and uncertain facts as `⚠️ 无法确定` or “planned”. Do not turn planned work into a reusable cache claim.
+5. Update the document after a meaningful architecture, dependency, concurrency, persistence, build, or deployment change. Do not rewrite it for trivial edits.
+
 **Note:** Templates (`ac-template.md`, `project-doc-template.md`) are auto-created in `$DOC_HUB/` on first use if missing. No Obsidian required — `$DOC_HUB` is a plain directory.
 
 **🚨 Greenfield rule:** No AC yet → two-gate process:
@@ -391,7 +403,9 @@ If zero `[!]` items exist, skip this step and proceed directly to `[~]` settling
 
 **`[~]` → settle:** When `[~]` items exist, ask the user: fix remaining issues → `[x]`, or defer → `[>]`, or deprecate → `[-]`. Every item needs a settled outcome.
 
-**Project document:** When every AC is `[x]`, `[>]`, or `[-]` — no `[ ]`, `[!]`, or `[~]` — create a project document at `$DOC_HUB/<ProjectName>/<ProjectName>.md`. Each item must have a settled outcome: verified done, explicitly deferred, or explicitly deprecated. Follow the project doc template structure: one-line overview, tech stack, architecture, core modules, edge cases, reusable patterns, technical debt, and overall assessment. This document is read by `project-experience` in future projects — without it, the experience loop is broken.
+**Project document finalization:** When every AC is `[x]`, `[>]`, or `[-]` — no `[ ]`, `[!]`, or `[~]` — **finalize the existing project document** at `$DOC_HUB/<ProjectName>/<ProjectName>.md`. If it was never created, create it now through Step 0.4; otherwise update it rather than replacing evidence already recorded.
+
+Read `$DOC_HUB/project-doc-template.md` before finalization. Preserve the evidence-first structure, set `status: 已完成`, update the date, settle the technical-debt and Agent self-review sections, and record only patterns/pitfalls supported by code or verified project history. This document is the durable source read by `project-experience` in future projects.
 
 **Experience cache update:** After the project document is created, ask the user:
 
@@ -480,7 +494,7 @@ acceptance-driven-development
     ├── Skill("subagent-driven-development") ← Phase 4
     ├── Skill("test-driven-development")      ← Phase 4 quality ACs
     ├── Skill("verification-before-completion") ← Phase 5
-    ├── Skill("project-experience")           ← Phase 4 (REQUIRED)
+    ├── Skill("project-experience")           ← Phase 4 when available; direct cache scan is fallback
     └── Skill("finishing-a-development-branch") ← Phase 6
 ```
 
