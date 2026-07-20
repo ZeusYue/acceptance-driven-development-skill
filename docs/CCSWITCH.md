@@ -1,4 +1,4 @@
-﻿# Install ADD with CC Switch
+# Install ADD with CC Switch
 
 Use this guide after you understand what ADD does from the [main README](../README.md). CC Switch can recursively discover both skills in this repository; a temporary zero count can also mean that GitHub archive download or refresh failed.
 
@@ -47,6 +47,17 @@ If it cannot download:
 - refresh Discover Skills again.
 
 If the archive downloads successfully but CC Switch still reports zero skills, the repository layout is not the first suspect: the current archive contains two valid `SKILL.md` files. Use manual installation as a temporary workaround and file an issue with the CC Switch version, screenshots, and whether the archive URL downloaded.
+
+## Windows: Failed to create symbolic link
+
+A message such as `Failed to create symbolic link: …` is a local installation permission or storage-location problem, not a repository-discovery problem.
+
+1. Open CC Switch **Settings** and set the skills storage location to `~/.agents/skills`.
+2. If CC Switch offers a skill sync method, choose **Copy** rather than a symbolic-link method.
+3. Restart CC Switch, refresh **Discover Skills**, and install both skills again.
+4. If you must use symbolic links, run CC Switch as Administrator or enable Windows Developer Mode, then retry.
+
+Changing the storage location or sync method may require reinstalling the skills for the selected target agent.
 
 ## Update or remove
 

@@ -1,4 +1,4 @@
-﻿# 使用 CC Switch 安装 ADD
+# 使用 CC Switch 安装 ADD
 
 请先通过[主 README](../README-zh.md)了解 ADD 的作用，再使用本指南安装。CC Switch 可以递归发现本仓库的两个 Skill；短暂显示 0 个技能也可能是 GitHub 分支压缩包下载或发现刷新失败。
 
@@ -47,6 +47,17 @@ https://github.com/ZeusYue/acceptance-driven-development-skill/archive/refs/head
 - 再次刷新“发现技能”。
 
 若 archive 可以下载、CC Switch 仍显示 0 个技能，不应首先怀疑仓库布局：当前 archive 已含两个有效 `SKILL.md`。可先用手动安装作为临时方案，并在 Issue 中提供 CC Switch 版本、截图和 archive 下载结果。
+
+## Windows：创建符号链接失败
+
+出现“`创建符号链接失败：……`”这类报错时，问题通常在本地安装权限或存储位置，而不是仓库发现。
+
+1. 打开 CC Switch **设置**，将 **Skills 存储位置**改为 `~/.agents/skills`。
+2. 如果 CC Switch 提供 Skill 同步方式，选择 **Copy / 复制**，不要选择符号链接方式。
+3. 重启 CC Switch，刷新**发现技能**，再重新安装两个 Skill。
+4. 如果必须使用符号链接，请以**管理员身份**启动 CC Switch，或启用 Windows 开发人员模式后重试。
+
+修改存储位置或同步方式后，所选目标 Agent 的 Skill 可能需要重新安装。
 
 ## 更新或卸载
 

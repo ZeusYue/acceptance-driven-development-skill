@@ -1,4 +1,4 @@
-﻿# Acceptance-Driven Development (ADD) v2.2
+# Acceptance-Driven Development (ADD) v2.3
 
 <p align="center">
   <strong>The AI skill pack that makes “done” a checklist, not a feeling.</strong><br>
@@ -203,6 +203,17 @@ CC Switch discovers a repository by downloading its GitHub branch archive. If Gi
 - After network or proxy changes, restart CC Switch and refresh Discover Skills.
 - If the archive downloads but discovery still shows zero, use manual installation and report the result in an issue with your CC Switch version and screenshots.
 
+### Windows: “Failed to create symbolic link: …”
+
+This is a local skill-installation permission or storage-location problem, not a repository URL or branch problem.
+
+1. In CC Switch **Settings**, change the skills storage location to `~/.agents/skills`.
+2. If CC Switch exposes a skills sync method, prefer **Copy** instead of a symbolic-link method.
+3. Restart CC Switch, refresh discovery, and install the skills again.
+4. If you must keep symbolic links, run CC Switch as Administrator or enable Windows Developer Mode, then retry.
+
+See [CC Switch installation](./docs/CCSWITCH.md) for the full recovery sequence.
+
 ### Option 2 — Manual installation
 
 Copy both folders from `skills/` into the skill directory documented by your host:
@@ -229,14 +240,13 @@ ADD writes `~/.add-hub` and keeps project ACs, documents, templates, and the opt
 
 ---
 
-## Migrating to v2.2
+## Migrating to v2.3
 
-Existing AC tables remain compatible. v2.2 adds:
+Existing AC tables and installation methods remain compatible. v2.3 makes ADD easier for agents to load without removing its workflow safeguards:
 
-- a problem-first README and a quick experiential path;
-- clear CC Switch network/proxy diagnosis after URL and branch checks;
-- living-project-document and schema-2 cache contracts from v2.1;
-- portable release validation that contains no private workstation paths.
+- `SKILL.md` is now a shorter operational core: entry gates, Phase 3.5, implementation modes, review, fresh verification, completion, living-project documents, and atomic cache refresh stay there;
+- worked scenarios, rationalization guardrails, extended red flags, and detailed change-design guidance moved to `references/` and remain part of the skill;
+- the release validator enforces the core contracts, both reference files, and a 380-line budget.
 
 Do not delete `_exp_memory.md` to refresh it. Ask to update the experience cache so it can be rebuilt safely.
 
