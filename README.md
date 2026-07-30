@@ -1,4 +1,4 @@
-# Acceptance-Driven Development (ADD) v2.3.1
+# Acceptance-Driven Development (ADD) v2.4
 
 <p align="center">
   <strong>The AI skill pack that makes “done” a checklist, not a feeling.</strong><br>
@@ -237,6 +237,19 @@ On the first code-related request, ADD asks for one stable directory shared acro
 ```
 
 ADD writes `~/.add-hub` and keeps project ACs, documents, templates, and the optional experience cache there. Obsidian is helpful but not required.
+
+---
+
+## v2.4: AC Authority Restoration
+
+v2.4 restores `AC.md` as the workflow engine’s non-negotiable authority:
+
+- installable template assets seed a missing document hub instead of asking the agent to invent an AC layout;
+- an **AC Contract Gate** validates the AC schema before a plan or code can begin;
+- implementation plans are derived from approved ACs, include an Acceptance Mapping, and **plans never own acceptance status**;
+- every manual criterion receives a structured Manual Verification Handoff with exact steps and an AC-ID reply format.
+
+Existing localized AC documents remain supported. ADD preserves their IDs, evidence, and language; ambiguous migrations require user confirmation.
 
 ---
 

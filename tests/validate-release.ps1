@@ -8,12 +8,14 @@ $failures = [System.Collections.Generic.List[string]]::new()
 
 function Require-Match {
     param([string]$Path, [string]$Pattern, [string]$Message)
+    if (-not (Test-Path -LiteralPath $Path)) { $failures.Add("Missing required file: $Path"); return }
     $content = Get-Content -Raw -LiteralPath $Path -Encoding utf8
     if ($content -notmatch $Pattern) { $failures.Add($Message) }
 }
 
 function Require-NoMatch {
     param([string]$Path, [string]$Pattern, [string]$Message)
+    if (-not (Test-Path -LiteralPath $Path)) { $failures.Add("Missing required file: $Path"); return }
     $content = Get-Content -Raw -LiteralPath $Path -Encoding utf8
     if ($content -match $Pattern) { $failures.Add($Message) }
 }
@@ -47,12 +49,14 @@ Require-Match $projectTemplate '(?m)^date:' 'Release project template must provi
 foreach ($skillFile in $skillDirs) { if (-not (Test-Path -LiteralPath $skillFile)) { $failures.Add("Missing discoverable skill file: $skillFile") } }
 
 # v2.3 README narrative, CC Switch network, and compressed-core contract.
-Require-Match $readme '# Acceptance-Driven Development \(ADD\) v2\.3\.1' 'English README must identify v2.3.1.'
+Require-Match $readme '# Acceptance-Driven Development \(ADD\) v2\.4' 'English README must identify v2.4.'
 Require-Match $readme '## Your agent said “done.” You disagree.' 'English README must open with the human problem story.'
 Require-Match $readme '## How ADD closes the loop' 'English README must show the ADD closed loop.'
 Require-Match $readme '## Before ADD / After ADD' 'English README must include before/after proof.'
 Require-Match $readme '## Try ADD in 60 seconds' 'English README must include a 60-second experience before installation.'
 Require-Match $readme '## Install ADD' 'English README must retain installation instructions.'
+Require-Match $readme 'AC Authority Restoration' 'English README must explain the v2.4 AC-authority change.'
+Require-Match $readme 'plans never own acceptance status' 'English README must keep plans subordinate to AC.md.'
 Require-Match $readme 'Skills → Discover Skills → Repository Management → Add Skill Repository' 'English README must use the actual CC Switch discovery path.'
 Require-Match $readme 'Branch: main' 'English README must require branch main.'
 Require-Match $readme 'Network and proxy' 'English README must include network/proxy diagnosis.'
@@ -64,11 +68,13 @@ Require-Match $readme '~/.agents/skills' 'English README must document the share
 Require-Match $readme 'Prefer symbolic links when they work' 'English README must prefer symbolic links to avoid duplicate skills.'
 Require-Match $readme 'Copy is only a temporary fallback' 'English README must limit Copy to a duplicate-prone fallback.'
 Require-NoMatch $readme 'prefer \*\*Copy\*\* instead' 'English README must not recommend Copy ahead of symbolic links.'
-Require-Match $readmeZh '# 验收驱动开发（ADD）v2\.3\.1' 'Chinese README must identify v2.3.1.'
+Require-Match $readmeZh '# 验收驱动开发（ADD）v2\.4' 'Chinese README must identify v2.4.'
 Require-Match $readmeZh '## 你的 Agent 说“完成了”。你并不相信。' 'Chinese README must open with the human problem story.'
 Require-Match $readmeZh '## ADD 如何闭环' 'Chinese README must show the ADD closed loop.'
 Require-Match $readmeZh '## 使用 ADD 前后' 'Chinese README must include before/after proof.'
 Require-Match $readmeZh '## 一条请求看懂 ADD' 'Chinese README must include a 60-second experience before installation.'
+Require-Match $readmeZh 'AC 权威恢复' 'Chinese README must explain the v2.4 AC-authority change.'
+Require-Match $readmeZh '计划永远不拥有验收状态' 'Chinese README must keep plans subordinate to AC.md.'
 Require-Match $readmeZh '技能 → 发现技能 → 仓库管理 → 添加技能仓库' 'Chinese README must use the actual CC Switch discovery path.'
 Require-Match $readmeZh '分支：main' 'Chinese README must require branch main.'
 Require-Match $readmeZh '网络与代理' 'Chinese README must include network/proxy diagnosis.'
@@ -103,9 +109,14 @@ if ($oldIdentity) { $failures.Add('Public release files must not retain the form
 $guardrailsRef = Join-Path $ReleaseRoot 'skills\acceptance-driven-development\references\guardrails-and-examples.md'
 $changeGuideRef = Join-Path $ReleaseRoot 'skills\acceptance-driven-development\references\change-design-guide.md'
 $frameworkReviewRef = Join-Path $ReleaseRoot 'skills\acceptance-driven-development\references\framework-review-checklist.md'
+$acContractRef = Join-Path $ReleaseRoot 'skills\acceptance-driven-development\references\ac-contract-and-plan-boundary.md'
+$acAsset = Join-Path $ReleaseRoot 'skills\acceptance-driven-development\assets\ac-template.md'
+$acAssetZh = Join-Path $ReleaseRoot 'skills\acceptance-driven-development\assets\ac-template-zh.md'
+$projectDocAsset = Join-Path $ReleaseRoot 'skills\acceptance-driven-development\assets\project-doc-template.md'
+$projectIndexAsset = Join-Path $ReleaseRoot 'skills\acceptance-driven-development\assets\project-index.md'
 $addLineCount = (Get-Content -LiteralPath $add -Encoding utf8).Count
 if ($addLineCount -gt 380) { $failures.Add("ADD main skill exceeds 380-line operational budget: $addLineCount") }
-foreach ($referenceFile in @($guardrailsRef, $changeGuideRef, $frameworkReviewRef)) {
+foreach ($referenceFile in @($guardrailsRef, $changeGuideRef, $frameworkReviewRef, $acContractRef)) {
     if (-not (Test-Path -LiteralPath $referenceFile)) { $failures.Add("Missing ADD compression reference: $referenceFile") }
 }
 Require-Match $add 'FIRST RULE' 'ADD main skill must retain FIRST RULE.'
@@ -136,6 +147,20 @@ Require-Match $add 'failed affected AUTO AC after Mode B is a regression' 'Mode 
 Require-Match $add 'fix through the appropriate Phase 3\.5 entry, then Phases 4–5' 'A [~] fix must not bypass Phase 3.5.'
 Require-Match $add 'if missing, create it through Step 0\.4 first' 'Phase 6 must create a missing project document before finalization.'
 Require-Match $add 'references/framework-review-checklist\.md' 'ADD must retain the framework-review reference.'
+foreach ($assetFile in @($acAsset, $acAssetZh, $projectDocAsset, $projectIndexAsset)) {
+    if (-not (Test-Path -LiteralPath $assetFile)) { $failures.Add("Missing installable ADD asset: $assetFile") }
+}
+Require-Match $add 'AC Contract Gate' 'ADD must define an AC Contract Gate before planning or code.'
+Require-Match $add 'AC.?md.? is the sole source of truth' 'ADD must make AC.md the sole acceptance/state authority.'
+Require-Match $add 'writing-plans may start only after' 'ADD must prevent plans from preceding a valid AC.'
+Require-Match $add 'Acceptance Mapping' 'ADD plans must map every task to AC IDs.'
+Require-Match $add 'Manual Verification Handoff' 'ADD must require a structured manual-verification handoff.'
+Require-Match $add 'references/ac-contract-and-plan-boundary\.md' 'ADD must link its AC-contract reference.'
+Require-Match $acAsset 'AC-<next integer>' 'English AC asset must require monotonic AC IDs.'
+Require-Match $acAsset 'Status Summary' 'English AC asset must include a status summary.'
+Require-Match $acAssetZh 'AC-<下一个整数>' 'Chinese AC asset must require monotonic AC IDs.'
+Require-Match $acAssetZh '验收状态总览' 'Chinese AC asset must include a status summary.'
+Require-Match $acContractRef 'never replaces AC\.md' 'AC contract reference must make plans subordinate to AC.md.'
 if ($failures.Count -gt 0) {
     Write-Host "FAILED: $($failures.Count) contract check(s)." -ForegroundColor Red
     $failures | ForEach-Object { Write-Host " - $_" -ForegroundColor Red }

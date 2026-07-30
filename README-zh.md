@@ -1,4 +1,4 @@
-# 验收驱动开发（ADD）v2.3.1
+# 验收驱动开发（ADD）v2.4
 
 <p align="center">
   <strong>让编码 Agent 用清单和证据证明“真的完成了”。</strong><br>
@@ -238,6 +238,19 @@ CC Switch 发现仓库时需要下载 GitHub 的分支压缩包。如果 GitHub 
 ```
 
 ADD 会写入 `~/.add-hub`，并将 AC、项目文档、模板和可选经验缓存保存在其中。Obsidian 有帮助，但不是必需条件。
+
+---
+
+## v2.4：AC 权威恢复
+
+v2.4 恢复 `AC.md` 作为开发引擎不可让渡的权威：
+
+- 可安装的模板资产会为缺失的文档中枢播种模板，不再让 Agent 临时自由发挥 AC 布局；
+- **AC Contract Gate** 要求在写计划或代码前验证 AC 结构；
+- 实施计划只能从已批准 AC 派生，必须包含 Acceptance Mapping，且**计划永远不拥有验收状态**；
+- 每条人工验收项都会得到带精确步骤和 AC-ID 回复格式的 Manual Verification Handoff。
+
+既有的本地化 AC 文档继续兼容；ADD 会保留其编号、证据和语言，含义不明确的迁移必须征求用户确认。
 
 ---
 

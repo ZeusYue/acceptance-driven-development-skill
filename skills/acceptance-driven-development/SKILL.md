@@ -33,7 +33,7 @@ ADD is self-contained: AC parsing, impact analysis, review, verification, and co
 | Optional capability | Use when available | Fallback |
 |---|---|---|
 | `brainstorming` | Greenfield and large Phase 3.5B changes | Ask one requirement question at a time and record decisions. |
-| `writing-plans` | New-feature decomposition | Write a concise file-by-file checklist. |
+| `writing-plans` | Decompose a valid, approved AC | Write tasks mapped to AC IDs; never use plan status as acceptance status. |
 | Review subagent | Mode A independent review | Explicit self-review against all six checks. |
 | `test-driven-development` | Behavior/quality work with runnable tests | Add the smallest relevant regression test first. |
 | `project-experience` | Reuse cross-project lessons | Read `$DOC_HUB/_exp_memory.md` directly when present. |
@@ -55,9 +55,21 @@ All ACs, templates, project documents, and experience cache live in one document
 
 Cache presence never determines hub identity. Use host-native file operations; do not require a literal `Glob` tool.
 
-### Locate AC and templates
+### Locate AC, templates, and the AC Contract Gate
 
-Find `$DOC_HUB/*/AC.md`. Use the named project when known; otherwise present or infer candidates. Ensure `$DOC_HUB/ac-template.md`, `$DOC_HUB/project-doc-template.md`, and `$DOC_HUB/project-index.md` exist when needed.
+Find `$DOC_HUB/*/AC.md`. Use the named project when known; otherwise present or infer candidates. When a hub template is missing, seed it by copying the matching installed asset: `assets/ac-template.md` or `assets/ac-template-zh.md`, `assets/project-doc-template.md`, and `assets/project-index.md`. Never recreate a template from memory.
+
+### Step 0.3 — AC Contract Gate (before plan or code)
+
+**`AC.md` is the sole source of truth** for accepted scope, AC IDs, status, verification evidence, user confirmation, deferral, and deprecation. A design document explains intent; a plan only decomposes approved AC work.
+
+1. Read `$DOC_HUB/ac-template.md` and, when it exists, the target `AC.md` before Gate 2, Phase 1, `writing-plans`, or code.
+2. Validate Goal, meaningful sections, five semantic columns, valid markers, Status Summary, deferred/backlog area, and Change Log. Localized header equivalents are valid.
+3. For a new project, Gate 2 copies the full hub template and fills it; do not invent a partial AC table.
+4. For an existing malformed AC, pause before planning/code, report gaps, preserve IDs/evidence/language, and ask before ambiguous migration.
+5. **writing-plans may start only after** this gate passes and the relevant AC scope is approved/updated. Every plan must include an **Acceptance Mapping** from every task to AC IDs; plan checkboxes never update or replace AC status.
+
+Read `references/ac-contract-and-plan-boundary.md` for schema, migration, and handoff details.
 
 ### Step 0.4 — Living Project Document
 
@@ -77,7 +89,7 @@ For an existing non-trivial project with code or `AC.md`, check for `$DOC_HUB/<P
 
 **Gate 1 — Design:** announce, read relevant cache, climb the solution ladder, discuss choices, save `design.md`, then wait for the user to approve AC creation.
 
-**Gate 2 — Acceptance Criteria:** draft the approved-design AC table with `ID | Criterion | Status | How to Verify | Expected Result`; use new top-level IDs as `AC-<next integer>`; wait for approval before saving `AC.md`; after approval save it and enter Phases 1–3.
+**Gate 2 — Acceptance Criteria:** read and copy the full hub `ac-template.md`, then draft the approved design into its five semantic columns; use new top-level IDs as `AC-<next integer>`; wait for approval before saving `AC.md`; after approval save it and enter Phases 1–3.
 
 For detailed size classification and solution ladder, read `references/change-design-guide.md`.
 
@@ -178,6 +190,10 @@ Mode A prefers an independent reviewer; Mode B self-reviews inline. Output one r
 - **BLOCKED:** mark `[!] [blocked]` with reason and unblock condition.
 - **Mode B:** changes batching/review only; changed AUTO follows AUTO, and changed MANUAL follows MANUAL.
 
+### Manual Verification Handoff
+
+For every `[!] [manual]`, output **Manual Verification Handoff** with `AC ID | What changed | Prerequisites | Exact steps | Expected result | Reply format`. Ask for replies such as `AC-45 passed` or `AC-45 failed: <observation>`; never replace it with a generic test request.
+
 Split `[!]` reports by annotation. Never ask a user to test a `[blocked]` item. When a user reports a specific manual test passed, update that AC immediately.
 
 **Only mark `[x]` after FRESH verification in this turn.**
@@ -195,3 +211,4 @@ Split `[!]` reports by annotation. Never ask a user to test a `[blocked]` item. 
 - `references/change-design-guide.md` — change sizing, confirmation rules, solution ladder.
 - `references/guardrails-and-examples.md` — rationalizations, compact phase map, examples, extended red flags, optional-skill map.
 - `references/framework-review-checklist.md` — framework-specific review checks.
+- `references/ac-contract-and-plan-boundary.md` — AC schema, safe migration, plan boundary, and manual handoff.

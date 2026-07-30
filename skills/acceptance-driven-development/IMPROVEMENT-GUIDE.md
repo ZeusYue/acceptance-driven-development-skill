@@ -1,3 +1,12 @@
+## v2.4（2026-07-30）：AC 权威恢复
+
+1. 任何压缩都不得移除模板读取、AC 结构验证、AC/计划权威边界或人工验收交接单。
+2. AC 模板必须作为 `skills/acceptance-driven-development/assets/` 中的可安装资产交付；Hub 缺失时只允许复制资产，不允许凭记忆重建。
+3. `writing-plans` 只能在 AC Contract Gate 成功且范围已批准后运行；计划任务必须映射 AC-ID，计划勾选不得改变 AC 状态。
+4. 对既有 AC 做迁移时，保留编号、证据、历史状态和语言；语义含糊时先询问用户。
+5. 每个 `[!] [manual]` 都必须产生包含 AC-ID、前置条件、步骤、预期结果和回复格式的 Manual Verification Handoff。
+
+---
 # Skill Improvement Guide — 给未来的 Agent 和开发者
 
 > 本文件记录 acceptance-driven-development Skill 的设计原则、已验证的防线、改进时的注意事项。如果你要修改这个 Skill，请先读完本文件。
