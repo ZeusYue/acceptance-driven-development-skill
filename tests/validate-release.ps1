@@ -49,7 +49,7 @@ Require-Match $projectTemplate '(?m)^date:' 'Release project template must provi
 foreach ($skillFile in $skillDirs) { if (-not (Test-Path -LiteralPath $skillFile)) { $failures.Add("Missing discoverable skill file: $skillFile") } }
 
 # v2.3 README narrative, CC Switch network, and compressed-core contract.
-Require-Match $readme '# Acceptance-Driven Development \(ADD\) v2\.4' 'English README must identify v2.4.'
+Require-Match $readme '# Acceptance-Driven Development \(ADD\) v2\.4\.1' 'English README must identify v2.4.1.'
 Require-Match $readme '## Your agent said “done.” You disagree.' 'English README must open with the human problem story.'
 Require-Match $readme '## How ADD closes the loop' 'English README must show the ADD closed loop.'
 Require-Match $readme '## Before ADD / After ADD' 'English README must include before/after proof.'
@@ -68,7 +68,7 @@ Require-Match $readme '~/.agents/skills' 'English README must document the share
 Require-Match $readme 'Prefer symbolic links when they work' 'English README must prefer symbolic links to avoid duplicate skills.'
 Require-Match $readme 'Copy is only a temporary fallback' 'English README must limit Copy to a duplicate-prone fallback.'
 Require-NoMatch $readme 'prefer \*\*Copy\*\* instead' 'English README must not recommend Copy ahead of symbolic links.'
-Require-Match $readmeZh '# 验收驱动开发（ADD）v2\.4' 'Chinese README must identify v2.4.'
+Require-Match $readmeZh '# 验收驱动开发（ADD）v2\.4\.1' 'Chinese README must identify v2.4.1.'
 Require-Match $readmeZh '## 你的 Agent 说“完成了”。你并不相信。' 'Chinese README must open with the human problem story.'
 Require-Match $readmeZh '## ADD 如何闭环' 'Chinese README must show the ADD closed loop.'
 Require-Match $readmeZh '## 使用 ADD 前后' 'Chinese README must include before/after proof.'
@@ -155,6 +155,9 @@ Require-Match $add 'AC.?md.? is the sole source of truth' 'ADD must make AC.md t
 Require-Match $add 'writing-plans may start only after' 'ADD must prevent plans from preceding a valid AC.'
 Require-Match $add 'Acceptance Mapping' 'ADD plans must map every task to AC IDs.'
 Require-Match $add 'Manual Verification Handoff' 'ADD must require a structured manual-verification handoff.'
+Require-Match $add 'A phase announcement or progress update is not a decision gate' 'ADD must prevent progress updates from becoming pause gates.'
+Require-Match $add 'Do not stop after a plan task' 'ADD must prevent plan-task pauses in active Mode A work.'
+Require-Match $add 'Only stop for an explicit ADD gate' 'ADD must define the bounded Mode A stop conditions.'
 Require-Match $add 'references/ac-contract-and-plan-boundary\.md' 'ADD must link its AC-contract reference.'
 Require-Match $acAsset 'AC-<next integer>' 'English AC asset must require monotonic AC IDs.'
 Require-Match $acAsset 'Status Summary' 'English AC asset must include a status summary.'

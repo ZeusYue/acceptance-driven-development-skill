@@ -5,6 +5,7 @@
 3. `writing-plans` 只能在 AC Contract Gate 成功且范围已批准后运行；计划任务必须映射 AC-ID，计划勾选不得改变 AC 状态。
 4. 对既有 AC 做迁移时，保留编号、证据、历史状态和语言；语义含糊时先询问用户。
 5. 每个 `[!] [manual]` 都必须产生包含 AC-ID、前置条件、步骤、预期结果和回复格式的 Manual Verification Handoff。
+6. Mode A 的进度公告、计划 Task 和子 Agent 调度都不是暂停关卡；目标 `[ ]` / `[~]` 未清空时必须连续推进，除非命中明确的 ADD 停止条件。
 
 ---
 # Skill Improvement Guide — 给未来的 Agent 和开发者

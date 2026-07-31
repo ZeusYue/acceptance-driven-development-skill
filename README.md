@@ -1,4 +1,4 @@
-# Acceptance-Driven Development (ADD) v2.4
+# Acceptance-Driven Development (ADD) v2.4.1
 
 <p align="center">
   <strong>The AI skill pack that makes “done” a checklist, not a feeling.</strong><br>
@@ -237,6 +237,12 @@ On the first code-related request, ADD asks for one stable directory shared acro
 ```
 
 ADD writes `~/.add-hub` and keeps project ACs, documents, templates, and the optional experience cache there. Obsidian is helpful but not required.
+
+---
+
+## v2.4.1: Mode A continuation hotfix
+
+A progress update is not a pause gate. While an approved Mode A batch still contains target `[ ]` or `[~]` ACs, ADD must continue sequential implementation. A plan task or subagent dispatch is never a reason to ask whether to continue; only explicit ADD gates and real host/tool limits may pause the batch.
 
 ---
 

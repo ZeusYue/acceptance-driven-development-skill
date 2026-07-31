@@ -156,6 +156,8 @@ Use for all Phase 3.5A work and Phase 3.5B work spanning 3+ related ACs.
 4. Re-run affected AUTO ACs; affected MANUAL ACs remain `[!] [manual]`.
 5. Continue to Phase 5. Stop and escalate after three failed attempts for the same AC.
 
+**Mode A Continuation Rule:** A phase announcement or progress update is not a decision gate. While any target AC in the active batch remains `[ ]` or `[~]`, continue sequentially. Do not stop after a plan task, ask whether to continue, or treat plan/subagent progress as acceptance completion. Only stop for an explicit ADD gate: required approval, a necessary `[!] [manual]` handoff after batch work reaches Phase 5, `[!] [blocked]`, the three-failure boundary, user rejection/cancellation, or a real host/tool limit. On a host/tool limit, state it and resume the same batch next turn without reapproval.
+
 ### Mode B: Lightweight
 
 Use only for a settled Phase 3.5B change spanning one or two ACs: a behavior change is settled by approval; eligible fast-lane work is settled by impact analysis (and by quick AC confirmation if its bug had no AC).
