@@ -57,7 +57,7 @@ Cache presence never determines hub identity. Use host-native file operations; d
 
 ### Locate AC, templates, and the AC Contract Gate
 
-Find `$DOC_HUB/*/AC.md`. Use the named project when known; otherwise present or infer candidates. When a hub template is missing, seed it by copying the matching installed asset: `assets/ac-template.md` or `assets/ac-template-zh.md`, `assets/project-doc-template.md`, and `assets/project-index.md`. Never recreate a template from memory.
+Find `$DOC_HUB/*/AC.md`. Use the named project when known; otherwise present or infer candidates. When a hub template is missing, seed it by copying the matching installed asset: `assets/ac-template.md` or `assets/ac-template-zh.md`, `assets/project-doc-template.md`, and `assets/project-index.md`. In an Obsidian vault, also offer `assets/ac-document-tables.css` as `.obsidian/snippets/ac-document-tables.css`; enable it only with the user's consent. Never recreate a template from memory.
 
 ### Step 0.3 — AC Contract Gate (before plan or code)
 
@@ -68,6 +68,7 @@ Find `$DOC_HUB/*/AC.md`. Use the named project when known; otherwise present or 
 3. For a new project, Gate 2 copies the full hub template and fills it; do not invent a partial AC table.
 4. For an existing malformed AC, pause before planning/code, report gaps, preserve IDs/evidence/language, and ask before ambiguous migration.
 5. **writing-plans may start only after** this gate passes and the relevant AC scope is approved/updated. Every plan must include an **Acceptance Mapping** from every task to AC IDs; plan checkboxes never update or replace AC status.
+6. Keep five-column AC rows scannable: do not place full logs, lengthy benchmark data, screenshots, or step-by-step feedback in cells. Record that material under the template's Verification Evidence Details heading in the same `AC.md`, then cite the AC evidence from the row.
 
 Read `references/ac-contract-and-plan-boundary.md` for schema, migration, and handoff details.
 

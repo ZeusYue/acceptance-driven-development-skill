@@ -1,4 +1,4 @@
-# Acceptance-Driven Development (ADD) v2.4.1
+# Acceptance-Driven Development (ADD) v2.4.2
 
 <p align="center">
   <strong>The AI skill pack that makes “done” a checklist, not a feeling.</strong><br>
@@ -237,6 +237,20 @@ On the first code-related request, ADD asks for one stable directory shared acro
 ```
 
 ADD writes `~/.add-hub` and keeps project ACs, documents, templates, and the optional experience cache there. Obsidian is helpful but not required.
+
+---
+
+## v2.4.2: Readable AC tables and evidence details
+
+v2.4.2 keeps acceptance tables scannable without weakening `AC.md` authority:
+
+- all five-column AC tables can use stable, full-width proportions in Obsidian through the optional `ac-document-tables.css` asset;
+- `ID` and `Status` stay compact while criteria, verification, and expected-result cells wrap normally;
+- full logs, benchmark samples, screenshot notes, and step-by-step user feedback move to **Verification Evidence Details** in the same `AC.md`;
+- English, Chinese, installable, and manual-download templates now share the same schema and evidence layout;
+- the release validator protects the style class, evidence section, CSS asset, and long-evidence boundary.
+
+Existing AC documents remain valid. To opt an Obsidian AC into the layout, add `cssclasses: ac-document`, copy `ac-document-tables.css` into `.obsidian/snippets/`, and enable the snippet. Other Markdown hosts simply ignore the optional class.
 
 ---
 

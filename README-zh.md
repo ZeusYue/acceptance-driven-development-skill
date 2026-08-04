@@ -1,4 +1,4 @@
-# 验收驱动开发（ADD）v2.4.1
+# 验收驱动开发（ADD）v2.4.2
 
 <p align="center">
   <strong>让编码 Agent 用清单和证据证明“真的完成了”。</strong><br>
@@ -238,6 +238,20 @@ CC Switch 发现仓库时需要下载 GitHub 的分支压缩包。如果 GitHub 
 ```
 
 ADD 会写入 `~/.add-hub`，并将 AC、项目文档、模板和可选经验缓存保存在其中。Obsidian 有帮助，但不是必需条件。
+
+---
+
+## v2.4.2：AC 表格可读性与证据详情
+
+v2.4.2 在不削弱 `AC.md` 权威的前提下，让验收表更容易扫描：
+
+- Obsidian 用户可通过可选的 `ac-document-tables.css` 资产，让所有五列 AC 表使用稳定的全宽列比例；
+- `ID` 与`状态`保持紧凑，标准、验证方式和预期结果正常换行；
+- 完整日志、基准样本、截图说明和逐步用户反馈写入同一份 `AC.md` 的“验证证据详情”；
+- 英文、中文、Skill 安装资产与手动下载模板采用相同 schema 和证据结构；
+- 发行校验现在会保护样式类、证据详情区、CSS 资产与长证据边界。
+
+现有 AC 文档继续有效。Obsidian 文档如需启用布局，只需增加 `cssclasses: ac-document`，将 `ac-document-tables.css` 复制到 `.obsidian/snippets/` 并启用；其他 Markdown 宿主会直接忽略这个可选样式类。
 
 ---
 

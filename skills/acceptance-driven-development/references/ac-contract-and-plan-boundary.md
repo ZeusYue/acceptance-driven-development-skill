@@ -18,6 +18,12 @@ A valid AC document contains:
 
 Use the hub template when it exists. If it does not, copy the language-matching asset from `../assets/`; never invent a partial table from memory. New top-level IDs use the current maximum numeric ID plus one. Do not renumber existing IDs.
 
+## Table readability and evidence detail
+
+Keep each five-column row scannable. Put only the criterion, concise verification conclusion, status, and expected result in the table. Move full logs, lengthy benchmark samples, screenshot descriptions, and step-by-step user feedback to the template's **Verification Evidence Details** section in the same `AC.md`, then cite `See AC-N evidence` from the row. This preserves `AC.md` authority without turning the status table into a log archive.
+
+The optional `assets/ac-document-tables.css` gives Obsidian AC tables stable column proportions and normal wrapping when the document has `cssclasses: ac-document`. Copy and enable it only with user consent. Other Markdown hosts ignore the class but retain the evidence structure.
+
 ## Existing-document migration
 
 Existing AC documents may use localized headers and older category ranges. Preserve their IDs, requirements, verification evidence, status history, and document language. If a missing section or ambiguous row needs semantic interpretation, stop, report the gap, and obtain user confirmation before editing. Do not silently convert an old document merely to make it look like the new template.
