@@ -1,4 +1,4 @@
-# 验收驱动开发（ADD）v2.4.2
+# 验收驱动开发（ADD）v2.5.0
 
 <p align="center">
   <strong>让编码 Agent 用清单和证据证明“真的完成了”。</strong><br>
@@ -142,14 +142,14 @@ ADD 负责项目文档的创建和更新；`project-experience` 读取这些文�
 
 ## 安装 ADD
 
-请同时安装：
+请安装以下两个 Skill：
 
 ```text
 acceptance-driven-development
 project-experience
 ```
 
-前者负责验收工作流；后者在宿主支持时提供跨项目经验。
+ADD 负责验收工作流，并内置 Greenfield 或真正含糊变更所需的条件式设计探索；`project-experience` 在宿主支持时提供跨项目经验。
 
 ### 方案一：CC Switch
 
@@ -209,9 +209,9 @@ CC Switch 发现仓库时需要下载 GitHub 的分支压缩包。如果 GitHub 
 这通常是本地 Skill 安装的权限或存储位置问题，不是仓库 URL、分支或仓库结构问题。
 
 1. **符号链接可正常创建时应优先使用**：它保持一个共享 Skill 来源，不会让目标 Agent 显示重复 Skill。
-2. 若无法创建链接，打开 CC Switch **设置**，将 **Skills 存储位置**改为 `~/.agents/skills`，重启 CC Switch 后重新安装。
-3. 若仍失败，请以**管理员身份**启动 CC Switch，或启用 Windows 开发人员模式后重试。
-4. **Copy / 复制仅作为临时兜底**。它会生成独立的物理副本，可能让同一 Skill 重复显示；使用前请先移除或重新安装旧的目标 Agent 副本。
+2. 打开 CC Switch **设置**，分别检查“同步/安装方式”和 **Skills 存储位置**。`~/.agents/skills` 适合作为共享存储位置，但只修改存储位置不会授予符号链接权限；修改任一设置后都应重启并重新安装。
+3. 若要继续使用符号链接，请以**管理员身份**启动 CC Switch，或启用 Windows 开发人员模式后重试。
+4. **Copy / 复制仅作为临时兜底**。需要明确把同步方式改为 Copy，并先移除或重新安装旧的目标 Agent 副本，避免同一 Skill 出现多个物理副本。
 
 完整恢复顺序见 [CC Switch 安装指南](./docs/CCSWITCH-zh.md)。
 
@@ -238,6 +238,23 @@ CC Switch 发现仓库时需要下载 GitHub 的分支压缩包。如果 GitHub 
 ```
 
 ADD 会写入 `~/.add-hub`，并将 AC、项目文档、模板和可选经验缓存保存在其中。Obsidian 有帮助，但不是必需条件。
+
+---
+
+## v2.5.0：ADD 内置设计探索
+
+v2.5.0 移除了 ADD 残留的 Superpowers 耦合：
+
+- ADD 现在仅在显式 ADD 方案探索、Greenfield Gate 1，以及大型或真正含糊的 Phase 3.5B 变更中加载自己的设计探索 reference；
+- 它只询问真正影响设计的问题，比较有意义的方案，取得一次设计批准，并在 ADD 内记录 **Design Decision Handoff**；
+- 大型 Phase 3.5B 会把设计与拟议 AC 变更一起提交一次合并批准；
+- 设计 reference 不会强制使用 `docs/superpowers`、创建实施计划、要求提交仓库、选择 Mode A/B，或跳转到其他开发方法；
+- ADD 将规划能力改为通用可选工具协议：每项计划任务必须映射 AC-ID，但计划状态永远不拥有验收状态；
+- 已批准的行为变更会在写代码前使被修改目标的旧 `[x]` 失效；用户恢复延后的 `[>]` 条目时，原范围与变更范围都有明确路径回到可执行状态；
+- 已批准积压、已确定的中小型变更、恢复原行为的 bug、等价重构、构建/配置变更和纯样式修改都会跳过设计 reference；
+- 不再安装独立的 ADD brainstorming Skill，因此可以与 Superpowers 的通用 `brainstorming` 共存而没有重名或触发歧义。
+
+即使没有规划工具、审查子 Agent 或 `project-experience`，ADD 仍能独立完成闭环。
 
 ---
 
@@ -279,8 +296,8 @@ v2.4 恢复 `AC.md` 作为开发引擎不可让渡的权威：
 v2.3.1 不改变 ADD 工作流，只修正 Windows 下 CC Switch 的恢复路径：
 
 - 符号链接可用时优先使用，目标 Agent 只会看到一个共享 Skill 来源；
-- 链接失败时，可通过 `~/.agents/skills`、管理员启动或 Windows 开发人员模式恢复；
-- Copy / 复制只作为临时兜底，因为多个物理副本可能造成重复 Skill 条目。
+- `~/.agents/skills` 用于解决共享存储或布局问题；管理员启动或 Windows 开发人员模式才用于授予符号链接权限；
+- 若仍无法使用链接，应明确选择 Copy / 复制且只作为临时兜底，因为多个物理副本可能造成重复 Skill 条目。
 
 ---
 
@@ -290,7 +307,7 @@ v2.3.1 不改变 ADD 工作流，只修正 Windows 下 CC Switch 的恢复路径
 
 - `SKILL.md` 变为更短的操作核心：入口关卡、Phase 3.5、实现模式、审查、新鲜验证、完成条件、活项目文档与缓存原子刷新仍保留在主文件；
 - 完整示例、反合理化护栏、扩展红旗和详细的变更设计说明迁入 `references/`，仍是技能的一部分；
-- 发行验证会检查核心契约、两个 reference 文件，以及 380 行的主文件上限。
+- 发行验证会检查核心契约、全部必需 reference 文件，以及 380 行的主文件上限。
 
 不要通过删除 `_exp_memory.md` 刷新缓存；准备好时要求安全更新经验缓存。
 

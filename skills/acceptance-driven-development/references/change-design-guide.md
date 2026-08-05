@@ -7,10 +7,10 @@
 | Size | Signals | Required path |
 |---|---|---|
 | Small | One existing file; local threshold/rename/line move | Update AC when behavior changes; propose approach in 1–2 sentences; explicit approval. |
-| Medium | Multiple files, new file, new UI, interaction flow, or uncertainty | Check existing solution options; discuss approach; update AC; explicit approval. |
-| Large | New subsystem, architectural restructuring, broad feature | Check solution options; use brainstorming when available; update design and AC; explicit approval. |
+| Medium | Multiple files, new file, new UI, interaction flow, or bounded uncertainty with no unresolved material design choice | Check existing solution options; present approach and proposed AC delta; explicit approval. |
+| Large / ambiguous | New subsystem, architectural restructuring, broad feature, or unresolved alternatives that materially change behavior/architecture/risk | Read `design-exploration-and-handoff.md`; present design and proposed AC delta together; one combined approval. |
 
-Default to Medium when uncertain. A fast-lane bug fix is the exception: it still needs impact analysis but no approach discussion when it restores original intent.
+When only physical size is uncertain, default to Medium. Genuine design ambiguity takes the Large / ambiguous path regardless of file count. A fast-lane bug fix is the exception: it still needs impact analysis but no approach discussion when it restores original intent.
 
 ## Solution ladder
 
@@ -26,9 +26,9 @@ Present relevant findings with the approach. Read `$DOC_HUB/_exp_memory.md` when
 
 ## Approval boundary
 
-Behavioral changes include buttons, UI state, displayed data, filters, validation, interaction flow, and user-perceptible performance changes. They require AC update, discussion, and explicit approval.
+Behavioral changes include buttons, UI state, displayed data, filters, validation, interaction flow, and user-perceptible performance changes. They require a proposed AC delta, discussion, and explicit approval before persistence.
 
-Fast-lane candidates preserve intended behavior: bug fixes, equivalent refactors, build/config changes, and pure cosmetics. If a fast-lane bug has no AC, create the next numeric AC and obtain quick confirmation that it is the correct tracking criterion.
+Fast-lane candidates preserve intended behavior: bug fixes, equivalent refactors, build/config changes, and pure cosmetics. If fast-lane work has no relevant AC, propose the next numeric tracking AC and obtain quick confirmation before writing it.
 
 ## Failure boundary
 
@@ -38,4 +38,4 @@ After three failures for the same AC, stop implementation. Present evidence and 
 2. try once more with user guidance;
 3. defer as `[>]`.
 
-If a proposed change is deferred, remove only the `[affected]` annotations introduced by that change and restore original verified/pending status.
+If a proposal is deferred before code, leave authoritative AC unchanged. If work is deferred after code attempts, first revert the attempted implementation and freshly verify affected ACs before restoring statuses; otherwise preserve their nonterminal/affected states. Never restore `[x]` from historical status alone.

@@ -23,7 +23,7 @@ skills/acceptance-driven-development/SKILL.md
 skills/project-experience/SKILL.md
 ```
 
-请同时安装两个 Skill，然后在目标 Agent 中新开会话。
+请安装这两个 Skill，然后在目标 Agent 中新开会话。条件式设计探索已经内置于 `acceptance-driven-development`，不是第三个可发现 Skill。
 
 ## 如果发现时显示 0 个技能
 
@@ -53,9 +53,9 @@ https://github.com/ZeusYue/acceptance-driven-development-skill/archive/refs/head
 出现“`创建符号链接失败：……`”这类报错时，问题通常在本地安装权限或存储位置，而不是仓库发现。
 
 1. **符号链接可正常创建时应优先使用**：它保持一个共享 Skill 来源，不会让目标 Agent 显示重复 Skill。
-2. 若无法创建链接，打开 CC Switch **设置**，将 **Skills 存储位置**改为 `~/.agents/skills`，重启 CC Switch 后重新安装两个 Skill。
-3. 若仍失败，请以**管理员身份**启动 CC Switch，或启用 Windows 开发人员模式后重试。
-4. **Copy / 复制仅作为临时兜底**。它会生成独立的物理副本；先移除或重新安装旧的目标 Agent 副本，避免同一 Skill 被发现两次。
+2. 打开 CC Switch **设置**，分别检查“同步/安装方式”和 **Skills 存储位置**。`~/.agents/skills` 适合作为共享位置，但只修改存储位置不会授予符号链接权限；修改任一设置后都应重启并重新安装。
+3. 若要继续使用符号链接，请以**管理员身份**启动 CC Switch，或启用 Windows 开发人员模式后重试。
+4. **Copy / 复制仅作为临时兜底**。需要明确把同步方式改为 Copy，并先移除或重新安装旧的目标 Agent 副本，避免同一 Skill 被发现两次。
 
 修改存储位置或同步方式后，所选目标 Agent 的 Skill 可能需要重新安装。
 

@@ -10,7 +10,7 @@
 | “I am debugging, not coding.” | A fix is a code change. Trace cause, then use the appropriate mode. |
 | “The fix is obvious.” | Obvious fixes still need impact analysis and review. |
 | “The user described it exactly.” | Description is not confirmation of the proposed behavioral approach. |
-| “I will update AC later.” | Update AC before behavioral code; update `[!]` to `[x]` immediately after specific user confirmation. |
+| “I will update AC later.” | Present proposed scope before approval, persist the approved AC delta before code, and update `[!]` to `[x]` immediately after specific user confirmation. |
 | “Self-review is enough for a batch.” | Independent review is preferred; if unavailable, report all six self-review checks. |
 
 ## Compact Phase Map
@@ -67,24 +67,27 @@ User confirms test → mark [x]
 
 | Signal | Required response |
 |---|---|
-| A behavior change or untracked bug fix has no relevant AC | Enter Phase 3.5 and create/update the relevant AC first. |
+| A code change has no relevant AC | Enter Phase 3.5B, propose a tracking AC, obtain the required confirmation, then persist it before code. |
 | A user test is requested between AUTO items | Finish the batch and execute AUTO verification first. |
 | An affected AUTO AC remains `[!] [affected]` | Re-run its verification command. |
+| A MANUAL result fails | Record evidence, mark `[~]`, and repair approved scope through Phase 3.5A; changed scope returns to Phase 3.5B. |
+| An approved behavior delta edits a target still marked `[x]` | Invalidate the stale pass: mark the edited target `[~]` before code; reserve `[!] [affected]` for unchanged contracts needing regression verification. |
+| The user resumes a deferred `[>]` AC | For unchanged scope, record the decision, reactivate it as `[ ]` or `[~]`, and enter Phase 3.5A. For changed scope, keep `[>]` until Phase 3.5B approval, then atomically apply the edit and reactivate it before mode selection. |
+| One Mode A AC is blocked | Record its block and continue independent pending/partial targets unless a shared prerequisite blocks the batch. |
 | A feature fails three times | Stop patching; ask to redesign, continue with guidance, or defer. |
 | Greenfield AC was written without approval | Delete/revise the draft and return to the proper gate. |
 | Unrelated code was changed | Revert it or explicitly obtain a new AC scope. |
 
-## Optional Capability Map
+## Capability Map
 
 ```text
 acceptance-driven-development
-├── brainstorming                     design exploration
-├── writing-plans                     decomposition
-├── review subagent                   independent batch review
-├── test-driven-development           regression/quality work
-├── verification-before-completion    fresh-evidence discipline
-├── project-experience                prior-project briefing/cache
-└── finishing-a-development-branch    integration/cleanup support
+├── built-in design reference  conditional exploration and Design Decision Handoff
+├── external planning tool   optional decomposition under Acceptance Mapping
+├── review subagent          optional independent batch review
+└── project-experience       optional prior-project briefing/cache
 ```
 
 Missing optional capability means use the fallback described in the main SKILL; never block the core acceptance workflow.
+
+The design reference is part of ADD rather than an optional host capability; load it only at the entries named in the main SKILL.

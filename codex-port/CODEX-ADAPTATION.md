@@ -1,4 +1,4 @@
-﻿# Codex Adaptation Guide
+# Codex Adaptation Guide
 
 ## Installation
 

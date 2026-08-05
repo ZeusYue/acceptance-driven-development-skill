@@ -1,4 +1,4 @@
-﻿---
+---
 template: project-doc
 version: 2.1
 tags:

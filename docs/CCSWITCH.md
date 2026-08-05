@@ -23,7 +23,7 @@ skills/acceptance-driven-development/SKILL.md
 skills/project-experience/SKILL.md
 ```
 
-Install both skills, then begin a new target-agent session.
+Install both skills, then begin a new target-agent session. Conditional design exploration is bundled inside `acceptance-driven-development`; it is not a third discoverable skill.
 
 ## If discovery shows 0 skills
 
@@ -53,9 +53,9 @@ If the archive downloads successfully but CC Switch still reports zero skills, t
 A message such as `Failed to create symbolic link: …` is a local installation permission or storage-location problem, not a repository-discovery problem.
 
 1. **Prefer symbolic links when they work.** They keep one shared skill definition and avoid duplicate skills in the target agent.
-2. If the link cannot be created, open CC Switch **Settings**, set the skills storage location to `~/.agents/skills`, restart CC Switch, and install both skills again.
-3. If it still fails, run CC Switch as Administrator or enable Windows Developer Mode, then retry.
-4. **Copy is only a temporary fallback** when symbolic links cannot be used. It creates separate physical copies; remove or reinstall the old target-agent copy first so the same skill is not discovered twice.
+2. In CC Switch **Settings**, check the synchronization/install method separately from the skills storage location. `~/.agents/skills` is a useful shared location, but changing storage alone does not grant symbolic-link permission; restart and reinstall after changing either setting.
+3. To keep symbolic links, run CC Switch as Administrator or enable Windows Developer Mode, then retry.
+4. **Copy is only a temporary fallback** when symbolic links cannot be used. Explicitly select the Copy synchronization method and remove or reinstall old target-agent copies first so the same skill is not discovered twice.
 
 Changing the storage location or sync method may require reinstalling the skills for the selected target agent.
 

@@ -1,3 +1,12 @@
+## v2.5.0（2026-08-05）：ADD 与 Superpowers 解耦
+
+- 将需求澄清、真实方案比较、一次设计批准和 Design Decision Handoff 内置为 `references/design-exploration-and-handoff.md`，避免依赖宿主的 Skill-to-Skill 调度。
+- 该 reference 不固定文档路径、不创建实施计划、不要求仓库提交、不选择 Mode A/B，也不跳转到其他方法论；仅由 ADD 在显式设计探索、Greenfield Gate 1、大型或真正含糊的 Phase 3.5B 中加载。
+- 大型 Phase 3.5B 必须把设计与拟议 AC 变更一起提交一次合并批准，避免内置后产生重复 spec/AC 许可。
+- ADD 删除对具名 Superpowers 技能的依赖，将规划改成通用可选工具协议；无外部规划工具时由 ADD 自己拆解任务。
+- 仓库与 CC Switch 应发现两个 Skill：`acceptance-driven-development` 与 `project-experience`；设计探索是 ADD 内部 reference，不是第三个 Skill。
+- 本地卸载旧 Superpowers 时优先移出发现目录并保留可恢复备份，不改动无关技能。
+
 ## v2.4.2（2026-08-04）：AC 表格可读性与证据分层
 
 - 五列 AC 表格使用可选的 Obsidian CSS 资产统一列比例并强制长文本换行。
@@ -9,7 +18,7 @@
 
 1. 任何压缩都不得移除模板读取、AC 结构验证、AC/计划权威边界或人工验收交接单。
 2. AC 模板必须作为 `skills/acceptance-driven-development/assets/` 中的可安装资产交付；Hub 缺失时只允许复制资产，不允许凭记忆重建。
-3. `writing-plans` 只能在 AC Contract Gate 成功且范围已批准后运行；计划任务必须映射 AC-ID，计划勾选不得改变 AC 状态。
+3. 任何外部计划工具只能在 AC Contract Gate 成功且范围已批准后运行；计划任务必须映射 AC-ID，计划勾选不得改变 AC 状态。
 4. 对既有 AC 做迁移时，保留编号、证据、历史状态和语言；语义含糊时先询问用户。
 5. 每个 `[!] [manual]` 都必须产生包含 AC-ID、前置条件、步骤、预期结果和回复格式的 Manual Verification Handoff。
 6. Mode A 的进度公告、计划 Task 和子 Agent 调度都不是暂停关卡；目标 `[ ]` / `[~]` 未清空时必须连续推进，除非命中明确的 ADD 停止条件。
@@ -37,7 +46,7 @@ Skill 的核心循环是：`AC 表有 [ ] → 做 → 验 → 标记 → 还有 
 
 | 防线 | 位置 | 验证时间 | 为什么有效 |
 |------|------|---------|-----------|
-| `<EXTREMELY-IMPORTANT>` 标签 | FIRST RULE | 2026-07 | 比普通 Markdown 标题权重更高，参考 using-superpowers |
+| `<EXTREMELY-IMPORTANT>` 标签 | FIRST RULE | 2026-07 | 比普通 Markdown 标题权重更高，用于保护唯一代码入口 |
 | 合理化借口表 | FIRST RULE | 2026-07 | Agent 会用每种理由跳过规则，提前封堵每种理由 |
 | Phase 3.5 硬门禁（等确认） | Phase 3.5 出口 | 2026-07 | Agent 会把「用户描述了问题」等同于「确认」，硬门禁强制等待 |
 | Phase 4 出口门禁 | Phase 4 末尾 | 2026-07 | Agent 会跳过 Phase 4.8 审查直接标记 [x] |
@@ -90,7 +99,7 @@ Skill 的核心循环是：`AC 表有 [ ] → 做 → 验 → 标记 → 还有 
 ### README 原则
 
 1. 先展示 ADD 如何把“已实现”变成可观察的阶段、审查和验证证据，再进入安装。
-2. 安装步骤必须告诉用户应看到的两个技能：`acceptance-driven-development` 与 `project-experience`。
+2. 安装步骤必须告诉用户应看到两个技能：`acceptance-driven-development` 与 `project-experience`，并说明设计探索已内置于 ADD。
 3. “0 个技能”是一个独立、可搜索的排障入口，而不是藏在 FAQ 的一句话。
 4. 发行测试必须可移植：不得引用私人 Vault、缓存哈希或工作站绝对路径。
 
@@ -119,14 +128,14 @@ Skill 的核心循环是：`AC 表有 [ ] → 做 → 验 → 标记 → 还有 
 
 ### 发行包结构
 
-- 保持仓库根目录的 `skills/` 作为可安装 Skill 集合；这让 CC Switch 可以通过 `Owner=ZeusYue`、`Name=acceptance-driven-development-skill`、`Branch=main`、`Subdirectory=skills` 直接发现两个 Skill。
+- 保持仓库根目录的 `skills/` 作为可安装 Skill 集合；CC Switch 使用仓库根 URL 与 `main` 分支即可递归发现两个 Skill，不依赖子目录输入项。
 - README 是 GitHub 产品首页；复杂的 CC Switch UI 步骤放入 `docs/CCSWITCH.md` 和 `docs/CCSWITCH-zh.md`，避免首页被平台细节淹没。
 - 每次发行前运行 `tests/validate-release.ps1`。它必须验证 README 的安装路径、CC Switch 配置、迁移说明、旧用户名清理和核心工作流契约。
 
 ### 用户文档的边界
 
 1. 明确区分“ADD 核心能力”“可选 Skill”“宿主能力”，不要声称所有 Agent 行为完全一致。
-2. 手动安装文档始终要求同时复制 ADD 和 project-experience；后者运行时可选，但完整体验推荐安装。
+2. 手动安装文档要求复制 ADD 和 project-experience；后者运行时可选，但完整体验推荐安装。ADD 的内置 references 随 ADD 目录一起复制。
 3. `$DOC_HUB`、`~/.add-hub`、缓存刷新和 v2.0 迁移规则属于首页必需信息；框架审查细节不应塞入 README。
 4. GitHub 用户名、LICENSE 署名、远程链接和 CC Switch 配置必须同时更新，避免身份漂移。
 

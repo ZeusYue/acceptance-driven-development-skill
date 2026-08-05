@@ -1,4 +1,4 @@
-# Acceptance-Driven Development (ADD) v2.4.2
+# Acceptance-Driven Development (ADD) v2.5.0
 
 <p align="center">
   <strong>The AI skill pack that makes “done” a checklist, not a feeling.</strong><br>
@@ -149,7 +149,7 @@ acceptance-driven-development
 project-experience
 ```
 
-The first enforces the acceptance workflow. The second provides reusable project experience when the host supports it.
+ADD owns the acceptance workflow and includes conditional design exploration for Greenfield or genuinely ambiguous changes. `project-experience` provides reusable project experience when the host supports it.
 
 ### Option 1 — CC Switch
 
@@ -208,9 +208,9 @@ CC Switch discovers a repository by downloading its GitHub branch archive. If Gi
 This is a local skill-installation permission or storage-location problem, not a repository URL or branch problem.
 
 1. **Prefer symbolic links when they work:** they keep one shared skill definition and avoid duplicate entries in the target agent.
-2. If the link cannot be created, in CC Switch **Settings** change the skills storage location to `~/.agents/skills`, then restart CC Switch and retry the installation.
-3. If the link still fails, run CC Switch as Administrator or enable Windows Developer Mode, then retry.
-4. **Copy is only a temporary fallback** when symbolic links cannot be used. It can create separate physical copies and make the same skill appear more than once; remove or reinstall the old target-agent copy before using it.
+2. In CC Switch **Settings**, check the synchronization/install method separately from the skills storage location. `~/.agents/skills` is a useful shared storage location, but changing storage alone does not grant symbolic-link permission; restart and reinstall after changing either setting.
+3. To keep symbolic links, run CC Switch as Administrator or enable Windows Developer Mode, then retry.
+4. **Copy is only a temporary fallback** when symbolic links cannot be used. Explicitly select the Copy synchronization method, remove or reinstall old target-agent copies first, and avoid duplicate physical copies of the same skill.
 
 See [CC Switch installation](./docs/CCSWITCH.md) for the full recovery sequence.
 
@@ -237,6 +237,23 @@ On the first code-related request, ADD asks for one stable directory shared acro
 ```
 
 ADD writes `~/.add-hub` and keeps project ACs, documents, templates, and the optional experience cache there. Obsidian is helpful but not required.
+
+---
+
+## v2.5.0: Built-in ADD design exploration
+
+v2.5.0 removes ADD's remaining Superpowers coupling:
+
+- ADD now conditionally loads its own design-exploration reference for explicit ADD exploration, Greenfield Gate 1, and Large or genuinely ambiguous Phase 3.5B changes;
+- it asks only material questions, compares meaningful alternatives, obtains one design approval, and records a **Design Decision Handoff** without leaving the ADD workflow;
+- Large Phase 3.5B work presents the design and proposed AC delta for one combined approval;
+- the design reference does not impose `docs/superpowers`, create an implementation plan, force repository commits, choose Mode A/B, or redirect to another methodology;
+- ADD now treats planning as a generic optional tool contract: every task maps to AC IDs, while plan status never owns acceptance status;
+- an approved behavior delta invalidates any edited target's stale `[x]` before code, while a resumed deferred `[>]` criterion has explicit unchanged-scope and changed-scope routes back to executable status;
+- approved backlog, settled Small or Medium changes, original-behavior bugs, equivalent refactors, build/config changes, and pure cosmetics skip the design reference;
+- no separate ADD brainstorming skill is installed, so Superpowers' generic `brainstorming` can coexist without name or trigger ambiguity.
+
+ADD remains fully functional when a planning tool, a review subagent, or `project-experience` is unavailable.
 
 ---
 
@@ -278,8 +295,8 @@ Existing localized AC documents remain supported. ADD preserves their IDs, evide
 v2.3.1 does not change the ADD workflow. It corrects the Windows CC Switch recovery path:
 
 - prefer symbolic links when they work, so the target agent sees one shared skill definition;
-- use `~/.agents/skills`, Administrator mode, or Windows Developer Mode to recover a failed link;
-- use Copy only as a temporary fallback, because duplicate physical copies can produce duplicate skill entries.
+- use `~/.agents/skills` to address shared-storage/layout issues, but use Administrator mode or Windows Developer Mode to grant symbolic-link permission;
+- if links still cannot be used, explicitly select Copy only as a temporary fallback because duplicate physical copies can produce duplicate skill entries.
 
 ---
 
@@ -289,7 +306,7 @@ Existing AC tables and installation methods remain compatible. v2.3 makes ADD ea
 
 - `SKILL.md` is now a shorter operational core: entry gates, Phase 3.5, implementation modes, review, fresh verification, completion, living-project documents, and atomic cache refresh stay there;
 - worked scenarios, rationalization guardrails, extended red flags, and detailed change-design guidance moved to `references/` and remain part of the skill;
-- the release validator enforces the core contracts, both reference files, and a 380-line budget.
+- the release validator enforces the core contracts, all required reference files, and a 380-line budget.
 
 Do not delete `_exp_memory.md` to refresh it. Ask to update the experience cache so it can be rebuilt safely.
 
