@@ -1,9 +1,14 @@
 ﻿[CmdletBinding()]
 param(
-    [string]$ReleaseRoot = (Split-Path -Parent $PSScriptRoot)
+    [string]$ReleaseRoot
 )
 
 $ErrorActionPreference = 'Stop'
+if ([string]::IsNullOrWhiteSpace($ReleaseRoot)) {
+    $scriptPath = $MyInvocation.MyCommand.Path
+    if ([string]::IsNullOrWhiteSpace($scriptPath)) { throw 'Cannot resolve validate-release.ps1 location.' }
+    $ReleaseRoot = Split-Path -Parent (Split-Path -Parent $scriptPath)
+}
 $failures = [System.Collections.Generic.List[string]]::new()
 
 function Require-Match {
@@ -66,6 +71,84 @@ foreach ($skillFile in $skillDirs) {
     if (-not (Test-Path -LiteralPath $skillFile)) { $failures.Add("Missing discoverable skill file: $skillFile"); continue }
     $directoryName = Split-Path -Leaf (Split-Path -Parent $skillFile)
     Require-Match $skillFile "(?m)^name: $([regex]::Escape($directoryName))\r?$" "Skill frontmatter name must match directory: $directoryName"
+}
+
+function Invoke-TestGit {
+    param([string]$Repository, [string[]]$Arguments)
+    $output = @(& git -C $Repository @Arguments 2>&1)
+    if ($LASTEXITCODE -ne 0) { throw "git $($Arguments -join ' ') failed in ${Repository}: $($output -join [Environment]::NewLine)" }
+    return $output
+}
+
+function New-CheckpointTestRepository {
+    param([string]$Parent, [string]$Name)
+    $repository = Join-Path $Parent $Name
+    New-Item -ItemType Directory -Path $repository -Force | Out-Null
+    Invoke-TestGit $repository @('init', '--quiet') | Out-Null
+    Invoke-TestGit $repository @('config', 'user.email', 'add-validator@example.invalid') | Out-Null
+    Invoke-TestGit $repository @('config', 'user.name', 'ADD Validator') | Out-Null
+    Set-Content -LiteralPath (Join-Path $repository 'task.txt') -Value 'baseline' -Encoding utf8
+    Set-Content -LiteralPath (Join-Path $repository 'user.txt') -Value 'baseline' -Encoding utf8
+    Invoke-TestGit $repository @('add', '--', 'task.txt', 'user.txt') | Out-Null
+    Invoke-TestGit $repository @('commit', '--quiet', '-m', 'baseline') | Out-Null
+    return $repository
+}
+
+function Test-GitCheckpointIsolation {
+    param([System.Collections.Generic.List[string]]$FailureList)
+    if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
+        $FailureList.Add('Git checkpoint scenarios require git on PATH.')
+        return
+    }
+
+    $tempBase = [IO.Path]::GetFullPath([IO.Path]::GetTempPath())
+    $testRoot = Join-Path $tempBase ("add-checkpoint-" + [guid]::NewGuid().ToString('N'))
+    New-Item -ItemType Directory -Path $testRoot | Out-Null
+    try {
+        $clean = New-CheckpointTestRepository $testRoot 'clean'
+        Add-Content -LiteralPath (Join-Path $clean 'task.txt') -Value 'agent change' -Encoding utf8
+        Invoke-TestGit $clean @('add', '--', 'task.txt') | Out-Null
+        $cleanStaged = @((Invoke-TestGit $clean @('diff', '--cached', '--name-only')) | Where-Object { $_ })
+        if (($cleanStaged.Count -ne 1) -or ($cleanStaged[0] -ne 'task.txt')) {
+            $FailureList.Add('Clean checkpoint scenario must stage only the Agent-owned target.')
+        }
+
+        $unrelated = New-CheckpointTestRepository $testRoot 'unrelated-dirty'
+        Add-Content -LiteralPath (Join-Path $unrelated 'user.txt') -Value 'pre-existing user change' -Encoding utf8
+        $unrelatedBaseline = @(Invoke-TestGit $unrelated @('status', '--short'))
+        Add-Content -LiteralPath (Join-Path $unrelated 'task.txt') -Value 'agent change' -Encoding utf8
+        Invoke-TestGit $unrelated @('add', '--', 'task.txt') | Out-Null
+        $unrelatedStaged = @((Invoke-TestGit $unrelated @('diff', '--cached', '--name-only')) | Where-Object { $_ })
+        $unrelatedUnstaged = @((Invoke-TestGit $unrelated @('diff', '--name-only')) | Where-Object { $_ })
+        if (($unrelatedBaseline -notmatch 'user\.txt') -or ($unrelatedStaged -notcontains 'task.txt') -or ($unrelatedStaged -contains 'user.txt') -or ($unrelatedUnstaged -notcontains 'user.txt')) {
+            $FailureList.Add('Unrelated-dirty checkpoint scenario must preserve the user file outside the staged Agent change.')
+        }
+
+        $targetDirty = New-CheckpointTestRepository $testRoot 'target-pre-dirty'
+        Add-Content -LiteralPath (Join-Path $targetDirty 'task.txt') -Value 'pre-existing user change' -Encoding utf8
+        $targetBaseline = @(Invoke-TestGit $targetDirty @('status', '--short'))
+        $targetWasDirty = @($targetBaseline | Where-Object { $_ -match 'task\.txt$' }).Count -gt 0
+        if (-not $targetWasDirty) {
+            $FailureList.Add('Target-pre-dirty checkpoint scenario must detect COMMIT-BLOCKED before Agent staging.')
+        }
+
+        $preStaged = New-CheckpointTestRepository $testRoot 'pre-staged-index'
+        Add-Content -LiteralPath (Join-Path $preStaged 'user.txt') -Value 'pre-staged user change' -Encoding utf8
+        Invoke-TestGit $preStaged @('add', '--', 'user.txt') | Out-Null
+        $cachedBaseline = @((Invoke-TestGit $preStaged @('diff', '--cached', '--name-only')) | Where-Object { $_ })
+        if ($cachedBaseline -notcontains 'user.txt') {
+            $FailureList.Add('Pre-staged-index checkpoint scenario must detect COMMIT-BLOCKED before Agent staging.')
+        }
+    }
+    catch {
+        $FailureList.Add("Git checkpoint scenario failed: $($_.Exception.Message)")
+    }
+    finally {
+        $resolvedRoot = [IO.Path]::GetFullPath($testRoot)
+        if ($resolvedRoot.StartsWith($tempBase, [StringComparison]::OrdinalIgnoreCase) -and (Test-Path -LiteralPath $resolvedRoot)) {
+            Remove-Item -LiteralPath $resolvedRoot -Recurse -Force
+        }
+    }
 }
 
 $gitMetadata = Join-Path $ReleaseRoot '.git'
@@ -161,16 +244,20 @@ $guardrailsRef = Join-Path $ReleaseRoot 'skills\acceptance-driven-development\re
 $changeGuideRef = Join-Path $ReleaseRoot 'skills\acceptance-driven-development\references\change-design-guide.md'
 $frameworkReviewRef = Join-Path $ReleaseRoot 'skills\acceptance-driven-development\references\framework-review-checklist.md'
 $acContractRef = Join-Path $ReleaseRoot 'skills\acceptance-driven-development\references\ac-contract-and-plan-boundary.md'
+$implementationRef = Join-Path $ReleaseRoot 'skills\acceptance-driven-development\references\implementation-planning-and-execution.md'
 $acAsset = Join-Path $ReleaseRoot 'skills\acceptance-driven-development\assets\ac-template.md'
 $acAssetZh = Join-Path $ReleaseRoot 'skills\acceptance-driven-development\assets\ac-template-zh.md'
+$implementationPlanAsset = Join-Path $ReleaseRoot 'skills\acceptance-driven-development\assets\implementation-plan-template.md'
 $acTableCss = Join-Path $ReleaseRoot 'skills\acceptance-driven-development\assets\ac-document-tables.css'
 $projectDocAsset = Join-Path $ReleaseRoot 'skills\acceptance-driven-development\assets\project-doc-template.md'
 $projectIndexAsset = Join-Path $ReleaseRoot 'skills\acceptance-driven-development\assets\project-index.md'
 $addLineCount = (Get-Content -LiteralPath $add -Encoding utf8).Count
 $designExplorationLineCount = (Get-Content -LiteralPath $designExploration -Encoding utf8).Count
+$implementationRefLineCount = (Get-Content -LiteralPath $implementationRef -Encoding utf8).Count
 if ($addLineCount -gt 380) { $failures.Add("ADD main skill exceeds 380-line operational budget: $addLineCount") }
 if ($designExplorationLineCount -gt 120) { $failures.Add("ADD design exploration exceeds 120-line conditional-reference budget: $designExplorationLineCount") }
-foreach ($referenceFile in @($guardrailsRef, $changeGuideRef, $frameworkReviewRef, $acContractRef, $designExploration)) {
+if ($implementationRefLineCount -gt 140) { $failures.Add("ADD implementation reference exceeds 140-line conditional-reference budget: $implementationRefLineCount") }
+foreach ($referenceFile in @($guardrailsRef, $changeGuideRef, $frameworkReviewRef, $acContractRef, $designExploration, $implementationRef)) {
     if (-not (Test-Path -LiteralPath $referenceFile)) { $failures.Add("Missing ADD compression reference: $referenceFile") }
 }
 Require-Match $add 'FIRST RULE' 'ADD main skill must retain FIRST RULE.'
@@ -201,7 +288,7 @@ Require-Match $add 'failed affected AUTO AC after Mode B is a regression' 'Mode 
 Require-Match $add 'fix through the appropriate Phase 3\.5 entry, then Phases 4–5' 'A [~] fix must not bypass Phase 3.5.'
 Require-Match $add 'if missing, create it through Step 0\.4 first' 'Phase 6 must create a missing project document before finalization.'
 Require-Match $add 'references/framework-review-checklist\.md' 'ADD must retain the framework-review reference.'
-foreach ($assetFile in @($acAsset, $acAssetZh, $acTableCss, $projectDocAsset, $projectIndexAsset)) {
+foreach ($assetFile in @($acAsset, $acAssetZh, $acTableCss, $projectDocAsset, $projectIndexAsset, $implementationPlanAsset)) {
     if (-not (Test-Path -LiteralPath $assetFile)) { $failures.Add("Missing installable ADD asset: $assetFile") }
 }
 Require-Match $add 'AC Contract Gate' 'ADD must define an AC Contract Gate before planning or code.'
@@ -239,6 +326,40 @@ Require-Match $changeGuideRef 'Never restore `\[x\]` from historical status alon
 Require-Match $designExploration 'explicit user request for ADD design exploration always loads' 'Explicit ADD exploration must override normal reference skip rules.'
 Require-Match $designExploration 'apply the approved AC delta.*before mode selection or code' 'Approved large-change scope must persist before implementation.'
 Require-Match $add 'references/ac-contract-and-plan-boundary\.md' 'ADD must link its AC-contract reference.'
+Require-Match $add 'references/implementation-planning-and-execution\.md' 'ADD must load its implementation planning and execution reference.'
+Require-Match $add 'assets/implementation-plan-template\.md.*\$DOC_HUB/<Project>/plans/' 'Mode A must copy the installed plan asset before code.'
+Require-Match $add 'Execution Map.*do not create a persistent plan' 'Mode B must use a chat-only Execution Map.'
+Require-Match $add 'without asking for plan approval' 'ADD must not make users review implementation plans.'
+Require-Match $add 'safe local AC-scoped checkpoint' 'Both implementation modes must create safe local checkpoints.'
+Require-Match $add 'existing document may retain its legacy Change Log until a separately approved migration' 'The new scope-decision schema must not block unmigrated existing AC documents.'
+Require-Match $add 'append `Evidence: EVD-\.\.\.`.*How to Verify cell without replacing' 'ADD must specify where evidence citations live without destroying reusable verification commands.'
+Require-Match $add 'task/AC reaches the three-attempt boundary' 'The AC verification classes must cover implementation-exhaustion blocks.'
+Require-Match $add 'create a fixed EVD event.*append its citation.*only then mark `\[x\]`' 'Fresh AUTO success must persist evidence before acceptance completion.'
+Require-Match $add 'blocked AC may instead become `\[>\]` or `\[-\]`' 'Explicit deferral or deprecation must settle a blocked AC.'
+Require-Match $implementationRef 'Target AC.*Files.*Implementation steps.*Verification.*Review.*Commit' 'Mode B Execution Map must contain all six fields.'
+Require-Match $implementationRef 'Status.*AC mapping.*Depends on.*Files.*Interfaces.*Steps.*Test strategy.*Verification.*Review.*Commit.*Evidence' 'Mode A tasks must contain the fixed Agent-oriented schema.'
+Require-Match $implementationRef 'TEST-FIRST.*CHARACTERIZATION.*TEST-AFTER.*MANUAL' 'Implementation tasks must use the four approved test strategies.'
+Require-Match $implementationRef 'without asking for plan approval' 'Plans must self-check and execute without user review.'
+Require-Match $implementationRef 'three consecutive fail' 'Task failures must use the three-attempt boundary.'
+Require-Match $implementationRef 'Mode A the counter belongs to one `PLAN-N`; in Mode B it belongs to the target AC' 'Failure counters must use explicit mode-specific units.'
+Require-Match $implementationRef 'mapped unsettled AC `\[!\] \[blocked\]`' 'Three failed attempts must create an authoritative blocked AC transition.'
+Require-Match $implementationRef 'Re-read authoritative `AC\.md`.*active plan.*`git status`.*recent local commits' 'Cross-session recovery must reconcile AC, plan, and Git evidence.'
+Require-Match $implementationRef 'Mode B has no persistent plan.*If the approach cannot be reconstructed confidently' 'Mode B recovery must not guess a lost approved approach.'
+Require-Match $implementationRef 'exactly one additional guided attempt.*approved material approach redesign starts.*series at zero' 'Failure recovery must define guided and redesigned attempt counters.'
+Require-Match $implementationRef 'user cancels active implementation.*preserve the working tree, index, and existing local commits' 'Cancellation must preserve user and repository state by default.'
+Require-Match $implementationRef 'COMMIT-BLOCKED' 'Unsafe local commits must report COMMIT-BLOCKED.'
+Require-Match $implementationRef 'stage only Agent-owned paths or safely separable hunks' 'Local commits must isolate Agent-owned changes.'
+Require-Match $implementationRef 'Never use broad staging such as `git add -A`' 'Local commits must forbid broad staging with unrelated changes.'
+Require-Match $implementationRef 'index is pre-populated.*merge/rebase/cherry-pick is active' 'Local commits must block on unsafe index or repository operation state.'
+Require-Match $implementationRef 'COMMIT-SKIPPED: user instruction' 'Explicit user no-commit instructions must override automatic checkpoints.'
+Require-Match $implementationRef 'A MANUAL AC may be committed after all available Agent-side checks pass' 'MANUAL work must permit a local checkpoint before user verification.'
+Require-Match $implementationRef 'completes a full AC or tightly related AC group' 'Local checkpoints must not split an incomplete AC across commits.'
+Require-Match $implementationRef 'Permanently retain completed plans' 'Completed Mode A plans must be retained.'
+Require-Match $implementationPlanAsset '(?m)^template: add-implementation-plan\r?$' 'Plan asset must declare its template type.'
+Require-Match $implementationPlanAsset '(?m)^mode: A\r?$' 'Persistent plan asset must be Mode A only.'
+Require-Match $implementationPlanAsset 'Acceptance Mapping' 'Plan asset must map tasks to AC IDs.'
+Require-Match $implementationPlanAsset '(?s)Status:.*AC mapping:.*Depends on:.*Files:.*Interfaces:.*Steps:.*Test strategy:.*Verification:.*Review:.*Commit:.*Evidence:' 'Plan asset must include every required PLAN-N field.'
+Require-Match $implementationPlanAsset '(?s)Last safe commit.*Working tree baseline.*Blocked tasks.*Next ready task' 'Plan asset must include recovery fields.'
 Require-Match $acAsset 'AC-<next integer>' 'English AC asset must require monotonic AC IDs.'
 Require-Match $acAsset 'Status Summary' 'English AC asset must include a status summary.'
 Require-Match $acAsset '(?m)^cssclasses: ac-document\r?$' 'English AC asset must opt into the readable-table style.'
@@ -247,10 +368,31 @@ Require-Match $acAssetZh 'AC-<下一个整数>' 'Chinese AC asset must require m
 Require-Match $acAssetZh '验收状态总览' 'Chinese AC asset must include a status summary.'
 Require-Match $acAssetZh '(?m)^cssclasses: ac-document\r?$' 'Chinese AC asset must opt into the readable-table style.'
 Require-Match $acAssetZh '验证证据详情' 'Chinese AC asset must keep lengthy evidence outside status-table cells.'
+foreach ($englishTemplate in @($acAsset, $acTemplate)) {
+    Require-Match $englishTemplate '## 🧪 Verification Evidence Details' 'Every English AC template must use the evidence icon.'
+    Require-Match $englishTemplate 'EVD-<YYYYMMDD>-<N>' 'Every English AC template must define stable EVD IDs.'
+    Require-Match $englishTemplate '(?s)Verification time:.*Related ACs:.*Verification type:.*Verification scope:.*Command / Steps:.*Expected result:.*Actual result:.*Exit status:.*Evidence attachment:.*Conclusion:.*Status update:' 'Every English AC template must define the fixed EVD fields.'
+    Require-Match $englishTemplate 'Use `N/A` instead of omitting a field' 'Every English AC template must retain empty EVD fields as N/A.'
+    Require-Match $englishTemplate '<details>' 'Every English AC template must collapse long raw output.'
+    Require-Match $englishTemplate '## 🧭 Scope Decision Log' 'Every English AC template must use the scope-decision icon.'
+    Require-Match $englishTemplate 'append `Evidence: EVD-YYYYMMDD-N` to the How to Verify cell without replacing' 'Every English AC template must place evidence citations after the reusable verification action.'
+    Require-Match $englishTemplate 'Date.*Decision ID.*AC Scope.*Approved Scope Decision.*Rationale' 'Every English AC template must define the scope-decision fields.'
+    Require-NoMatch $englishTemplate '(?m)^## .*Change Log\r?$' 'New English AC templates must not retain a Change Log.'
+}
+Require-Match $acAssetZh '## 🧪 验证证据详情' 'Chinese AC template must use the evidence icon.'
+Require-Match $acAssetZh 'EVD-<YYYYMMDD>-<N>' 'Chinese AC template must define stable EVD IDs.'
+Require-Match $acAssetZh '(?s)验证时间：.*关联 AC：.*验证类型：.*验证范围：.*命令 / 步骤：.*预期结果：.*实际结果：.*退出状态：.*证据附件：.*结论：.*状态更新：' 'Chinese AC template must define the fixed EVD fields.'
+Require-Match $acAssetZh '字段无内容时写 `N/A`' 'Chinese AC template must retain empty EVD fields as N/A.'
+Require-Match $acAssetZh '<details>' 'Chinese AC template must collapse long raw output.'
+Require-Match $acAssetZh '## 🧭 范围决策记录' 'Chinese AC template must use the scope-decision icon.'
+Require-Match $acAssetZh '在“验证方式”单元格的原命令/步骤后追加 `证据：EVD-YYYYMMDD-N`' 'Chinese AC template must place evidence citations after the reusable verification action.'
+Require-Match $acAssetZh '日期.*决策 ID.*AC 范围.*批准的范围决定.*原因' 'Chinese AC template must define the scope-decision fields.'
+Require-NoMatch $acAssetZh '(?m)^## .*变更记录\r?$' 'New Chinese AC template must not retain a change log.'
 Require-Match $acTableCss 'table-layout:\s*fixed' 'AC table CSS must use a stable table layout.'
 Require-Match $acTableCss 'overflow-wrap:\s*anywhere' 'AC table CSS must wrap long evidence text instead of clipping it.'
 Require-Match $add 'Keep five-column AC rows scannable' 'ADD must keep long evidence out of five-column AC table cells.'
 Require-Match $acContractRef 'never replaces AC\.md' 'AC contract reference must make plans subordinate to AC.md.'
+Test-GitCheckpointIsolation $failures
 if ($failures.Count -gt 0) {
     Write-Host "FAILED: $($failures.Count) contract check(s)." -ForegroundColor Red
     $failures | ForEach-Object { Write-Host " - $_" -ForegroundColor Red }
