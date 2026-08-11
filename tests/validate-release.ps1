@@ -47,7 +47,13 @@ Require-Match $experience 'Legacy cache fallback' 'project-experience must retai
 Require-Match $experience 'cache_schema: 2' 'project-experience must define cache schema 2 metadata.'
 Require-Match $experience 'Development-project evidence gate' 'project-experience must define active-project evidence rules.'
 Require-Match $designExploration 'Design Decision Handoff' 'ADD design exploration must produce a bounded decision handoff.'
-Require-Match $designExploration 'one combined approval' 'Large Phase 3.5B design and AC scope must use one combined approval.'
+Require-Match $designExploration 'one final combined approval' 'Large Phase 3.5B design and AC scope must end with one final combined approval after incremental review.'
+Require-Match $designExploration 'Do not present a complete design or any proposed AC row while a material decision remains unanswered' 'Design exploration must not skip unresolved material questions by drafting the whole design or AC delta.'
+Require-Match $designExploration 'Present one section per turn' 'Design exploration must validate design sections incrementally.'
+Require-Match $designExploration 'stable decision label such as `D-1`, `D-2`' 'Incremental design sections must remain individually addressable.'
+Require-Match $designExploration 'present one proposed AC addition or edit per turn by default' 'Phase 3.5B must make each proposed AC independently reviewable.'
+Require-Match $designExploration 'Batch multiple design sections or AC rows only when the user explicitly requests batch review' 'Batch design or AC review must be user-selected rather than the default.'
+Require-Match $designExploration 'after every design section and proposed AC row is individually confirmed' 'Final Phase 3.5B approval must follow incremental design and AC review.'
 Require-Match $designExploration 'Gate 1' 'ADD design exploration must preserve the Greenfield Gate 1 entry.'
 Require-Match $designExploration 'Phase 3\.5B' 'ADD design exploration must preserve the large-change entry.'
 Require-NoMatch $designExploration 'docs/superpowers|writing-plans|test-driven-development|using-superpowers' 'ADD design exploration must not depend on Superpowers paths or skills.'
@@ -205,6 +211,8 @@ Require-Match $add 'Acceptance Mapping' 'ADD plans must map every task to AC IDs
 Require-Match $add 'external planning tool' 'ADD must express planning as a generic optional capability.'
 Require-NoMatch $add 'writing-plans|test-driven-development|verification-before-completion|finishing-a-development-branch|using-superpowers' 'ADD must not depend on named Superpowers skills.'
 Require-Match $add 'references/design-exploration-and-handoff\.md' 'ADD must directly load its built-in design-exploration reference.'
+Require-Match $add 'Present one proposed criterion per turn by default' 'Gate 2 must make each proposed AC independently reviewable.'
+Require-Match $add 'validate material questions, design sections, and proposed AC rows incrementally' 'Large Phase 3.5B changes must use progressive design review.'
 Require-NoMatch $add 'add-brainstorming' 'ADD must not depend on the retired standalone design skill.'
 if (Test-Path -LiteralPath (Join-Path $ReleaseRoot 'skills\brainstorming')) { $failures.Add('Legacy skills/brainstorming path must not remain in the ADD release.') }
 if (Test-Path -LiteralPath (Join-Path $ReleaseRoot 'skills\add-brainstorming')) { $failures.Add('Retired skills/add-brainstorming path must not remain in the ADD release.') }

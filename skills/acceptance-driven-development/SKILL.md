@@ -92,7 +92,7 @@ For an existing non-trivial project with code or `AC.md`, check for `$DOC_HUB/<P
 
 **Gate 1 — Design:** announce, read relevant cache and `references/design-exploration-and-handoff.md`, then follow its design process and obtain one design approval. Save `design.md`, then proceed to Gate 2 AC drafting without asking a separate permission merely to create the draft.
 
-**Gate 2 — Acceptance Criteria:** read and copy the full hub `ac-template.md`, then draft the approved design into its five semantic columns; use new top-level IDs as `AC-<next integer>`; wait for approval before saving `AC.md`; after approval save it and enter Phases 1–3.
+**Gate 2 — Acceptance Criteria:** read and copy the full hub `ac-template.md`, then draft the approved design into its five semantic columns; use new top-level IDs as `AC-<next integer>`. Present one proposed criterion per turn by default so the user can confirm, edit, split, merge, or defer it; batch only when the user explicitly requests batch review. After all rows are reviewed, wait for one final approval before saving `AC.md`; after approval save it and enter Phases 1–3.
 
 For detailed size classification and solution ladder, read `references/change-design-guide.md`.
 
@@ -139,7 +139,7 @@ Use after Phases 1–3 for approved `[ ]` / `[~]` rows.
 
 Before approval, trace callers and present target ACs plus the proposed affected-AC list without mutating `AC.md`.
 
-- **Behavior change:** consult relevant experience cache and classify size. For settled Small or Medium work, present the proposed AC delta with the approach and wait for explicit `approved` / `go ahead` / `confirm`. For Large or genuinely ambiguous work, read `references/design-exploration-and-handoff.md`, present the design with the proposed AC delta, and obtain its one combined approval.
+- **Behavior change:** consult relevant experience cache and classify size. For settled Small or Medium work, present the proposed AC delta with the approach and wait for explicit `approved` / `go ahead` / `confirm`. For Large or genuinely ambiguous work, read `references/design-exploration-and-handoff.md`, validate material questions, design sections, and proposed AC rows incrementally, then obtain one final combined approval for the consolidated design and AC delta.
 - **Fast lane:** use only for original-behavior bug fixes, equivalent refactors, build/config changes, or pure cosmetics. If no relevant AC exists, propose the next numeric tracking AC and obtain quick confirmation; do not write it first.
 - **Persistence boundary:** rejection/cancellation leaves `AC.md` unchanged. After approval/confirmation, atomically apply the approved AC delta before code: new targets start `[ ]`; any edited target whose previous `[x]` criterion, verification, or expected result changed becomes `[~]` with the approved-delta-pending evidence; an approved edit that resumes a `[>]` target changes it to `[ ]` if untouched or `[~]` if partial implementation remains; proposed affected non-target `[x]` rows become `[!] [affected]`. For an already-tracked fast-lane bug, record the contrary evidence and change its target `[x]` row to `[~]`; for other tracked fast-lane work whose accepted behavior is unchanged, mark target and affected `[x]` rows `[!] [affected]` after impact analysis.
 - **Mode choice after Phase 3.5B:** count approved target ACs after the persistence boundary; use Mode B for 1–2 related ACs, or Mode A for 3+.
