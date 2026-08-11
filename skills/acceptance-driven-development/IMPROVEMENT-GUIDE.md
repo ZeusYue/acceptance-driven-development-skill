@@ -53,7 +53,7 @@ Skill 的核心循环是：`AC 表有 [ ] → 做 → 验 → 标记 → 还有 
 | Phase 5 Mode B 检查 | Phase 5 | 2026-07 | Mode B 项可能漏标 [x]，Phase 5 二次检查 |
 | Phase 6 硬门禁 | Phase 6 | 2026-06 | Agent 会在有 [ ] 时说「基本完成了」 |
 | Mode A/B 双模式 | Phase 4 | 2026-07 | Agent 对单个改动不愿走全量扫描，Mode B 解决这个问题 |
-| 里程碑审查 | Mode B | 2026-07 | 长会话中多次轻量自审遗漏跨项交互，周期性深度审查兜底 |
+| 风险驱动任务审查 + 批次审查 | Phase 4 / 4.8 | 2026-08 | 高风险任务优先独立审查，Mode A 仍保留最终六项批次审查 |
 
 ---
 
@@ -174,8 +174,8 @@ Skill 的核心循环是：`AC 表有 [ ] → 做 → 验 → 标记 → 还有 
 ### 3. Mode B 的边界要清晰
 Mode B 是轻量模式，上限是 2 条 AC——≥3 条升级为 Mode A。上限曾经是 3 条，实战发现 Agent 会把中型改动（3 条）塞进轻量模式，收紧后效果更好。
 
-### 4. 审查模式必须和执行模式一致
-Mode A 执行 → Mode A 审查（qt-cpp-review 子 Agent）。Mode B 执行 → Mode B 审查（自审）。混用会导致批量执行时审查力度不足。
+### 4. 审查力度必须和执行风险一致
+Mode A 执行 → 每个 AC 组按风险局部审查，高风险任务在能力可用时独立审查，最后仍做 Phase 4.8 六项批次审查。Mode B 执行 → 六项内联自审。`qt-cpp-review` 等外部审查能力只是适用时的增强项，不得成为闭环依赖。
 
 ### 5. 每个 Phase 之间必须有显式引导
 Agent 会在两个 Phase 之间迷路。每个 Phase 的出口必须有明确的「下一步是什么」指令。不要假设 Agent 会自动按顺序执行。
@@ -224,6 +224,7 @@ Agent 会在两个 Phase 之间迷路。每个 Phase 的出口必须有明确的
 | `SKILL.md` | 主 Skill，Agent 加载时读取 | 高（每次发现问题都改） |
 | `IMPROVEMENT-GUIDE.md` | 本文件，给未来的改进者 | 低（设计原则稳定后很少改） |
 | `references/framework-review-checklist.md` | 框架自审清单 | 低（按需增加框架） |
-| `references/qt-cpp-review/` | Qt 官方审查技能 | 低（跟随 Qt 官方更新） |
+| `references/implementation-planning-and-execution.md` | Mode A/B 实施、恢复和 Git 检查点 | 中（执行边界变化时更新） |
+| `assets/implementation-plan-template.md` | Mode A 固定计划资产 | 低（schema 变化时更新） |
 | Vault 笔记 `Acceptance-Driven-Development Skill.md` | 设计决策记录 | 中（每次重大改动同步） |
 | 分享包 `桌面/自动化开发skill/` | 给其他人用的安装包 | 中（每次改 SKILL.md 同步） |

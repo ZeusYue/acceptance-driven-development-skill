@@ -32,7 +32,7 @@ Fast-lane candidates preserve intended behavior: bug fixes, equivalent refactors
 
 ## Failure boundary
 
-After three failures for the same AC, stop implementation. Present evidence and ask whether to:
+In Mode A, count failures per `PLAN-N`; in Mode B, count them per target AC. After three consecutive failures for that unit, stop its implementation, mark the mapped unsettled AC `[!] [blocked]`, present evidence, and ask whether to:
 
 1. redesign through Phase 3.5B;
 2. try once more with user guidance;
