@@ -1,13 +1,18 @@
 # Acceptance-Driven Development (ADD) v2.6.0
 
 <p align="center">
-  <strong>The AI skill pack that makes “done” a checklist, not a feeling.</strong><br>
-  Turn coding-agent output into acceptance criteria, review evidence, and a project memory that survives the session.
+  <strong>🚀 A real project-level workflow for AI coding agents</strong><br>
+  From “I have an idea” to “this feature is demonstrably complete.”<br>
+  Help beginners direct an agent toward genuinely usable software, while giving experienced developers an auditable engineering loop.
+</p>
+
+<p align="center">
+  <strong>Acceptance contract · Impact analysis · Implementation planning · Review · Fresh evidence · Safe checkpoints</strong>
 </p>
 
 <p align="center">
   <a href="./README-zh.md">简体中文</a> ·
-  <a href="#try-add-in-60-seconds">Try it</a> ·
+  <a href="#try-add-in-60-seconds">Try it in 60 seconds</a> ·
   <a href="#install-add">Install</a> ·
   <a href="#0-skills-found-in-cc-switch">CC Switch help</a>
 </p>
@@ -16,49 +21,49 @@
 
 ## Your agent said “done.” You disagree.
 
-You ask an agent to build a feature. It writes code, maybe the build passes, and it confidently says **“Done.”**
+AI can write code quickly. The hard part is getting a **complete, usable, and verifiable project** instead of a convincing demo that falls apart when you click the second button.
 
-Then you open the app:
+You ask for a feature. The agent writes code, the build may pass, and it confidently says **“Done.”** Then you discover that the behavior was misunderstood, a GUI path was never tested, an old feature regressed, or half the request lived only in a planning document.
 
-- a button does nothing;
-- one edge case is missing;
-- the requested behavior was misunderstood;
-- the fix broke another screen;
-- the agent has already moved on.
+> [!IMPORTANT]
+> **ADD is a project-level solution, not another prompt template.** It gives the agent a persistent acceptance contract, a controlled implementation loop, evidence rules, recovery state, and an explicit definition of completion.
 
-**Coding agents are optimistic. They can produce code faster than they can prove that the result satisfies your intent.**
+ADD does not make a model infallible. It makes omissions, assumptions, regressions, blocked verification, and unfinished work **visible before they are mistaken for delivery**.
 
-ADD exists to close that gap. It gives the agent a visible contract for what must be built, what must be checked, and what still needs your hands-on confirmation.
+### Built for people who want outcomes, not agent theater
+
+| You are... | ADD gives you... |
+|---|---|
+| A beginner with a product idea | A guided path from questions and design choices to reviewable acceptance criteria and concrete test steps. |
+| A developer using coding agents daily | Impact analysis, AC-mapped plans, review gates, fresh verification, and scoped local Git checkpoints. |
+| Maintaining a growing project | One durable source of truth for scope, status, evidence, deferrals, and affected behavior. |
+| Working across multiple projects | Living project documents and optional evidence-backed experience reuse instead of starting from zero. |
+
+**You do not need to understand every implementation detail.** You participate where human judgment matters: clarify intent, approve the design and acceptance criteria, and perform clearly listed hands-on checks. ADD structures the rest for the agent.
 
 ---
 
 ## How ADD closes the loop
 
-```text
-YOUR IDEA
-    │
-    ▼
-Agent clarifies intent ───────────────► no silent guessing
-    │
-    ▼
-Acceptance criteria (AC.md) ──────────► you review the contract
-    │
-    ▼
-Impact analysis before code ───────────► working behavior is protected
-    │
-    ▼
-Implement + six-point review ─────────► code is not the exit condition
-    │
-    ▼
-Fresh verification / your test ────────► [ ] → [!] → [x]
-    │
-    ▼
-Living project document ──────────────► the next project starts smarter
+```mermaid
+flowchart TD
+    IDEA["💡 Your idea"] --> DISCUSS["Clarify intent<br/>compare real options"]
+    DISCUSS --> AC["Approve AC.md<br/>the delivery contract"]
+    AC --> IMPACT["Impact analysis<br/>protect working behavior"]
+    IMPACT --> BUILD["Plan and implement<br/>against AC IDs"]
+    BUILD --> REVIEW["Six-point review<br/>and regression checks"]
+    REVIEW --> VERIFY{"Freshly verified?"}
+    VERIFY -- "No" --> REPAIR["Record evidence<br/>repair, redesign, or block"]
+    REPAIR --> IMPACT
+    VERIFY -- "Yes" --> DONE["✅ Accepted result<br/>plus safe checkpoint"]
+    DONE --> MEMORY["Living project record<br/>reusable experience"]
 ```
 
-The practical rule is simple:
+The governing rule is simple:
 
-> The agent cannot honestly call a feature complete while its acceptance criteria still say it is unfinished, unverified, blocked, or only partially done.
+> **Code is output. Evidence is progress. Settled acceptance criteria are completion.**
+
+The agent cannot honestly call a feature complete while `AC.md` still says it is unfinished, partially implemented, affected, blocked, or waiting for your test.
 
 ---
 
@@ -66,38 +71,115 @@ The practical rule is simple:
 
 | Without ADD | With ADD |
 |---|---|
-| “It compiles, so it is done.” | “AC-12 passed its verification command; here is the result.” |
-| The agent assumes your intent. | You approve behavior changes before implementation. |
-| A small fix breaks another feature unnoticed. | Impact analysis marks affected criteria for re-verification. |
-| GUI work is declared complete without being clicked. | It stays visible as `[!] [manual]` until someone verifies it. |
-| A repeated failure receives another patch. | Three failures trigger diagnosis, redesign, guidance, or deferral. |
-| Each project starts from zero. | Project documents and evidence-backed experience inform the next task. |
+| “It compiles, so it is done.” | “AC-12 passed its verification command; here is the actual result.” |
+| The agent silently fills in missing intent. | Material questions are discussed; behavior changes require approval before code. |
+| The plan becomes the only place tracking work. | `AC.md` remains the only user-facing acceptance authority. |
+| A small fix quietly breaks another feature. | Impact analysis marks affected criteria and forces re-verification. |
+| GUI work is declared complete without being used. | It remains `[!] [manual]` with exact steps until someone verifies it. |
+| The agent stops after every task to announce a next step. | Approved Mode A work continues until a real gate, block, or manual handoff. |
+| Repeated failure produces repeated patches. | Three failed cycles block the affected path and expose the need for guidance or redesign. |
+| Each session and project starts from zero. | Persistent plans, project records, and evidence-backed experience survive context loss. |
+
+---
+
+## A complete development engine, not a checklist bolted on at the end
+
+| Capability | What it changes in practice |
+|---|---|
+| 🧭 **Guided design exploration** | ADD asks one material question at a time for new or genuinely ambiguous work, compares meaningful options, and converts the approved design into ACs. |
+| 🧾 **Acceptance authority** | `AC.md` owns approved scope, status, verification evidence, manual confirmation, deferral, and deprecation. Plans never own acceptance status. |
+| 🔎 **Pre-code impact analysis** | Existing behavior that may regress is identified before edits and marked for fresh verification. |
+| 🛠️ **Implementation assistance** | Larger work receives a persistent AC-mapped plan; small settled changes receive a lightweight six-field Execution Map. |
+| 🧪 **Verification with evidence** | AUTO criteria require commands and actual results. MANUAL criteria produce a precise handoff instead of “please test it.” |
+| 🔁 **Failure and recovery discipline** | Attempts, blocks, cancellation, redesign, and cross-session recovery are recorded instead of disappearing with chat context. |
+| 🔒 **Safe local checkpoints** | Agent-owned changes can become narrowly scoped local commits without automatic push, PR, merge, tag, or release. |
+| 🧠 **Project memory** | Living documents preserve architecture and risk; optional `project-experience` surfaces proven lessons in future work. |
+
+### The acceptance state is visible at a glance
+
+```mermaid
+stateDiagram-v2
+    state "[ ] Not implemented" as TODO
+    state "[~] In progress / remainder" as WORK
+    state "AUTO verification" as AUTO
+    state "[!] manual: exact test checklist" as MANUAL
+    state "[x] Verified" as PASS
+    state "[!] affected" as AFFECTED
+    state "[!] blocked: reason + unblock condition" as BLOCKED
+    state "[>] Deferred" as DEFER
+    state "[-] Deprecated" as DROP
+
+    [*] --> TODO
+    TODO --> WORK
+    WORK --> AUTO
+    WORK --> MANUAL
+    AUTO --> PASS: PASS + evidence
+    MANUAL --> PASS: User reports PASS
+    AUTO --> WORK: FAIL
+    MANUAL --> WORK: FAIL
+    PASS --> AFFECTED: affected by change
+    AFFECTED --> AUTO
+    TODO --> BLOCKED
+    BLOCKED --> WORK: condition clears
+    TODO --> DEFER
+    TODO --> DROP
+```
+
+No green check appears merely because code was written, a plan task says `verified`, or a commit exists.
+
+### One contract, several durable project artifacts
+
+```mermaid
+flowchart TB
+    USER["You<br/>intent, approval, manual acceptance"] --> AC["AC.md<br/>scope + status + evidence"]
+    DESIGN["design.md<br/>approved decisions"] --> AC
+    AC --> ADD["ADD workflow engine"]
+    ADD --> PLAN["plans/<br/>agent execution and recovery"]
+    ADD --> CODE["code + tests<br/>reviewed implementation"]
+    CODE --> EVIDENCE["fresh AUTO / MANUAL evidence"]
+    EVIDENCE --> AC
+    ADD --> PROJECT["ProjectName.md<br/>living architecture and risks"]
+    PROJECT --> EXPERIENCE["project-experience<br/>optional cross-project lessons"]
+    EXPERIENCE --> ADD
+```
+
+The boundaries matter: design explains approved choices, plans help the agent execute, and project documents preserve durable engineering facts. **Only `AC.md` tells the user what is accepted.**
+
+---
+
+## One workflow across different coding agents
+
+ADD uses the portable `SKILL.md` layout and keeps project truth in ordinary Markdown files. The repository provides direct installation paths for the major agent hosts:
+
+| Claude Code | Codex | OpenCode | Gemini CLI | Other `SKILL.md` hosts |
+|:---:|:---:|:---:|:---:|:---:|
+| Supported | Supported | Supported | Supported | Host-dependent |
+
+Core ADD behavior is self-contained. External planning tools, review subagents, Obsidian, and `project-experience` are optional enhancements; their absence does not remove the acceptance loop.
 
 ---
 
 ## Try ADD in 60 seconds
 
-Load the skill once for the session, then send a request like:
+Start a new agent session with the skill installed, then say:
 
 ```text
 Build a photo browser with ADD.
 ```
 
-For a new project, ADD asks questions, records a design, drafts an acceptance table, and waits for approval before building.
-
-For an existing project, try:
+For an existing project:
 
 ```text
 Continue ImageView with ADD.
 ```
 
-For a change to a working project, try:
+For a change to working software:
 
 ```text
-Add a bulk-delete action. Use ADD.
+Add bulk delete to the photo browser. Use ADD.
 ```
 
-You should see phase announcements, the affected acceptance criteria, a review result, and either fresh command output or a specific user-test checklist. That is the point: the workflow should be inspectable, not mysterious.
+You should see the active phase, relevant ACs, impact analysis, review results, and either fresh command evidence or a concrete user-test checklist. For a new project, ADD first explores the design and presents proposed ACs incrementally so you can revise them without reviewing a wall of criteria at once.
 
 ---
 
@@ -105,24 +187,24 @@ You should see phase announcements, the affected acceptance criteria, a review r
 
 ### An honest acceptance table
 
-`AC.md` is the acceptance source of truth.
+`AC.md` is the acceptance source of truth:
 
 | Mark | Meaning |
 |---|---|
 | `[ ]` | Not implemented |
-| `[~]` | Partially implemented |
+| `[~]` | Approved work has a known remainder |
 | `[x]` | Freshly verified passing |
-| `[!] [manual]` | Implemented; needs a hands-on check |
-| `[!] [affected]` | Previously passed but affected by another change |
-| `[!] [blocked]` | Verification unavailable; unblock condition recorded |
-| `[>]` | Explicitly deferred |
+| `[!] [manual]` | Needs a specific hands-on check |
+| `[!] [affected]` | Previously passed, now affected by another change |
+| `[!] [blocked]` | Verification unavailable; reason and unblock condition recorded |
+| `[>]` | Explicitly deferred by the user |
 | `[-]` | Explicitly deprecated |
 
-### A project record that stays useful during development
+### A project record that survives the session
 
 ```text
 $DOC_HUB/<ProjectName>/
-├── AC.md                  # acceptance state
+├── AC.md                  # sole acceptance source of truth
 ├── design.md              # approved design, when needed
 ├── plans/                 # retained Mode A execution records
 └── <ProjectName>.md       # living architecture, risks, patterns, and evidence
@@ -130,15 +212,15 @@ $DOC_HUB/<ProjectName>/
 
 ADD owns the project-document lifecycle. `project-experience` reads these documents and turns proven cross-project lessons into a compact experience cache.
 
-### A workflow that becomes more precise when needed
+### Powerful when needed, quiet when it is not
 
-You do not need to learn internal terms before trying ADD. Later, when you want to inspect the workflow:
+You do not need to memorize internal terms before using ADD:
 
-- **Phase 3.5A** means “implement approved backlog safely.”
-- **Phase 3.5B** means “change behavior, fix a bug, or add a feature safely.”
-- **Mode A** uses a persistent, AC-mapped implementation plan for approved backlog and larger batches. It records repository identity, tasks, attempts, verification, review, and recovery state.
-- **Mode B** keeps a six-field Execution Map in chat for one or two settled ACs, without creating a plan file.
-- Both still require impact analysis, review, and verification.
+- **Phase 3.5A** safely enters already approved backlog work.
+- **Phase 3.5B** handles a feature, bug, refactor, or behavior change before code.
+- **Mode A** uses a persistent, AC-mapped plan for approved backlog and larger batches.
+- **Mode B** uses a chat-only six-field Execution Map for one or two settled ACs.
+- Both require impact analysis, review, verification, and acceptance-state updates.
 
 You approve the design and acceptance criteria, not the agent's internal task plan. After Agent-side checks pass, ADD creates narrowly scoped local Git checkpoints by default. It preserves pre-existing changes, reports `COMMIT-BLOCKED` when isolation is unsafe, honors an explicit no-commit instruction, and never pushes, opens or merges a PR, tags, or publishes by itself.
 
@@ -243,6 +325,11 @@ ADD writes `~/.add-hub` and keeps project ACs, documents, templates, and the opt
 
 ---
 
+<details>
+<summary><strong>📦 Release history and technical contract details</strong></summary>
+
+The sections below preserve version-specific behavior and migration details for maintainers and existing users. New users can start with the workflow and installation guide above.
+
 ## v2.6.0: Implementation that remains inspectable and resumable
 
 v2.6.0 adds the execution layer that connects approved ACs to verified code:
@@ -332,6 +419,8 @@ Existing AC tables and installation methods remain compatible. v2.3 makes ADD ea
 - the release validator enforces the core contracts, all required reference files, and a 380-line budget.
 
 Do not delete `_exp_memory.md` to refresh it. Ask to update the experience cache so it can be rebuilt safely.
+
+</details>
 
 ---
 
