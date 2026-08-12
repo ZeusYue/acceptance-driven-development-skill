@@ -46,27 +46,27 @@ cssclasses: ac-document
 
 | ID | Criterion | Status | How to Verify | Expected Result |
 |----|-----------|--------|---------------|-----------------|
-| AC-<next integer> | {{future work}} | [>] | {{deferral reason / revisit trigger}} | {{explicit user decision}} |
+| AC-<next integer> | {{future work}} | [>] | {{reusable AUTO command or concrete MANUAL steps when resumed}} | {{observable pass result when resumed}} |
 
 ---
 
 ## 🧪 Verification Evidence Details
 
-> Use one stable event ID per verification batch. One event may cover multiple ACs. Use `N/A` instead of omitting a field, and place long raw output inside `<details>`.
+> Use one stable event ID per verification batch. One event may cover multiple ACs. Scan existing IDs and choose the next unused numeric `N` for that date; never overwrite or reuse an ID. Keep only the latest concise EVD citation in each AC row while retaining older events here. Use `N/A` instead of omitting a field, and place long raw output inside `<details>`. Use `RECOVERY STATE` only for `EXECUTION` authorization/reset/recovery events; it never means acceptance passed.
 
 ### EVD-<YYYYMMDD>-<N> - AC-<id or range>
 
 - **Verification time:** {{YYYY-MM-DD HH:mm timezone}}
 - **Related ACs:** AC-N
-- **Verification type:** AUTO | MANUAL | AUTO + MANUAL | BLOCKED
+- **Verification type:** AUTO | MANUAL | AUTO + MANUAL | EXECUTION | REVIEW | BLOCKED
 - **Verification scope:** {{files, behavior, environment, or N/A}}
 - **Command / Steps:** {{complete command, exact manual steps, or N/A}}
 - **Expected result:** {{observable pass condition}}
 - **Actual result:** {{concise result}}
 - **Exit status:** {{code, PASS/FAIL, or N/A}}
 - **Evidence attachment:** {{screenshot, report, log path, or N/A}}
-- **Conclusion:** PASS | FAIL | PENDING MANUAL | BLOCKED
-- **Status update:** {{AC status transition or N/A}}
+- **Conclusion:** PASS | FAIL | PENDING MANUAL | BLOCKED | RECOVERY STATE
+- **Status update:** {{AC status transition; for EXECUTION, the fixed Mode B series/approach/attempt/limit/kind/state recovery record; or N/A}}
 
 <details>
 <summary>Raw output (optional)</summary>
@@ -94,12 +94,13 @@ cssclasses: ac-document
 | Performance | | | | | | |
 | Compatibility | | | | | | |
 | Quality | | | | | | |
+| Backlog / Deferred | | | | | | |
 
 ---
 
 ## 🧭 Scope Decision Log
 
-> Add at most one row per user-approved scope batch. Record only acceptance-contract changes; do not record implementation details, tests, ordinary status transitions, evidence events, or commits.
+> Add at most one row per user-approved scope batch. Scan existing IDs and choose the next unused numeric `N` for that date; never overwrite or reuse an ID. Record only acceptance-contract changes; do not record implementation details, tests, ordinary status transitions, evidence events, or commits. For `[>]`, record the deferral reason and revisit trigger here while preserving the row's reusable verification contract.
 
 | Date | Decision ID | AC Scope | Approved Scope Decision | Rationale |
 |------|-------------|----------|-------------------------|-----------|

@@ -23,7 +23,7 @@ skills/acceptance-driven-development/SKILL.md
 skills/project-experience/SKILL.md
 ```
 
-Install both skills, then begin a new target-agent session. Conditional design exploration is bundled inside `acceptance-driven-development`; it is not a third discoverable skill.
+Install `acceptance-driven-development`; optionally install the recommended `project-experience` companion, then begin a new target-agent session. The repository exposes both skills. Conditional design exploration is bundled inside ADD; it is not a third discoverable skill.
 
 ## If discovery shows 0 skills
 
@@ -61,4 +61,4 @@ Changing the storage location or sync method may require reinstalling the skills
 
 ## Update or remove
 
-Refresh discovery, then update both ADD skills. Uninstalling them does not delete your `$DOC_HUB`, AC files, project documents, or `~/.add-hub` pointer.
+Refresh discovery, then update ADD and the optional `project-experience` companion if installed. Uninstalling them does not delete your `$DOC_HUB`, AC files, project documents, or `~/.add-hub` pointer.

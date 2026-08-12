@@ -1,4 +1,4 @@
-# Acceptance-Driven Development (ADD) v2.5.0
+# Acceptance-Driven Development (ADD) v2.6.0
 
 <p align="center">
   <strong>The AI skill pack that makes “done” a checklist, not a feeling.</strong><br>
@@ -124,6 +124,7 @@ You should see phase announcements, the affected acceptance criteria, a review r
 $DOC_HUB/<ProjectName>/
 ├── AC.md                  # acceptance state
 ├── design.md              # approved design, when needed
+├── plans/                 # retained Mode A execution records
 └── <ProjectName>.md       # living architecture, risks, patterns, and evidence
 ```
 
@@ -135,14 +136,17 @@ You do not need to learn internal terms before trying ADD. Later, when you want 
 
 - **Phase 3.5A** means “implement approved backlog safely.”
 - **Phase 3.5B** means “change behavior, fix a bug, or add a feature safely.”
-- **Mode A** is batch implementation; **Mode B** is a lightweight confirmed change.
+- **Mode A** uses a persistent, AC-mapped implementation plan for approved backlog and larger batches. It records repository identity, tasks, attempts, verification, review, and recovery state.
+- **Mode B** keeps a six-field Execution Map in chat for one or two settled ACs, without creating a plan file.
 - Both still require impact analysis, review, and verification.
+
+You approve the design and acceptance criteria, not the agent's internal task plan. After Agent-side checks pass, ADD creates narrowly scoped local Git checkpoints by default. It preserves pre-existing changes, reports `COMMIT-BLOCKED` when isolation is unsafe, honors an explicit no-commit instruction, and never pushes, opens or merges a PR, tags, or publishes by itself.
 
 ---
 
 ## Install ADD
 
-Install both skills:
+Install ADD. For evidence-backed cross-project experience, also install the recommended companion:
 
 ```text
 acceptance-driven-development
@@ -162,10 +166,9 @@ ADD owns the acceptance workflow and includes conditional design exploration for
    Branch: main
    ```
 
-4. Return to **Discover Skills**, refresh if needed, and install:
-   - `acceptance-driven-development`
-   - `project-experience`
-5. Start a new agent session.
+4. Return to **Discover Skills**, refresh if needed, and install `acceptance-driven-development`.
+5. Optionally install the recommended `project-experience` companion.
+6. Start a new agent session.
 
 The repository already uses the discovery layout CC Switch scans recursively:
 
@@ -216,7 +219,7 @@ See [CC Switch installation](./docs/CCSWITCH.md) for the full recovery sequence.
 
 ### Option 2 — Manual installation
 
-Copy both folders from `skills/` into the skill directory documented by your host:
+Copy the complete `skills/acceptance-driven-development/` directory, including `assets/` and `references/`, into the skill directory documented by your host. Optionally copy the complete `skills/project-experience/` companion too:
 
 | Agent host | Typical skills directory |
 |---|---|
@@ -240,6 +243,26 @@ ADD writes `~/.add-hub` and keeps project ACs, documents, templates, and the opt
 
 ---
 
+## v2.6.0: Implementation that remains inspectable and resumable
+
+v2.6.0 adds the execution layer that connects approved ACs to verified code:
+
+- Mode A creates or safely resumes one persistent plan; completed plans are never overwritten or reopened;
+- Mode B uses a six-field chat-only Execution Map that still records status, attempts, repository baseline, evidence, review, and commit outcome;
+- each Mode B target keeps an independent, collision-safe attempt series in AC evidence; after lost chat context, ADD resumes from that evidence and its approach reference or returns to Phase 3.5B instead of guessing;
+- tasks choose `TEST-FIRST`, `CHARACTERIZATION`, `TEST-AFTER`, or `MANUAL` instead of forcing one test style onto every project;
+- independent tasks may run in parallel only with non-overlapping write scopes; cancellation or post-approval rejection drains delegates, pauses Mode A with a distinct reason, and persists Mode B recovery state without consuming a failed attempt;
+- an unavailable required environment or tool becomes an evidence-backed block immediately instead of leaving an active task hanging or inventing a failed cycle; independent work continues;
+- a material Mode A-to-B redesign settles delegates and old task ownership before Mode B starts; when Mode B settles, the old plan is completed or reactivated for its remaining work;
+- three failed implementation/verification/review cycles block only the affected work unless a shared prerequisite blocks the batch;
+- safe local commits re-check the index, active Git operations, hooks, staged content, final commit, and working tree without touching remotes;
+- stable EVD and scope-decision records keep verification history outside readable AC table cells, including user-reported MANUAL results.
+
+`AC.md` remains the only acceptance-status authority. A verified plan task or local commit never marks an AC complete by itself.
+Checkpoint outcomes are a commit hash, `COMMIT-BLOCKED`, or `COMMIT-SKIPPED`; unexpected post-hook changes stop further commits as `COMMIT-REVIEW-REQUIRED`.
+
+---
+
 ## v2.5.0: Built-in ADD design exploration
 
 v2.5.0 removes ADD's remaining Superpowers coupling:
@@ -247,8 +270,8 @@ v2.5.0 removes ADD's remaining Superpowers coupling:
 - ADD now conditionally loads its own design-exploration reference for explicit ADD exploration, Greenfield Gate 1, and Large or genuinely ambiguous Phase 3.5B changes;
 - it asks only material questions, compares meaningful alternatives, obtains one design approval, and records a **Design Decision Handoff** without leaving the ADD workflow;
 - Large Phase 3.5B work presents the design and proposed AC delta for one combined approval;
-- the design reference does not impose `docs/superpowers`, create an implementation plan, force repository commits, choose Mode A/B, or redirect to another methodology;
-- ADD now treats planning as a generic optional tool contract: every task maps to AC IDs, while plan status never owns acceptance status;
+- the design reference does not impose `docs/superpowers` or another methodology; it hands approved scope back to ADD's own planning and execution layer;
+- external planning tools are optional; ADD's built-in Mode A plan remains mandatory, every task maps to AC IDs, and plan status never owns acceptance status;
 - an approved behavior delta invalidates any edited target's stale `[x]` before code, while a resumed deferred `[>]` criterion has explicit unchanged-scope and changed-scope routes back to executable status;
 - approved backlog, settled Small or Medium changes, original-behavior bugs, equivalent refactors, build/config changes, and pure cosmetics skip the design reference;
 - no separate ADD brainstorming skill is installed, so Superpowers' generic `brainstorming` can coexist without name or trigger ambiguity.
@@ -273,7 +296,7 @@ Existing AC documents remain valid. To opt an Obsidian AC into the layout, add `
 
 ## v2.4.1: Mode A continuation hotfix
 
-A progress update is not a pause gate. While an approved Mode A batch still contains target `[ ]` or `[~]` ACs, ADD must continue sequential implementation. A plan task or subagent dispatch is never a reason to ask whether to continue; only explicit ADD gates and real host/tool limits may pause the batch.
+A progress update is not a pause gate. While an approved Mode A batch still contains ready `[ ]` or `[~]` ACs, ADD continues sequentially by default and may parallelize only non-overlapping tasks. A plan task or subagent dispatch is never a reason to ask whether to continue; only explicit ADD gates and real host/tool limits may pause the batch.
 
 ---
 
@@ -315,6 +338,7 @@ Do not delete `_exp_memory.md` to refresh it. Ask to update the experience cache
 ## Support and contributions
 
 - Report workflow gaps, documentation problems, or installation results through [GitHub Issues](https://github.com/ZeusYue/acceptance-driven-development-skill/issues).
+- Read the [maintainer improvement guide](./docs/IMPROVEMENT-GUIDE.md) before changing workflow contracts.
 - When changing a workflow contract, update its skill, template/reference, README, and `tests/validate-release.ps1` together.
 
 Released under the [MIT License](./LICENSE). Copyright © 2026 ZeusYue.

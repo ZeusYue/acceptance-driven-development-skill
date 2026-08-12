@@ -1,0 +1,142 @@
+[
+  {
+    "scenario": "blocked-redesign",
+    "name": "blocked redesign distinguishes retained implementation",
+    "source": "add",
+    "requiredTerms": ["approved redesign", "[!] [blocked]", "new attempt series", "[ ]", "no retained implementation", "[~]", "retained implementation", "blocking EVD"],
+    "requiredPattern": "(?is)approved redesign.*becomes `\\[ \\]` with no retained implementation or `\\[~\\]` with retained implementation"
+  },
+  {
+    "scenario": "pre-approval-cancel",
+    "name": "pre-approval cancellation does not persist scope",
+    "source": "add",
+    "requiredTerms": ["Rejection/cancellation", "before approval", "AC.md", "unchanged"],
+    "requiredPattern": "(?is)Rejection/cancellation before approval leaves `AC\\.md` unchanged"
+  },
+  {
+    "scenario": "post-persistence-cancel",
+    "name": "post-persistence pre-code cancellation preserves approved states",
+    "source": "add",
+    "requiredTerms": ["Cancellation after persistence", "before code", "new targets remain", "[ ]", "edited/resumed targets", "persisted"],
+    "requiredPattern": "(?is)Cancellation after persistence but before code keeps.*new targets remain `\\[ \\]`.*edited/resumed targets retain"
+  },
+  {
+    "scenario": "delegate-cancel",
+    "name": "implementation cancellation drains delegates before reconciliation",
+    "source": "implementation",
+    "requiredTerms": ["On cancellation", "every delegate", "stop new writes", "wait for/drain", "active_tasks", "status: paused", "never auto-resumes"],
+    "requiredPattern": "(?is)On cancellation.*wait for/drain.*Clear `active_tasks`.*status: paused.*never auto-resumes"
+  },
+  {
+    "scenario": "active-plan-reentry",
+    "name": "active plan re-entry matches repository and approach identity",
+    "source": "implementation",
+    "requiredTerms": ["plan matches", "status: active", "worktree", "branch", "baseline_commit", "target_acs", "approach_ref", "Reuse"],
+    "requiredPattern": "(?is)plan matches only when.*status: active.*worktree.*branch.*baseline_commit.*target_acs.*approach_ref.*Reuse"
+  },
+  {
+    "scenario": "paused-plan-restart",
+    "name": "explicit restart reuses one matching paused plan",
+    "source": "implementation",
+    "requiredTerms": ["explicit restart", "paused plans", "same identity", "AC", "approach", "baseline", "exactly one matches", "pause_reason", "active", "never create a replacement"],
+    "requiredPattern": "(?is)explicit restart.*paused plans.*same identity.*AC.*approach.*baseline.*exactly one matches.*clear `pause_reason`.*set it `active`.*never create a replacement"
+  },
+  {
+    "scenario": "active-plan-conflict",
+    "name": "ambiguous active plans stop instead of choosing by time",
+    "source": "implementation",
+    "requiredTerms": ["multiple plans match", "stop before code", "reconcile", "do not select by modification time"],
+    "requiredPattern": "(?is)multiple plans match.*stop before code.*reconcile.*do not select by modification time"
+  },
+  {
+    "scenario": "manual-pass",
+    "name": "manual pass persists EVD before verified status",
+    "source": "add",
+    "requiredTerms": ["AC-N passed", "EVD", "without replacing", "only then mark", "[x]"],
+    "requiredPattern": "(?is)AC-N passed.*create a fixed EVD.*append its citation without replacing.*only then mark `\\[x\\]`"
+  },
+  {
+    "scenario": "mode-b-recovery",
+    "name": "Mode B restores attempt state from AC evidence",
+    "source": "implementation",
+    "requiredTerms": ["Mode B has no persistent plan", "series/attempt/guided/cancellation state", "latest Mode B recovery EVD", "approach_ref", "never reset", "chat context was lost"],
+    "requiredPattern": "(?is)Mode B has no persistent plan.*latest Mode B recovery EVD.*approach_ref.*never reset.*chat context was lost"
+  },
+  {
+    "scenario": "mode-b-cancel-restart",
+    "name": "Mode B cancellation persists across sessions until explicit restart",
+    "source": "implementation",
+    "requiredTerms": ["For Mode B", "EXECUTION", "RECOVERY STATE", "state: cancelled", "no plan", "active_tasks", "explicit restart", "state: resumed", "without resetting attempts"],
+    "requiredPattern": "(?is)For Mode B.*persist an `EXECUTION` EVD.*Conclusion `RECOVERY STATE`.*state: cancelled.*no plan or `active_tasks`.*explicit restart.*state: resumed.*without resetting attempts"
+  },
+  {
+    "scenario": "test-first-red",
+    "name": "expected TEST-FIRST red is excluded from failures",
+    "source": "implementation",
+    "requiredTerms": ["Expected", "TEST-FIRST", "red", "do not count"],
+    "requiredPattern": "(?is)Expected `TEST-FIRST` red.*do not count"
+  },
+  {
+    "scenario": "blocked-subset-review",
+    "name": "blocked target does not prevent independent Phase 4.8 settlement",
+    "source": "add",
+    "requiredTerms": ["implementation subset being settled", "[!] [blocked]", "independent target", "Phase 5"],
+    "requiredPattern": "(?is)implementation subset being settled.*`\\[!\\] \\[blocked\\]`.*independent target.*enter Phase 5"
+  },
+  {
+    "scenario": "blocked-alternate-path",
+    "name": "alternate verified path settles the obsolete blocked task",
+    "source": "implementation",
+    "requiredTerms": ["another task", "freshly verifies every AC", "blocked task", "superseded", "evidence", "otherwise", "remains blocked"],
+    "requiredPattern": "(?is)another task freshly verifies every AC that required the blocked task.*mark that old task `superseded` with evidence.*otherwise it remains blocked"
+  },
+  {
+    "scenario": "guided-retry-status",
+    "name": "guided retry restores AC and Mode A task states conditionally",
+    "source": "implementation",
+    "requiredTerms": ["User guidance", "blocked AC", "[ ]", "no retained implementation", "[~]", "implementation remains", "Mode A", "pending", "attempt 4/4"],
+    "requiredPattern": "(?is)User guidance.*blocked AC as `\\[ \\]` with no retained implementation or `\\[~\\]` when implementation remains.*Mode A.*task to `pending`.*attempt 4/4"
+  },
+  {
+    "scenario": "mode-a-redesign-plan",
+    "name": "Mode A redesign preserves one owner across mode selection",
+    "source": "implementation",
+    "requiredTerms": ["approved material redesign", "Mode A remains selected", "sole active plan", "old failure evidence", "approach_ref", "pending", "attempt 0", "moves Mode A to Mode B", "pause_reason: superseded-by-mode-b", "never run both modes concurrently"],
+    "requiredPattern": "(?is)approved material redesign.*Mode A remains selected.*sole active plan.*old failure evidence.*update `approach_ref`.*blocked tasks to `pending` attempt 0.*moves Mode A to Mode B.*pause_reason: superseded-by-mode-b.*never run both modes concurrently"
+  },
+  {
+    "scenario": "guided-mode-transition",
+    "name": "Mode B guided attempt remains bounded after Mode A transition",
+    "source": "implementation",
+    "requiredTerms": ["Mode B re-enters", "Phase 3.5A/Mode A", "import that state", "three new tries"],
+    "requiredPattern": "(?is)Mode B re-enters Phase 3\\.5A/Mode A.*import that state.*instead of granting three new tries"
+  },
+  {
+    "scenario": "external-environment-block",
+    "name": "external environment block settles Mode A task without consuming an attempt",
+    "source": "implementation",
+    "requiredTerms": ["unavailable required environment/tool", "external block", "not a failed cycle", "BLOCKED", "active_tasks", "blocked", "without incrementing", "independent work"],
+    "requiredPattern": "(?is)unavailable required environment/tool.*external block, not a failed cycle.*Mode A immediately removes.*active_tasks.*marks it `blocked` without incrementing.*Continue independent work"
+  },
+  {
+    "scenario": "cleared-environment-block",
+    "name": "cleared external block restores ready state without resetting history",
+    "source": "implementation",
+    "requiredTerms": ["condition clears", "same approach", "Mode A", "pending", "attempt/evidence unchanged", "Mode B", "same-series", "state: resumed", "Phase 3.5A", "imports", "prior attempt/guided state", "rather than resetting"],
+    "requiredPattern": "(?is)condition clears under the same approach.*Mode A returns its task to `pending` with attempt/evidence unchanged.*Mode B records same-series `state: resumed`.*Phase 3\\.5A imports its prior attempt/guided state.*rather than resetting"
+  },
+  {
+    "scenario": "mode-a-to-b-handoff",
+    "name": "Mode A to Mode B redesign settles old ownership and deterministically hands back",
+    "source": "implementation",
+    "requiredTerms": ["moves Mode A to Mode B", "stop new writes", "delegate", "wait for/drain", "in_progress", "pending", "superseded", "clear `active_tasks`", "pause_reason: superseded-by-mode-b", "ownership handback", "completed", "active"],
+    "requiredPattern": "(?is)moves Mode A to Mode B.*stop new writes.*wait for/drain.*clear `active_tasks`.*pause_reason: superseded-by-mode-b.*ownership handback.*completed.*set it `active`"
+  },
+  {
+    "scenario": "post-approval-rejection",
+    "name": "post-approval user rejection persists without consuming a failure attempt",
+    "source": "implementation",
+    "requiredTerms": ["Rejection of further execution after approval", "does not count as a failed cycle", "pause_reason: user-rejected", "state: rejected", "explicit restart", "state: resumed", "without resetting attempts"],
+    "requiredPattern": "(?is)Rejection of further execution after approval.*does not count as a failed cycle.*pause_reason: user-rejected.*state: rejected.*explicit restart.*state: resumed.*without resetting attempts"
+  }
+]

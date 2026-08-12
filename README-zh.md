@@ -1,4 +1,4 @@
-# 验收驱动开发（ADD）v2.5.0
+# 验收驱动开发（ADD）v2.6.0
 
 <p align="center">
   <strong>让编码 Agent 用清单和证据证明“真的完成了”。</strong><br>
@@ -124,6 +124,7 @@ Agent 澄清需求 ─────────────────► 不再
 $DOC_HUB/<ProjectName>/
 ├── AC.md                  # 验收状态
 ├── design.md              # 必要时的已批准设计
+├── plans/                 # 永久保留的 Mode A 实施记录
 └── <ProjectName>.md       # 活架构、风险、模式和证据记录
 ```
 
@@ -135,14 +136,17 @@ ADD 负责项目文档的创建和更新；`project-experience` 读取这些文�
 
 - **Phase 3.5A** 表示“安全实现已批准积压项”；
 - **Phase 3.5B** 表示“安全地新增、修复或改变行为”；
-- **Mode A** 是批处理，**Mode B** 是已确认的小变更；
+- **Mode A** 为已批准积压和较大批次创建 AC 映射的持久计划，记录仓库身份、任务、尝试、验证、审查和恢复状态；
+- **Mode B** 为一至两个已确定 AC 在聊天中维护六字段 Execution Map，不创建计划文件；
 - 两种模式都不能跳过影响分析、审查和验证。
+
+用户审核设计与验收标准，不需要审核 Agent 的内部任务计划。Agent 侧检查通过后，ADD 默认创建范围严格的本地 Git 检查点；它会保留既有修改，无法安全隔离时报告 `COMMIT-BLOCKED`，遵守明确的“不提交”指令，并且绝不会自行 push、创建或合并 PR、打 tag 或发布。
 
 ---
 
 ## 安装 ADD
 
-请安装以下两个 Skill：
+请安装 ADD；如需基于证据的跨项目经验，再安装推荐的配套 Skill：
 
 ```text
 acceptance-driven-development
@@ -163,10 +167,9 @@ ADD 负责验收工作流，并内置 Greenfield 或真正含糊变更所需的�
    ```
 
 4. 回到**发现技能**；必要时刷新；
-5. 安装：
-   - `acceptance-driven-development`
-   - `project-experience`
-6. 在目标 Agent 中新开会话。
+5. 安装 `acceptance-driven-development`；
+6. 可选安装推荐配套的 `project-experience`；
+7. 在目标 Agent 中新开会话。
 
 仓库已使用 CC Switch 递归扫描的结构：
 
@@ -217,7 +220,7 @@ CC Switch 发现仓库时需要下载 GitHub 的分支压缩包。如果 GitHub 
 
 ### 方案二：手动安装
 
-将 `skills/` 下的两个目录复制到 Agent 官方文档指定的 Skill 目录：
+将完整的 `skills/acceptance-driven-development/` 目录复制到 Agent 官方文档指定的 Skill 目录，必须保留其中的 `assets/` 与 `references/`；需要跨项目经验时，再复制完整的 `skills/project-experience/`：
 
 | Agent 宿主 | 常见 Skill 目录 |
 |---|---|
@@ -241,6 +244,26 @@ ADD 会写入 `~/.add-hub`，并将 AC、项目文档、模板和可选经验缓
 
 ---
 
+## v2.6.0：可检查、可恢复的实施执行层
+
+v2.6.0 补齐了从已批准 AC 到已验证代码之间的执行闭环：
+
+- Mode A 创建或安全恢复唯一持久计划，已完成计划不会被覆盖或重新打开；
+- Mode B 使用聊天内六字段 Execution Map，同时保留状态、尝试次数、仓库基线、证据、审查和提交结果；
+- Mode B 每个目标 AC 都在证据中保留独立、防冲突的尝试 series；聊天上下文丢失后，从该证据和方案引用恢复，无法可靠重建时返回 Phase 3.5B，而不是猜测；
+- 每个任务按实际情况选择 `TEST-FIRST`、`CHARACTERIZATION`、`TEST-AFTER` 或 `MANUAL`，不强迫所有项目套用同一种测试方法；
+- 只有写入范围不重叠的独立任务才可并行；取消或批准后拒绝都必须收拢委派任务，Mode A 以不同原因暂停，Mode B 持久化恢复状态，并且不消耗失败次数；
+- 必需环境或工具不可用时立即形成有证据的阻塞，不让任务悬挂在活动状态，也不虚构失败周期；独立工作继续；
+- Mode A 实质重设计转 Mode B 时，必须先结算 delegates 和旧任务所有权；Mode B 结算后，旧计划要么完成，要么恢复剩余工作；
+- 连续三个“实现→验证→审查”周期失败只阻塞受影响工作，除非共享前置条件使整批无法继续；
+- 安全本地提交会复查 index、Git 操作状态、hooks、暂存内容、最终 commit 与工作树，但不会接触远端；
+- 稳定的 EVD 和范围决策记录把验证历史留在 AC 表之外，也覆盖用户报告的 MANUAL 结果。
+
+`AC.md` 仍是唯一验收状态权威。计划任务 verified 或本地 commit 都不能自行把 AC 标记为完成。
+检查点结果只能是 commit hash、`COMMIT-BLOCKED` 或 `COMMIT-SKIPPED`；hook 导致提交后出现异常修改时，以 `COMMIT-REVIEW-REQUIRED` 停止后续提交。
+
+---
+
 ## v2.5.0：ADD 内置设计探索
 
 v2.5.0 移除了 ADD 残留的 Superpowers 耦合：
@@ -248,8 +271,8 @@ v2.5.0 移除了 ADD 残留的 Superpowers 耦合：
 - ADD 现在仅在显式 ADD 方案探索、Greenfield Gate 1，以及大型或真正含糊的 Phase 3.5B 变更中加载自己的设计探索 reference；
 - 它只询问真正影响设计的问题，比较有意义的方案，取得一次设计批准，并在 ADD 内记录 **Design Decision Handoff**；
 - 大型 Phase 3.5B 会把设计与拟议 AC 变更一起提交一次合并批准；
-- 设计 reference 不会强制使用 `docs/superpowers`、创建实施计划、要求提交仓库、选择 Mode A/B，或跳转到其他开发方法；
-- ADD 将规划能力改为通用可选工具协议：每项计划任务必须映射 AC-ID，但计划状态永远不拥有验收状态；
+- 设计 reference 不会强制使用 `docs/superpowers` 或跳转到其他开发方法；批准后的范围会交回 ADD 自己的规划与执行层；
+- 外部规划工具是可选增强；ADD 内置 Mode A 计划仍为必需，每项任务必须映射 AC-ID，且计划状态永远不拥有验收状态；
 - 已批准的行为变更会在写代码前使被修改目标的旧 `[x]` 失效；用户恢复延后的 `[>]` 条目时，原范围与变更范围都有明确路径回到可执行状态；
 - 已批准积压、已确定的中小型变更、恢复原行为的 bug、等价重构、构建/配置变更和纯样式修改都会跳过设计 reference；
 - 不再安装独立的 ADD brainstorming Skill，因此可以与 Superpowers 的通用 `brainstorming` 共存而没有重名或触发歧义。
@@ -274,7 +297,7 @@ v2.4.2 在不削弱 `AC.md` 权威的前提下，让验收表更容易扫描：
 
 ## v2.4.1：Mode A 连续执行热修复
 
-进度公告不是暂停关卡。只要已批准的 Mode A 批次仍有目标 AC 为 `[ ]` 或 `[~]`，ADD 就必须连续实现；实施计划的 Task 边界或子 Agent 调度都不能成为“要不要继续”的提问理由。只有显式 ADD 关卡或真实宿主/工具限制才能暂停该批次。
+进度公告不是暂停关卡。只要已批准的 Mode A 批次仍有可执行的 `[ ]` 或 `[~]`，ADD 默认顺序继续，仅允许写入范围不重叠的任务并行；Task 边界或子 Agent 调度不能成为“要不要继续”的提问理由。只有显式 ADD 关卡或真实宿主/工具限制才能暂停该批次。
 
 ---
 
@@ -316,6 +339,7 @@ v2.3.1 不改变 ADD 工作流，只修正 Windows 下 CC Switch 的恢复路径
 ## 支持与贡献
 
 - 通过 [GitHub Issues](https://github.com/ZeusYue/acceptance-driven-development-skill/issues) 报告流程、文档或安装问题；
+- 修改工作流前先读 [维护者改进指南](./docs/IMPROVEMENT-GUIDE.md)；
 - 修改工作流契约时，请同步更新 Skill、template/reference、README 与 `tests/validate-release.ps1`。
 
 使用 [MIT License](./LICENSE) 发布。Copyright © 2026 ZeusYue。

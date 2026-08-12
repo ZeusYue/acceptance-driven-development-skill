@@ -32,7 +32,7 @@ Fast-lane candidates preserve intended behavior: bug fixes, equivalent refactors
 
 ## Failure boundary
 
-In Mode A, count failures per `PLAN-N`; in Mode B, count them per target AC. After three consecutive failures for that unit, stop its implementation, mark the mapped unsettled AC `[!] [blocked]`, present evidence, and ask whether to:
+In Mode A, count failed implementation → verification → review cycles per `PLAN-N`; in Mode B, count them per target AC. Expected `TEST-FIRST` red and `CHARACTERIZATION` observations do not count, and multiple failed checks in one cycle increment only once. After three consecutive failed cycles for that unit, stop its implementation, mark only mapped unsettled ACs that cannot proceed without it `[!] [blocked]`, continue independent work, present evidence, and ask whether to:
 
 1. redesign through Phase 3.5B;
 2. try once more with user guidance;

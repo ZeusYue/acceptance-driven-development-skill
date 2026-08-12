@@ -23,7 +23,7 @@ skills/acceptance-driven-development/SKILL.md
 skills/project-experience/SKILL.md
 ```
 
-请安装这两个 Skill，然后在目标 Agent 中新开会话。条件式设计探索已经内置于 `acceptance-driven-development`，不是第三个可发现 Skill。
+请安装 `acceptance-driven-development`；需要跨项目经验时再安装推荐的 `project-experience`，然后在目标 Agent 中新开会话。仓库会发现两个 Skill；条件式设计探索已内置于 ADD，不会单独显示。
 
 ## 如果发现时显示 0 个技能
 
@@ -61,4 +61,4 @@ https://github.com/ZeusYue/acceptance-driven-development-skill/archive/refs/head
 
 ## 更新或卸载
 
-刷新发现结果后，分别更新两个 ADD Skill。卸载不会删除 `$DOC_HUB`、AC 文件、项目文档或 `~/.add-hub` 指针。
+刷新发现结果后，更新 ADD；如已安装可选的 `project-experience` 配套 Skill，也一并更新。卸载不会删除 `$DOC_HUB`、AC 文件、项目文档或 `~/.add-hub` 指针。

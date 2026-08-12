@@ -1,6 +1,6 @@
 ---
 name: project-experience
-description: Use when writing code, designing architecture, choosing dependencies, or implementing features — especially when the task involves technology or domains (C++, Qt, astronomy, desktop apps, image processing, scientific computing) where the author has prior project experience documented in the vault. Also use when the user mentions starting a new project or asks you to follow their coding style.
+description: Use when writing code, designing architecture, choosing dependencies, or implementing features — especially when the task involves technology or domains (C++, Qt, astronomy, desktop apps, image processing, scientific computing) with prior experience documented in the shared document hub. Also use when the user mentions starting a new project or asks you to follow their coding style.
 ---
 
 # Project Experience
@@ -62,7 +62,7 @@ New task received ──► Is it code/architecture/dependency related?
 
 ## Phase 0: Locate the Document Hub — REQUIRED before all other phases
 
-All project documents and the experience cache live under a single directory (`$DOC_HUB`), independent of code directories. Use **absolute paths only**.
+All project documents and the experience cache live under one `$DOC_HUB`, independent of code roots. Use canonical absolute paths with shell/filesystem tools; when a host accepts only workspace-relative vault paths, use that supported form without changing Hub identity.
 
 ### Step 0.1: Discover $DOC_HUB (three-tier, most reliable first)
 
@@ -116,7 +116,7 @@ From the survey, extract for every project document:
 - Project name and document path
 - Frontmatter tags, `status`, and `date`
 - Document modification time
-- Whether the document is active (`开发中` / `维护中`) or settled (`已完成` / `归档`)
+- Whether the document is active (`开发中` / `维护中` or `active` / `maintained`) or settled (`已完成` / `归档` or `completed` / `archived`)
 
 A Dataview-only `project-index.md` is navigation metadata, not a query result available to non-Obsidian hosts. Do not rely on it for project counts, tags, or status; scan actual project-document frontmatter instead.
 
@@ -158,7 +158,7 @@ This takes under 15 seconds.
 
 **Extraction budget:** all project documents receive a lightweight extraction of frontmatter plus the sections for Tech Stack, Reusable Patterns, Technical Debt/Risks, Edge Cases, and Key Dependencies when present. Read at most 2 project documents fully; choose the most relevant by match threshold. This keeps cache coverage broad without spending full-document context on every project.
 
-**Development-project evidence gate:** A document with `status: 开发中` or `维护中` may contribute only facts already evidenced by code, configuration, tests, or an explicitly resolved incident. Label its source status in the cache. Planned features, guessed architecture, and unverified “would be useful” ideas must not become `Known Pitfalls` or `Reusable Patterns`.
+**Development-project evidence gate:** A document with `status: 开发中`, `维护中`, `active`, or `maintained` may contribute only facts evidenced by code, configuration, tests, or a resolved incident. Label its source status in the cache. Planned features, guessed architecture, and unverified ideas must not become `Known Pitfalls` or `Reusable Patterns`.
 
 ## Phase 4: Synthesize — Write the Experience Briefing
 
@@ -296,7 +296,7 @@ source_projects:
 
 | Mistake | Why it happens | Fix |
 |---------|---------------|-----|
-| Using relative paths | Working directory may be anywhere | Always use absolute paths from `$DOC_HUB` |
+| Losing Hub identity through paths | Hosts expose different path APIs | Use canonical absolute paths, or the host-required workspace-relative vault form, while keeping the same `$DOC_HUB`. |
 | Skipping Phase 0 | "I already know where the docs are" | Always run Step 0.1: read `~/.add-hub` → fallback glob `**/_exp_memory.md` → ask user. |
 | Not writing the briefing | "I'll remember what I read" | Without a written briefing, lessons fade within 10 message turns. Write it down. |
 | Ignoring ✅ resolved items | "That's already fixed, not relevant" | Resolved items show exactly what patterns to use INSTEAD. |

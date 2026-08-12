@@ -1,16 +1,22 @@
 ---
 template: add-implementation-plan
-schema: 1
+schema: 2
+plan_id: {{stable project-date-topic ID}}
 project: {{Project Name}}
 status: active
+pause_reason: N/A
 mode: A
 created: {{YYYY-MM-DD}}
 updated: {{YYYY-MM-DD}}
 code_root: {{code root}}
+worktree_id: {{canonical worktree path or stable host identity}}
+branch: {{branch or N/A}}
 baseline_commit: {{commit hash or N/A}}
-current_task: PLAN-1
+active_tasks: []
 target_acs:
   - AC-N
+approach_ref: {{design path + D-N, approved-chat label, or legacy-approved-backlog:AC-N}}
+scope_decision_ids: []
 ---
 
 # {{Topic}} Implementation Plan
@@ -27,13 +33,14 @@ target_acs:
 
 - {{approved scope and repository constraints}}
 - Do not use plan status as AC status.
+- Task status is `pending`, `in_progress`, `verified`, `blocked`, or evidence-backed `superseded`; only `in_progress` tasks belong in `active_tasks`.
 - Do not push, create or merge a PR, tag, or publish unless separately requested.
 
 ## Acceptance Mapping
 
-| AC | Plan tasks | Verification |
-|----|------------|--------------|
-| AC-N | PLAN-1 | {{command or manual handoff}} |
+| Plan task | AC IDs | Implementation scope | Verification action |
+|-----------|--------|----------------------|---------------------|
+| PLAN-1 | AC-N | {{files / behavior}} | {{command or manual handoff}} |
 
 ## PLAN-1 - {{task outcome}}
 
@@ -54,13 +61,14 @@ target_acs:
 - **Last safe commit:** {{hash or N/A}}
 - **Working tree baseline:** {{clean or pre-existing paths}}
 - **Blocked tasks:** N/A
-- **Next ready task:** PLAN-1
+- **Active tasks:** N/A
+- **Next ready tasks:** PLAN-1
 
 ## Final Record
 
 - **Final AC outcomes:** pending
 - **Evidence IDs:** pending
-- **Local commits / COMMIT-BLOCKED:** pending
+- **Local commits / COMMIT-BLOCKED / COMMIT-SKIPPED / COMMIT-REVIEW-REQUIRED:** pending
 - **Approved deviations:** N/A
 - **Technical debt:** N/A
 

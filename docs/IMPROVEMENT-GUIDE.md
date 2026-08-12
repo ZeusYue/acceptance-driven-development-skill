@@ -1,9 +1,21 @@
+## v2.6.0（2026-08-11）：内置实施规划、恢复与安全检查点
+
+- Mode A 必须创建或恢复一份持久计划；Mode B 只使用六字段聊天 Execution Map。两者都从已批准 AC 派生，且不拥有验收状态。
+- 计划 schema 2 用 worktree、branch、baseline、target AC 与 `approach_ref` 识别活动计划；已完成计划永久保留，不覆盖、不重开。
+- `active_tasks` 只包含 `in_progress` 任务；并行仅限文件、生成物、提交组和共享状态均不重叠的任务。
+- 失败按完整“实现 → 验证 → 审查”周期计数；TEST-FIRST 预期红灯不计，Mode B 每次失败将次数写入 AC EVD。
+- 必需环境/工具不可用属于外部阻塞，不计失败周期；任务离开 `active_tasks`，独立工作继续。
+- 取消或批准后拒绝先停止并汇总委派任务，再核对最终工作树；保留但未新鲜验收的实现必须是 `[~]`，两类暂停/恢复状态分别持久化。
+- Mode A 转 Mode B 前结算 delegates 与旧任务所有权；Mode B 结算后，旧计划必须完成或恢复剩余工作，不能与 Mode B 并发。
+- Agent 侧验证后默认创建 AC 范围本地检查点；不安全时使用 `COMMIT-BLOCKED`，用户禁用时使用 `COMMIT-SKIPPED`，绝不自动操作远端。
+- 发行验证必须包含 AC/计划结构解析、直接约束技能文本的转换 fixtures、隔离 Git 场景、负面样本和运行时词数/长行预算。
+
 ## v2.5.0（2026-08-05）：ADD 与 Superpowers 解耦
 
-- 将需求澄清、真实方案比较、一次设计批准和 Design Decision Handoff 内置为 `references/design-exploration-and-handoff.md`，避免依赖宿主的 Skill-to-Skill 调度。
+- 将需求澄清、真实方案比较、一次设计批准和 Design Decision Handoff 内置为 `skills/acceptance-driven-development/references/design-exploration-and-handoff.md`，避免依赖宿主的 Skill-to-Skill 调度。
 - 该 reference 不固定文档路径、不创建实施计划、不要求仓库提交、不选择 Mode A/B，也不跳转到其他方法论；仅由 ADD 在显式设计探索、Greenfield Gate 1、大型或真正含糊的 Phase 3.5B 中加载。
 - 大型 Phase 3.5B 必须把设计与拟议 AC 变更一起提交一次合并批准，避免内置后产生重复 spec/AC 许可。
-- ADD 删除对具名 Superpowers 技能的依赖，将规划改成通用可选工具协议；无外部规划工具时由 ADD 自己拆解任务。
+- ADD 删除对具名 Superpowers 技能的依赖；外部规划工具成为可选增强，无外部工具时仍由 ADD 的内置 Mode A/B 执行层拆解任务。
 - 仓库与 CC Switch 应发现两个 Skill：`acceptance-driven-development` 与 `project-experience`；设计探索是 ADD 内部 reference，不是第三个 Skill。
 - 本地卸载旧 Superpowers 时优先移出发现目录并保留可恢复备份，不改动无关技能。
 
@@ -61,9 +73,9 @@ Skill 的核心循环是：`AC 表有 [ ] → 做 → 验 → 标记 → 还有 
 
 ### 主文件与参考文件的边界
 
-- `SKILL.md` 是**操作脊柱**：只保留入口、状态机、硬门、实现模式、六项审查、新鲜验证、完成条件、活项目文档和缓存原子刷新。
-- `references/guardrails-and-examples.md` 保存合理化封堵、紧凑阶段图、完整示例、扩展红旗和可选能力图。
-- `references/change-design-guide.md` 保存变更规模、方案阶梯、行为变更/快速通道细节和三次失败后的选择。
+- `skills/acceptance-driven-development/SKILL.md` 是**操作脊柱**：只保留入口、状态机、硬门、实现模式、六项审查、新鲜验证、完成条件、活项目文档和缓存原子刷新。
+- `skills/acceptance-driven-development/references/guardrails-and-examples.md` 保存合理化封堵、紧凑阶段图、完整示例、扩展红旗和可选能力图。
+- `skills/acceptance-driven-development/references/change-design-guide.md` 保存变更规模、方案阶梯、行为变更/快速通道细节和三次失败后的选择。
 - reference 可以解释和举例，但绝不能引入与主文件冲突的状态转换或例外。
 
 ### 减重原则
@@ -92,7 +104,7 @@ Skill 的核心循环是：`AC 表有 [ ] → 做 → 验 → 标记 → 还有 
 
 ### CC Switch 发现规则
 
-- 保留 `skills/<skill-name>/SKILL.md` 作为唯一的规范仓库结构；CC Switch 用正确的仓库根 URL 与 `main` 分支能够识别两个 ADD Skill，不需要复制或移动目录。
+- 保留 `skills/<skill-name>/SKILL.md` 作为唯一的规范仓库结构；CC Switch 用正确的仓库根 URL 与 `main` 分支能够识别 ADD 与可选的 `project-experience` 配套 Skill，不需要复制或移动目录。
 - CC Switch 仓库诊断顺序固定为：仓库 URL → 分支 `main` → 刷新“发现技能” → 重新添加仓库 → 新开 Agent 会话。不要在 URL 或分支未确认前重构仓库。
 - 公共文档不得假设存在“子目录”输入项；不同界面只要支持仓库 URL 和分支，就应使用仓库根 URL 与 `main`。
 
@@ -210,9 +222,13 @@ Agent 会在两个 Phase 之间迷路。每个 Phase 的出口必须有明确的
    - Agent 合理化 → 加借口封堵 + <EXTREMELY-IMPORTANT> 标签
    - 根本限制 → 不改 Skill，靠用户追问
    ↓
-4. 修复后：更新 Vault 笔记的设计决策表（记录「为什么」）
+4. 修复后：更新权威 AC、Vault 观测说明、README 和验证器
    ↓
-5. 同步分享包：cp SKILL.md → 桌面/自动化开发skill/
+5. 运行默认与负面发行验证
+   ↓
+6. 在发行仓库提交
+   ↓
+7. 运行 clean-worktree 门禁；只从干净 tag 生成 Release 包
 ```
 
 ---
@@ -221,10 +237,10 @@ Agent 会在两个 Phase 之间迷路。每个 Phase 的出口必须有明确的
 
 | 文件 | 用途 | 修改频率 |
 |------|------|---------|
-| `SKILL.md` | 主 Skill，Agent 加载时读取 | 高（每次发现问题都改） |
-| `IMPROVEMENT-GUIDE.md` | 本文件，给未来的改进者 | 低（设计原则稳定后很少改） |
-| `references/framework-review-checklist.md` | 框架自审清单 | 低（按需增加框架） |
-| `references/implementation-planning-and-execution.md` | Mode A/B 实施、恢复和 Git 检查点 | 中（执行边界变化时更新） |
-| `assets/implementation-plan-template.md` | Mode A 固定计划资产 | 低（schema 变化时更新） |
+| `skills/acceptance-driven-development/SKILL.md` | 主 Skill，Agent 加载时读取 | 高（每次发现问题都改） |
+| `docs/IMPROVEMENT-GUIDE.md` | 本文件，给未来的改进者，不进入运行时 Skill | 低（设计原则稳定后很少改） |
+| `skills/acceptance-driven-development/references/framework-review-checklist.md` | 框架自审清单 | 低（按需增加框架） |
+| `skills/acceptance-driven-development/references/implementation-planning-and-execution.md` | Mode A/B 实施、恢复和 Git 检查点 | 中（执行边界变化时更新） |
+| `skills/acceptance-driven-development/assets/implementation-plan-template.md` | Mode A 固定计划资产 | 低（schema 变化时更新） |
 | Vault 笔记 `Acceptance-Driven-Development Skill.md` | 设计决策记录 | 中（每次重大改动同步） |
-| 分享包 `桌面/自动化开发skill/` | 给其他人用的安装包 | 中（每次改 SKILL.md 同步） |
+| 发行仓库根目录 | README、安装指南、测试和 Release 包的规范来源 | 中（每次发行同步） |
