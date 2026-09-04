@@ -26,7 +26,7 @@ $DOC_HUB/
   <ProjectName>/plans/*.md         → retained Mode A execution records
 ```
 
-An existing directory referenced by `~/.add-hub` remains active even when `_exp_memory.md` is missing. ADD reads the global cache once per new Agent/session and does not rebuild it automatically. A missing project capsule is created from at most three relevant entries already read from that cache, or as an empty capsule.
+An existing directory referenced by `~/.add-hub` remains active even when `_exp_memory.md` is missing. ADD reads the global cache once per new Agent/session and does not rebuild it automatically. A missing project capsule is created by copying the language-matching ADD capsule template, then seeded with at most three relevant entries already read from that cache, or left empty.
 
 ## Implementation Modes in Codex
 
@@ -63,7 +63,7 @@ ADD describes capabilities, not mandatory tool names. In Codex, use the native t
 - Extract every AC table row for triage and impact coverage; fully read only target, affected, and nonterminal rows plus their current evidence. Read all of `AC.md` when targeted extraction is insufficient.
 - Read the AC template only for creation, migration, missing schema metadata, or structural failure. Do not load the full project document for routine changes.
 - Every Mode A plan begins with `Agent Handoff`: `Goal`, `Implemented`, `Verification`, `Last safe commit`, `Unresolved`, and `Worktree notes`.
-- A new Agent reads the project capsule, scans plan frontmatter, and restores exactly one matching active plan. With no active plan, it reads only the handoff named by `latest_completed_plan`; a stale pointer permits a compatibility scan of `plans/`.
+- A new Agent reads the project capsule, scans plan frontmatter, and restores exactly one matching active plan. With no active plan, it reads the handoff named by `latest_completed_plan` only after root/worktree/branch/baseline checks; stale or mismatched pointers permit an identity-checked compatibility scan of `plans/`.
 - One or two settled targets use Mode B only when low-risk. Architecture, dependency behavior, concurrency, persistence, security, migration, public-contract, and broad shared-component changes require Mode A.
 - Load `references/failure-recovery-and-cancellation.md` only after a failed cycle, external block, interruption, cancellation/rejection, guided retry, redesign, recovery ambiguity, or mode switch. It owns the detailed attempt-series and ownership transitions; ordinary implementation remains in the main skill and implementation reference. A paused `superseded-by-mode-b` owner participates automatically in recovery: first normalize its task ownership idempotently, then reconcile a missing reset, unfinished Mode B work, or ownership handback.
 
@@ -80,7 +80,7 @@ For Mode A, prefer an independent review when the host and policy permit it. For
 
 ## Cache Refresh
 
-Only after separate user approval, `project-experience` may refresh the global cache: it writes `_exp_memory.md.tmp`, validates it, and replaces the cache after success. Ordinary Mode A/Mode B work does not invoke that skill. Never delete the cache merely to force a refresh.
+Only after separate user approval, `project-experience` may refresh the global cache: it admits project-capsule entries backed by completed, non-superseded plans, excludes `_exp_memory.md` seeds, writes `_exp_memory.md.tmp`, validates it, and replaces the cache after success. Explicit research with a missing cache uses at most two directly matched project documents read-only. Ordinary Mode A/Mode B work does not invoke that skill.
 
 ## Quick Verification
 

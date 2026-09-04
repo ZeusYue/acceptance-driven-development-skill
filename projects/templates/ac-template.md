@@ -54,23 +54,27 @@ cssclasses: ac-document
 
 > AC ID is the unique key and may appear at most once. Update the existing row after each verification; do not append verification history.
 > Keep the actual result to two sentences and store long output elsewhere with a stable path, report, screenshot, commit, or command locator.
-> `[x]` requires a current `PASS` row. `[!]` and `[~]` retain the current manual, affected, blocked, failure, or recovery state. An unverified `[ ]` or `[>]` row may have no evidence row.
-> Mode B Recovery State uses exactly: `series: MB-YYYYMMDD-N; approach_ref: <ref>; attempt: N; limit: 3|4; kind: normal|guided; state: failed|blocked|authorized|reset|cancelled|rejected|resumed`.
+> `[x]` requires a current `PASS` row. `[!]` and `[~]` retain the current manual, affected, blocked, failure, pending-implementation, or recovery state. An unverified `[ ]` or `[>]` row may have no evidence row.
+> Mode B Recovery State uses exactly: `series: MB-YYYYMMDD-N; approach_ref: <ref>; attempt: N; limit: 3|4; kind: normal|guided; state: failed|blocked|authorized|reset|cancelled|rejected|resumed|pending-manual`.
+> A successful Mode B result replaces that tuple with `completed`; series uniqueness applies to unfinished tuples still present in this table.
 
 | AC ID | Last Verified | Type | Current Conclusion | Actual Result / Evidence Location | Recovery State |
 |---|---|---|---|---|---|
-| AC-<id> | {{YYYY-MM-DD HH:mm timezone or N/A}} | AUTO \| MANUAL \| REVIEW \| EXECUTION \| BLOCKED | PASS \| FAIL \| PENDING MANUAL \| AFFECTED \| BLOCKED \| RECOVERY STATE | {{concise result and stable locator, or N/A}} | {{exact Mode B tuple above, completed, or N/A}} |
+| AC-<id> | {{YYYY-MM-DD HH:mm timezone or N/A}} | AUTO \| MANUAL \| REVIEW \| EXECUTION \| BLOCKED | PASS \| FAIL \| PENDING IMPLEMENTATION \| PENDING MANUAL \| AFFECTED \| BLOCKED \| RECOVERY STATE | {{concise result and stable locator, or N/A}} | {{exact Mode B tuple above, completed, or N/A}} |
 
 ---
 
 ## Status Annotation Convention
 
 - `[ ]` not implemented; `[~]` partially implemented; `[x]` freshly verified passing; `[-]` deprecated; `[>]` explicitly deferred.
+- An approved edit that invalidates PASS uses `[~]` with `EXECUTION / PENDING IMPLEMENTATION / N/A` evidence until implementation starts.
 - `[!] [manual]` requires exact user verification steps and current `PENDING MANUAL` evidence.
 - `[!] [affected]` requires re-verification and current `AFFECTED` evidence.
 - `[!] [blocked]` records a reason, concrete unblock condition, and current `BLOCKED` evidence.
 
 ## 📊 Status Summary
+
+> This is a derived view. Recompute every category after each batch of AC status changes.
 
 | Category | Total | `[x]` | `[ ]` / `[~]` | `[!]` | `[>]` / `[-]` | Notes |
 |----------|-------|-------|---------------|-------|---------------|-------|

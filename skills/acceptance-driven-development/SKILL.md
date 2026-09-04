@@ -1,6 +1,6 @@
 ---
 name: acceptance-driven-development
-description: Use when building features, fixing bugs, adding capabilities, or explicitly exploring a design under ADD before AC creation or update. Use with a project's AC.md acceptance table when available; also use when the user says implement, add, fix, acceptance criteria, done means, or asks ADD to compare approaches.
+description: Use when implementing features, fixing bugs, defining acceptance criteria or done conditions, or exploring designs under ADD; use a project's AC.md when available.
 ---
 
 # Acceptance-Driven Development
@@ -27,7 +27,7 @@ Read `references/guardrails-and-examples.md` only for rationale, rationalization
 
 ## Capabilities and Scope
 
-ADD is self-contained. Optional: an external planning tool, independent review subagent, and `project-experience` only for explicit cross-project research or approved global-cache refresh. Tool plan status never replaces AC status; fall back to the built-in plan and six-check self-review.
+ADD is self-contained. External planning, review subagents, and `project-experience` for explicit cross-project research or approved cache refresh are optional. Plan status never replaces AC status; otherwise use built-in planning and self-review.
 
 Read `references/design-exploration-and-handoff.md` for explicit ADD exploration, Greenfield Gate 1, or a Large/genuinely ambiguous Phase 3.5B behavior change. Skip it for settled Small/Medium and fast-lane work.
 
@@ -47,16 +47,16 @@ Use ADD for code changes. Skip pure research, prose-only edits, or a user-declin
 
 ### Experience entry and project capsule
 
-After locating the hub, each new Agent/session reads `$DOC_HUB/_exp_memory.md` once when present; the fallback read in step 2 counts. Its absence does not block ADD. Do not read it again in that session unless the user requests cross-project research or approves a cache refresh.
+After Hub location, each new Agent/session reads `$DOC_HUB/_exp_memory.md` once; step 2 fallback counts. Absence does not block ADD. Do not read it again in that session unless the user requests cross-project research or approves cache refresh.
 
 Resolve the project and use `$DOC_HUB/<ProjectName>/_<ProjectName>_exp.md`, never a search-selected `*_exp.md`.
 At the start of every independent ADD work unit, read that capsule once before impact analysis or planning. A Mode A batch or Mode B change is one unit; retries, verification, review, and continuation do not trigger another read.
 
-If the capsule is absent, create it from at most three relevant entries in the global cache already read this session, or empty when none applies. Record the source cache revision; seeded entries name `_exp_memory.md` as source and are not project-verified facts.
+If the capsule is absent, create it by copying the language-matching `assets/project-experience-capsule-template*.md`; never invent structure. Seed at most three relevant entries from the global cache already read this session, or none. Record its source cache revision; label seeds as `_exp_memory.md`, not project-verified facts.
 
 The capsule is a flat list of at most 12 difficult, non-obvious, verified lessons, each titled and at most two sentences.
-Project-earned lessons cite a completed source plan; initial seeds cite `_exp_memory.md`. Admit only reusable guidance from investigation, diagnosis, trade-off, or failure repair. Merge the same root cause/solution; exclude routine facts, counts, commits, and one-off edits.
-After initialization, Experience content changes only after a Mode A plan becomes `completed`; Mode B and unfinished plans never add lessons. Keep `latest_completed_plan: plans/<file>.md`, updated after each completed Mode A plan even when no lesson changes. Never automatically re-seed an existing capsule.
+Project-earned lessons cite a completed source plan; initial seeds cite `_exp_memory.md`. Admit only reusable, verified investigation/diagnosis/trade-off/failure-repair guidance. Merge matching causes/solutions; exclude routine facts, counts, commits, and one-offs.
+After initialization, Experience content changes only after a successfully completed, non-superseded Mode A plan; Mode B and unfinished plans never add lessons. Keep `latest_completed_plan: plans/<file>.md`, updated after each such plan even when no lesson changes. Never automatically re-seed an existing capsule.
 
 ### Locate AC, templates, and the AC Contract Gate
 
@@ -74,7 +74,7 @@ A design document or conversation may retain an approved implementation approach
 4. Extract every AC table row. Fully read target, affected, and nonterminal rows plus their current-evidence rows. When targeted extraction is insufficient, read the complete AC document.
 5. Gate 2 creates new AC from the full template. Malformed AC pauses plan/code; report gaps, preserve IDs/evidence/language, and ask before ambiguous migration.
 6. **An external planning tool may start only after** this gate passes and relevant scope is approved. Every plan needs an **Acceptance Mapping** from tasks to AC IDs; plan state never changes AC status.
-7. Keep five-column AC rows scannable. How to Verify contains only reusable commands or concrete manual steps. Replace the AC-keyed current-evidence row with concise results and stable locators; keep long output outside `AC.md`.
+7. Keep five-column AC rows scannable. How to Verify contains only reusable commands or concrete manual steps. Replace the AC-keyed current-evidence row with concise results and stable locators; keep long output outside `AC.md`. Recompute Status Summary after every status batch.
 8. MANUAL rows require concrete prerequisites/actions and an observable result. A vague check fails this gate; propose a clarified AC edit and obtain approval before plan/code.
 
 ### Step 0.4 — Living Project Document
@@ -145,7 +145,7 @@ Use the project capsule already read for this work unit. Before approval, trace 
 - **Persistence boundary:**
   - Rejection/cancellation before approval leaves `AC.md` unchanged. After approval, atomically apply the approved delta before code; new targets start `[ ]`.
   - Cancellation after persistence but before code keeps the approved contract: new targets remain `[ ]`, while edited/resumed targets retain their persisted `[~]` or `[ ]` state.
-  - An edited `[x]` target becomes `[~]` when its criterion, verification, or expected result changed. Preserve approved-delta-pending evidence.
+  - An edited `[x]` target becomes `[~]` when its criterion, verification, or expected result changed. Replace stale PASS with Type `EXECUTION`, Conclusion `PENDING IMPLEMENTATION`, the approved delta locator, and Recovery State `N/A`.
   - A resumed `[>]` target becomes `[ ]` if untouched or `[~]` if implementation remains.
   - An approved redesign of `[!] [blocked]` starts a new attempt series and becomes `[ ]` with no retained implementation or `[~]` with retained implementation. Replace its blocking row with the new current recovery state.
   - Proposed affected non-target `[x]` rows become `[!] [affected]`. A tracked bug changes its target `[x]` to `[~]`; other tracked fast-lane work with unchanged accepted behavior marks target and affected `[x]` rows `[!] [affected]`.
@@ -169,7 +169,7 @@ Use for Phase 3.5A, 3+ related Phase 3.5B targets, and every listed high-risk ca
 
 **Mode A Continuation Rule:** A phase announcement or progress update is not a decision gate. While any target remains `[ ]` or `[~]`, continue ready tasks.
 Do not stop after a plan task, ask whether to continue, or treat plan/subagent progress as acceptance completion. Three failed cycles block only the affected task and dependent ACs; continue independent rows.
-Stop the batch only for required approval, a Phase 5 `[!] [manual]` handoff, a shared/batch-wide block, user rejection/cancellation, or a real host/tool limit. On a host/tool limit, resume the same batch next turn without reapproval.
+Before a Phase 5 `[!] [manual]` handoff, finish every ready task that does not depend on that result. Stop the batch only when manual input is the next dependency, or for required approval, a shared/batch-wide block, user rejection/cancellation, or a real host/tool limit. Resume host/tool limits without reapproval.
 
 ### Mode B: Lightweight
 
@@ -179,14 +179,14 @@ Use only for a settled, low-risk Phase 3.5B change spanning one or two ACs: a be
 
 `Target AC` | `Files` | `Implementation steps` | `Verification` | `Review` | `Commit`
 
-Target AC includes status/approach/attempt/guided state; Files includes owned paths and repository baseline; Verification includes class/action/result/current evidence; Commit includes paths/message and pending, hash, `COMMIT-BLOCKED`, `COMMIT-SKIPPED`, or `COMMIT-REVIEW-REQUIRED`.
-2. Implement, maintain the map, and complete Phase 4.8 self-review.
+Target AC holds status/approach/attempt/guided state; Files holds owned paths and repository baseline; Verification holds class/action/result/evidence; Commit holds paths/message and pending, hash, `COMMIT-BLOCKED`, `COMMIT-SKIPPED`, or `COMMIT-REVIEW-REQUIRED`.
+2. Implement, maintain the map, and complete Phase 4.8.
 3. Apply Phase 3 classification: re-run affected AUTO; leave affected or changed MANUAL as `[!] [manual]` after review; send changed AUTO to Phase 5.
 4. Create the same safe local AC-scoped checkpoint after Agent verification; never push unless separately requested. Apply the three-cycle failure boundary; user rejection uses the persisted rejection transition without incrementing it.
 
 ### Context and output budget
 
-Announce phases in one line, summarize long output, and keep current evidence to two sentences. Record each result only in its authoritative location; do not repeat unchanged AC lists.
+Announce phases briefly, summarize long output, and keep current evidence to two sentences. Record results only in their authoritative location; do not repeat unchanged AC lists.
 
 ## Phase 4.8: Review
 
@@ -206,12 +206,12 @@ Mode A prefers an independent reviewer; Mode B self-reviews inline. Output one r
 
 ## Phase 5: Verify and Mark
 
-- **AUTO:** run the AC command and show command, expected result, actual result, and exit status; replace that AC's current-evidence row with the concise result and stable locator, then mark `[x]` only when its Current Conclusion is `PASS`.
+- **AUTO:** run the AC command and show command, expected result, actual result, and exit status; replace that AC's current-evidence row with the concise result and stable locator, then mark `[x]` only when its Current Conclusion is `PASS`. A successful Mode B target replaces its recovery tuple with `completed`.
 - AUTO failure: replace current evidence and mark the target `[~]`. A repair within the approved AC and approach returns through Phase 3.5A without reapproval. An unfinished Mode B series retains Mode B and its attempt state; other repairs use Mode A. A material scope/behavior/approach change requires a proposed delta and Phase 3.5B approval.
 - A failed affected AUTO AC in either mode is a regression: finish independent work and ask whether to repair or defer. Repair marks `[~]` and uses Phase 3.5A for approved scope, or Phase 3.5B for scope/behavior/approach changes. Deferral requires explicit confirmation before `[>]`.
-- **MANUAL:** mark `[!] [manual]`, write current `PENDING MANUAL` evidence, and provide exact user steps. On `AC-N passed`, replace the current-evidence row with the reported result and only then mark `[x]`.
+- **MANUAL:** mark `[!] [manual]`, write `PENDING MANUAL`, and give exact steps. Mode B creates or retains its tuple as `state: pending-manual`. On `AC-N passed`, replace evidence with the reported `PASS`; Mode B writes `completed`; only then mark `[x]`.
 - **BLOCKED:** mark `[!] [blocked]` with reason and unblock condition, including linked task evidence at the three-attempt boundary.
-  When the condition clears, reclassify through Phase 3: approved guidance becomes `[ ]` with no retained implementation or `[~]` when implementation remains, then enters Phase 3.5A with its attempt boundary preserved.
+  When the condition clears, reclassify through Phase 3 and replace blocked evidence: use `[ ]` with no retained implementation or `[~]` when implementation remains, then enter Phase 3.5A with the attempt boundary preserved.
   A material new approach enters Phase 3.5B; verification-only work runs AUTO or the approved MANUAL handoff. Explicitly confirmed deferral/deprecation becomes `[>]`/`[-]` with a scope decision and affected-behavior handling.
 - **Mode B:** changes batching/review only; changed AUTO follows AUTO, and changed MANUAL follows MANUAL.
 
@@ -231,7 +231,7 @@ Split `[!]` reports by annotation; never ask a user to test `[blocked]`. Update 
 2. Settle `[~]`: fix through the appropriate Phase 3.5 entry, then Phases 4–5 to a freshly verified `[x]`; change to `[>]` or `[-]` only after explicit user confirmation of deferral or deprecation and after reverting partial code or preserving/re-verifying every affected nonterminal status.
 3. Resolve `[!]`: user-test `[manual]`, re-run AUTO `[affected]`, and apply the Phase 5 unblock transition to `[blocked]` when its condition clears.
 4. When only `[x]`, `[>]`, and `[-]` remain, perform low-frequency project finalization. Create or read the project document only through Step 0.4, then update durable facts, date, technical debt, review, and language-matching completion status.
-5. After a Mode A plan becomes `completed`, update `latest_completed_plan` and admit only qualifying difficult lessons to the project capsule. Ask separately whether to refresh the global cache; on approval, `project-experience` atomically validates and replaces `_exp_memory.md` through `_exp_memory.md.tmp`.
+5. After a non-superseded Mode A plan becomes `completed`, update `latest_completed_plan` and admit only qualifying difficult lessons to the project capsule. Ask separately whether to refresh the global cache; on approval, `project-experience` atomically validates and replaces `_exp_memory.md` through `_exp_memory.md.tmp`.
 
 ## References
 

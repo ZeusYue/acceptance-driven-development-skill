@@ -28,9 +28,11 @@ The six-column current-evidence table is keyed by AC ID:
 - Each concrete AC has at most one evidence row. New verification replaces that row; no EVD ID, citation, event block, archive, or reference count is created.
 - How to Verify contains only the reusable command or concrete manual steps. Evidence results never replace or extend that contract.
 - `[x]` requires current `PASS` evidence. `[!] [manual]`, `[!] [affected]`, and `[!] [blocked]` require matching `PENDING MANUAL`, `AFFECTED`, and `BLOCKED` conclusions.
-- `[~]` retains its current failure, incomplete verification, or Mode B recovery state. Unverified `[ ]` and `[>]` rows may omit evidence.
+- `[~]` retains its current failure, incomplete verification, Mode B recovery state, or `EXECUTION / PENDING IMPLEMENTATION / N/A` row for an approved edit that invalidated PASS. Unverified `[ ]` and `[>]` rows may omit evidence.
 - Keep Actual Result / Evidence Location to two sentences. Store long command output, screenshots, benchmarks, and reports outside `AC.md`; retain only the concise result and stable locator.
-- Mode B writes its target-specific series, `approach_ref`, attempt, limit, kind, and state into Recovery State. A later cycle overwrites the same AC row.
+- Mode B writes its target-specific series, `approach_ref`, attempt, limit, kind, and state into Recovery State. A later cycle overwrites the same AC row; success replaces the tuple with `completed`.
+
+Status Summary is derived from all concrete AC rows. Recompute its category totals and status groups after each status batch.
 
 The **🧭 Scope Decision Log** records only user-approved acceptance additions, edits, deferrals, and deprecations. Allocate the next collision-safe `DEC-YYYYMMDD-N`; write at most one row per approved scope batch. Implementation notes, tests, evidence updates, ordinary status transitions, plan changes, and commits do not belong there.
 
@@ -62,7 +64,7 @@ Mode A copies the built-in implementation-plan asset after approval and before c
 |---|---|---|---|
 | {{task}} | AC-N | {{files / behavior}} | {{command or manual handoff}} |
 
-Plan status records execution progress only. Update `AC.md` whenever verification, user confirmation, deferral, or deprecation changes its authoritative state.
+Plan status records execution progress only. Its final record references the `AC.md` path and target IDs without copying outcomes or evidence. Update `AC.md` whenever verification, user confirmation, deferral, or deprecation changes its authoritative state.
 
 ## Manual Verification Handoff
 

@@ -5,13 +5,13 @@
 ## v2.7.0（2026-09-04）：当前证据、项目胶囊与分层上下文
 
 - Schema 3 以 AC ID 为唯一键保存一行“当前验证证据”；新结果覆盖旧结果，`[x]` 必须对应当前 `PASS`，不再追加 EVD 历史、引用或归档。
-- Mode B 验证失败经 Phase 3.5A 返回时保留原 Mode B 和目标独立尝试序列；到上限前使用 `FAIL/state: failed`，到上限使用 `BLOCKED/state: blocked`，`RECOVERY STATE` 只用于非验证型转换。
+- Mode B 验证失败经 Phase 3.5A 返回时保留原模式和目标独立尝试序列；MANUAL 等待使用 `state: pending-manual`，通过后写 `completed`。到上限前使用 `FAIL/state: failed`，到上限使用 `BLOCKED/state: blocked`，普通 `3/3` 不得经取消/拒绝恢复。
 - 每个新 Agent/新会话定位 Hub 后只读一次 `_exp_memory.md`；每个独立 Mode A/Mode B 工作单元读取一次项目唯一胶囊 `_<ProjectName>_exp.md`，同一工作单元不重复读取。
-- 项目胶囊最多 12 条扁平、困难、非显然、已验证经验；仅 completed Mode A 计划可新增/合并经验，Mode B 不写，`latest_completed_plan` 每次完成计划后都更新。
-- Mode A 计划新增六字段 `Agent Handoff`；新 Agent 先扫描 frontmatter，再定向恢复唯一活动计划或最近完成计划的交接，不读取全部计划历史。`user-cancelled` / `user-rejected` 暂停计划在显式重启或获批取代前继续持有重叠 AC，不能用新计划绕过。
+- 项目胶囊最多 12 条扁平、困难、非显然、已验证经验；仅成功完成且非取代关闭的 Mode A 计划可更新经验与 `latest_completed_plan`，Mode B 不写。
+- Mode A 计划新增六字段 `Agent Handoff`；最近完成计划必须匹配 worktree、branch 和 baseline 后才能用于交接。`user-cancelled` / `user-rejected` 暂停计划在显式重启前持有重叠 AC；获批取代先关闭旧 owner，再激活新计划。
 - 日常上下文提取全部 AC 行，但只全文读取目标、受影响、未终结 AC 及其当前证据；模板、完整项目文档、旧计划和条件 reference 按需读取。
 - Mode B 仅适用于一至两个方案确定、低风险目标；架构、依赖行为、并发、持久化、安全、迁移、公共契约和广泛共享组件强制 Mode A。
-- `project-experience` 从普通编码路径退出，只处理显式跨项目研究或获批的全局缓存刷新。ADD 自行读取全局缓存与项目胶囊。
+- `project-experience` 从普通编码路径退出；缓存缺失时显式研究只读降级，获批刷新只纳入 completed、非 superseded plan 支持的项目自产胶囊经验并排除全局播种项。ADD 自行读取全局缓存与项目胶囊。
 - 罕见失败、阻塞、取消、拒绝、重设计和模式切换规则拆入条件恢复 reference，只在事件发生时加载。Mode A 转 Mode B 先持久化 `superseded-by-mode-b` 暂停 owner；重入时先幂等归一化计划任务所有权，再补齐 reset、恢复未完成 Mode B 或完成 ownership handback。
 - 运行时预算保持严格：主技能不超过 3300 词，实施 reference 不超过 1900 词，条件恢复 reference 不超过 1300 词，典型实现加载不超过 6000 词，操作文件单行不超过 400 字符。
 
@@ -125,7 +125,7 @@ Skill 的核心循环是：`AC 表有 [ ] → 做 → 验 → 标记 → 还有 
 ### README 原则
 
 1. 先展示 ADD 如何把“已实现”变成可观察的阶段、审查和验证证据，再进入安装。
-2. 安装步骤必须告诉用户应看到两个技能：`acceptance-driven-development` 与 `project-experience`，并说明设计探索已内置于 ADD。
+2. 安装步骤必须告诉用户安装 `acceptance-driven-development`；`project-experience` 是显式跨项目研究/缓存刷新时才需要的可选配套，并说明设计探索已内置于 ADD。
 3. “0 个技能”是一个独立、可搜索的排障入口，而不是藏在 FAQ 的一句话。
 4. 发行测试必须可移植：不得引用私人 Vault、缓存哈希或工作站绝对路径。
 
@@ -161,7 +161,7 @@ Skill 的核心循环是：`AC 表有 [ ] → 做 → 验 → 标记 → 还有 
 ### 用户文档的边界
 
 1. 明确区分“ADD 核心能力”“可选 Skill”“宿主能力”，不要声称所有 Agent 行为完全一致。
-2. 手动安装文档要求复制 ADD 和 project-experience；后者运行时可选，但完整体验推荐安装。ADD 的内置 references 随 ADD 目录一起复制。
+2. 手动安装文档要求复制 ADD；`project-experience` 可按需安装用于显式跨项目研究或缓存刷新。ADD 的内置 references 随 ADD 目录一起复制。
 3. `$DOC_HUB`、`~/.add-hub`、缓存刷新和 v2.0 迁移规则属于首页必需信息；框架审查细节不应塞入 README。
 4. GitHub 用户名、LICENSE 署名、远程链接和 CC Switch 配置必须同时更新，避免身份漂移。
 

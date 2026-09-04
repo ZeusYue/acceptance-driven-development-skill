@@ -54,23 +54,27 @@ cssclasses: ac-document
 
 > AC ID 是唯一键，每个 AC 最多出现一次。每次验证直接更新已有行，不追加验证历史。
 > 实际结果最多两句话；长输出保存在外部，只记录稳定的路径、报告、截图、提交或命令定位。
-> `[x]` 必须具有当前 `PASS` 行；`[!]` 与 `[~]` 保留当前人工、受影响、阻塞、失败或恢复状态；尚未验证的 `[ ]` 或 `[>]` 可以没有证据行。
-> Mode B 恢复状态严格使用：`series: MB-YYYYMMDD-N; approach_ref: <ref>; attempt: N; limit: 3|4; kind: normal|guided; state: failed|blocked|authorized|reset|cancelled|rejected|resumed`。
+> `[x]` 必须具有当前 `PASS` 行；`[!]` 与 `[~]` 保留当前人工、受影响、阻塞、失败、待实现或恢复状态；尚未验证的 `[ ]` 或 `[>]` 可以没有证据行。
+> Mode B 恢复状态严格使用：`series: MB-YYYYMMDD-N; approach_ref: <ref>; attempt: N; limit: 3|4; kind: normal|guided; state: failed|blocked|authorized|reset|cancelled|rejected|resumed|pending-manual`。
+> Mode B 成功后用 `completed` 替换该元组；序列唯一性只约束本表仍保留的未结算元组。
 
 | AC ID | 最近验证 | 类型 | 当前结论 | 实际结果 / 证据位置 | 恢复状态 |
 |---|---|---|---|---|---|
-| AC-<编号> | {{YYYY-MM-DD HH:mm 时区或 N/A}} | AUTO \| MANUAL \| REVIEW \| EXECUTION \| BLOCKED | PASS \| FAIL \| PENDING MANUAL \| AFFECTED \| BLOCKED \| RECOVERY STATE | {{简短结果和稳定定位，或 N/A}} | {{使用上方完整 Mode B 元组、completed 或 N/A}} |
+| AC-<编号> | {{YYYY-MM-DD HH:mm 时区或 N/A}} | AUTO \| MANUAL \| REVIEW \| EXECUTION \| BLOCKED | PASS \| FAIL \| PENDING IMPLEMENTATION \| PENDING MANUAL \| AFFECTED \| BLOCKED \| RECOVERY STATE | {{简短结果和稳定定位，或 N/A}} | {{使用上方完整 Mode B 元组、completed 或 N/A}} |
 
 ---
 
 ## 状态与注解约定
 
 - `[ ]` 未实现；`[~]` 部分实现；`[x]` 本轮新鲜验证通过；`[-]` 已废弃；`[>]` 用户明确延后。
+- 已批准编辑使旧 PASS 失效时，使用 `[~]` 与 `EXECUTION / PENDING IMPLEMENTATION / N/A` 证据，直到开始实现。
 - `[!] [manual]` 必须给出精确用户步骤，并保留当前 `PENDING MANUAL` 证据。
 - `[!] [affected]` 必须重新验证，并保留当前 `AFFECTED` 证据。
 - `[!] [blocked]` 必须记录原因、具体解除条件和当前 `BLOCKED` 证据。
 
 ## 📊 验收状态总览
+
+> 本表是派生视图。每批 AC 状态变化后重新计算所有类别。
 
 | 类别 | 总计 | `[x]` | `[ ]` / `[~]` | `[!]` | `[>]` / `[-]` | 备注 |
 |------|------|-------|---------------|-------|---------------|------|

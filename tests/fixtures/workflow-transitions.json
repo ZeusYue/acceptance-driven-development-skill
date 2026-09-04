@@ -50,10 +50,17 @@
   },
   {
     "scenario": "manual-pass",
-    "name": "manual pass persists current evidence before verified status",
+    "name": "manual pass persists evidence and closes a Mode B series before verified status",
     "source": "add",
-    "requiredTerms": ["AC-N passed", "current-evidence row", "only then mark", "[x]"],
-    "requiredPattern": "(?is)AC-N passed.*replace the current-evidence row.*only then mark `\\[x\\]`"
+    "requiredTerms": ["MANUAL", "state: pending-manual", "AC-N passed", "PASS", "Mode B", "completed", "only then mark", "[x]"],
+    "requiredPattern": "(?is)MANUAL.*state: pending-manual.*AC-N passed.*PASS.*Mode B.*completed.*only then mark `\\[x\\]`"
+  },
+  {
+    "scenario": "mode-b-manual-pending",
+    "name": "Mode B manual handoff retains its attempt series",
+    "source": "recovery",
+    "requiredTerms": ["MANUAL handoff", "creates or retains", "series", "MANUAL / PENDING MANUAL / state: pending-manual", "failure uses `MANUAL`", "advances normal series", "blocks guided series", "4/4", "without increment"],
+    "requiredPattern": "(?is)Mode B MANUAL handoff creates or retains its series as `MANUAL / PENDING MANUAL / state: pending-manual`.*failure uses `MANUAL`.*advances normal series.*blocks guided series at 4/4 without increment"
   },
   {
     "scenario": "mode-b-recovery",
@@ -66,8 +73,8 @@
     "scenario": "mode-b-cancel-restart",
     "name": "Mode B cancellation persists across sessions until explicit restart",
     "source": "recovery",
-    "requiredTerms": ["For Mode B", "current evidence", "EXECUTION", "RECOVERY STATE", "state: cancelled", "no plan", "active_tasks", "Explicit restart", "state: resumed", "without resetting attempts"],
-    "requiredPattern": "(?is)For Mode B.*replace.*current evidence.*Type `EXECUTION`.*Conclusion `RECOVERY STATE`.*state: cancelled.*no plan or `active_tasks`.*Explicit restart.*state: resumed.*without resetting attempts"
+    "requiredTerms": ["For Mode B", "blocked at its failure limit", "stays blocked", "EXECUTION", "RECOVERY STATE", "state: cancelled", "no plan", "active_tasks", "Explicit restart", "state: resumed", "normal attempts", "below 3", "authorized guided", "4/4"],
+    "requiredPattern": "(?is)For Mode B.*blocked at its failure limit stays blocked.*EXECUTION / RECOVERY STATE.*state: cancelled.*no plan or `active_tasks`.*Explicit restart.*state: resumed.*normal attempts must remain below 3.*authorized guided series remains 4/4"
   },
   {
     "scenario": "test-first-red",
@@ -122,15 +129,15 @@
     "scenario": "cleared-environment-block",
     "name": "cleared external block restores ready state without resetting history",
     "source": "recovery",
-    "requiredTerms": ["condition clears", "same approach", "Mode A", "pending", "attempt/evidence unchanged", "Mode B", "same-series", "state: resumed", "Phase 3.5A", "imports", "prior attempt/guided state", "rather than resetting"],
-    "requiredPattern": "(?is)condition clears under the same approach.*Mode A returns its task to `pending` with attempt/evidence unchanged.*Mode B writes same-series `state: resumed`.*Phase 3\\.5A imports its prior attempt/guided state.*rather than resetting"
+    "requiredTerms": ["condition clears", "Phase 5", "Mode A deletes old BLOCKED evidence", "[ ]", "PENDING IMPLEMENTATION", "[~]", "plan-task attempt/evidence", "pending", "Mode B", "same-series", "state: resumed", "Phase 3.5A", "imports"],
+    "requiredPattern": "(?is)condition clears.*first apply Phase 5.*Mode A deletes old BLOCKED evidence for `\\[ \\]`.*PENDING IMPLEMENTATION.*retained `\\[~\\]`.*only plan-task attempt/evidence stays unchanged.*pending.*Mode B replaces.*same-series `state: resumed`.*Phase 3\\.5A imports"
   },
   {
     "scenario": "mode-a-to-b-handoff",
     "name": "Mode A to Mode B redesign settles old ownership and deterministically hands back",
     "source": "recovery",
-    "requiredTerms": ["moves Mode A to Mode B", "stop new writes", "delegate", "wait for/drain", "first persisted plan change", "status: paused", "pause_reason: superseded-by-mode-b", "before that marker", "task states", "active_tasks", "After the marker", "ownership handback", "completed", "active"],
-    "requiredPattern": "(?is)moves Mode A to Mode B.*stop new writes.*wait for/drain.*first persisted plan change sets `status: paused` and `pause_reason: superseded-by-mode-b.*before that marker, do not change `approach_ref`, task states, or `active_tasks`.*After the marker.*Ownership handback.*plan `completed`.*otherwise `active`"
+    "requiredTerms": ["moves Mode A to Mode B", "stop new writes", "delegate", "wait for/drain", "first persisted plan change", "status: paused", "pause_reason: superseded-by-mode-b", "before that marker", "task states", "active_tasks", "After the marker", "ownership handback", "keeps the pause marker", "completed", "clears `pause_reason`", "active"],
+    "requiredPattern": "(?is)moves Mode A to Mode B.*stop new writes.*wait for/drain.*first persisted plan change sets `status: paused` and `pause_reason: superseded-by-mode-b.*before that marker, do not change `approach_ref`, task states, or `active_tasks`.*After the marker.*Ownership handback keeps the pause marker.*completed.*otherwise it clears `pause_reason` and sets `active`"
   },
   {
     "scenario": "mode-a-to-b-interruption-recovery",
@@ -169,10 +176,10 @@
   },
   {
     "scenario": "project-capsule-completion",
-    "name": "only completed Mode A plans update project lessons and pointer",
+    "name": "only successful non-superseded Mode A plans update project lessons and pointer",
     "source": "add",
-    "requiredTerms": ["Experience content changes only after", "Mode A", "completed", "Mode B", "latest_completed_plan", "no lesson changes"],
-    "requiredPattern": "(?is)Experience content changes only after a Mode A plan becomes `completed`.*Mode B.*latest_completed_plan.*no lesson changes"
+    "requiredTerms": ["Experience content changes only after", "successfully completed", "non-superseded Mode A plan", "Mode B", "latest_completed_plan", "no lesson changes"],
+    "requiredPattern": "(?is)Experience content changes only after a successfully completed, non-superseded Mode A plan.*Mode B.*latest_completed_plan.*no lesson changes"
   },
   {
     "scenario": "project-experience-explicit-only",
@@ -193,7 +200,7 @@
     "name": "no active plan falls back to latest completed handoff",
     "source": "recovery",
     "requiredTerms": ["no active or transition owner", "Agent Handoff", "latest_completed_plan", "missing or stale", "compatibility fallback", "Never treat a completed plan as active"],
-    "requiredPattern": "(?is)With no active or transition owner.*Agent Handoff.*latest_completed_plan.*missing or stale.*compatibility fallback.*Never treat a completed plan as active"
+    "requiredPattern": "(?is)With no active or transition owner.*Agent Handoff.*latest_completed_plan.*missing or stale or mismatched.*compatibility fallback.*Never treat a completed plan as active"
   },
   {
     "scenario": "layered-ac-reading",
@@ -257,5 +264,54 @@
     "source": "add",
     "requiredTerms": ["Mode choice after Phase 3.5B persistence", "three or more", "low-risk", "Mode B", "architecture", "dependency", "concurrency", "persistence", "security", "migration", "public-contract", "shared-component", "Mode A regardless of AC count"],
     "requiredPattern": "(?is)Mode choice after Phase 3\\.5B persistence.*three or more.*low-risk.*Mode B.*architecture.*dependency.*concurrency.*persistence.*security.*migration.*public-contract.*shared-component.*Mode A regardless of AC count"
+  },
+  {
+    "scenario": "approved-plan-supersession",
+    "name": "approved replacement closes the paused owner before activation",
+    "source": "recovery",
+    "requiredTerms": ["approved for replacement", "awaiting-approved-supersession", "supersedes_plan", "old executable tasks", "status: completed", "superseded-by-approved-plan", "sole owner", "never reopened"],
+    "requiredPattern": "(?is)approved for replacement.*persist `status: paused`.*awaiting-approved-supersession.*supersedes_plan.*mark the old executable tasks `superseded`.*status: completed.*superseded-by-approved-plan.*paused replacement is the sole owner.*never reopened"
+  },
+  {
+    "scenario": "approved-plan-supersession-recovery",
+    "name": "interrupted approved supersession resumes the named replacement only",
+    "source": "recovery",
+    "requiredTerms": ["awaiting-approved-supersession", "supersedes_plan", "old paused/completed plan", "repository identity", "complete its supersession write", "activate it", "never create a second replacement"],
+    "requiredPattern": "(?is)For `awaiting-approved-supersession`.*match `supersedes_plan`.*old paused/completed plan.*repository identity.*old is paused.*complete its supersession write.*completed naming this replacement.*activate it.*never create a second replacement"
+  },
+  {
+    "scenario": "mode-b-to-a-attempt-import",
+    "name": "Mode B to Mode A maps each unfinished target without resetting attempts",
+    "source": "recovery",
+    "requiredTerms": ["upgraded to Mode A", "exactly one recovery task", "each unfinished Mode B target series", "task Attempt", "row's locator", "limit", "kind", "series identity", "new task starts", "copy the tuple"],
+    "requiredPattern": "(?is)Mode B recovery is upgraded to Mode A.*exactly one recovery task for each unfinished Mode B target series.*task Attempt from the AC row.*only that row's locator.*re-read.*limit.*kind.*series identity.*new task starts at `attempt: 0`.*Never merge series.*copy the tuple into the plan"
+  },
+  {
+    "scenario": "manual-ready-work-drain",
+    "name": "manual verification waits until independent ready work is complete",
+    "source": "add",
+    "requiredTerms": ["Before a Phase 5", "manual", "finish every ready task", "does not depend", "manual input is the next dependency"],
+    "requiredPattern": "(?is)Before a Phase 5.*manual.*finish every ready task that does not depend on that result.*Stop the batch only when manual input is the next dependency"
+  },
+  {
+    "scenario": "completed-plan-identity",
+    "name": "completed-plan handoff is identity checked before reading",
+    "source": "recovery",
+    "requiredTerms": ["completed-plan pointer", "latest_completed_plan", "code_root", "worktree_id", "branch", "baseline_commit", "mismatched", "historical context"],
+    "requiredPattern": "(?is)completed-plan pointer `latest_completed_plan`.*checking `code_root`.*`worktree_id`.*`branch`.*`baseline_commit`.*mismatched.*historical context"
+  },
+  {
+    "scenario": "missing-cache-read-only-fallback",
+    "name": "explicit research remains read-only when the global cache is unavailable",
+    "source": "experience",
+    "requiredTerms": ["missing or invalid cache", "bounded, read-only fallback", "at most two", "do not write or block"],
+    "requiredPattern": "(?is)missing or invalid cache.*Otherwise use a bounded, read-only fallback.*at most two.*do not write or block the research"
+  },
+  {
+    "scenario": "capsule-refresh-provenance",
+    "name": "global refresh admits only completed project-earned capsule entries",
+    "source": "experience",
+    "requiredTerms": ["project-earned entries", "cited source plan", "completed", "superseded-by-*", "exclude `_exp_memory.md` seeds"],
+    "requiredPattern": "(?is)project-earned entries whose cited source plan exists.*is `completed`.*no `superseded-by-\\*` pause reason.*exclude `_exp_memory\\.md` seeds"
   }
 ]

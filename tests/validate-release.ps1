@@ -280,6 +280,7 @@ function Test-AcTemplateStructure {
 
     $seenConcreteIds = @{}
     $acStatuses = @{}
+    $acCategoryById = @{}
     foreach ($category in $categories) {
         $acceptanceTitle = if ($Language -eq 'en') { 'Acceptance Criteria' } else { '验收标准' }
         $categoryTables = @($document.Tables | Where-Object { (Test-SemanticHeadingEquals $_.H2 $acceptanceTitle) -and (Test-SemanticHeadingEquals $_.H3 $category) })
@@ -301,6 +302,7 @@ function Test-AcTemplateStructure {
                 else {
                     $seenConcreteIds[$id] = $true
                     $acStatuses[$id] = $marker
+                    $acCategoryById[$id] = $summaryCategories[$categories.IndexOf($category)]
                 }
             }
             if ($marker -notmatch '^\[(?: |~|x|>|-)\]$|^\[!\]\s+\[(?:manual|affected|blocked)\]$') {
@@ -317,6 +319,7 @@ function Test-AcTemplateStructure {
     if ($null -eq $content) { $content = '' }
     $evidenceTables = @($document.Tables | Where-Object { (Test-SemanticHeadingEquals $_.H2 $evidenceTitle) -and (Test-ExactCells $_.Header $evidenceHeader) })
     $evidenceRows = @{}
+    $modeBSeriesOwners = @{}
     if ($evidenceTables.Count -ne 1) { Add-StructuralFailure $Path 'Current Verification Evidence must contain its fixed six-column table' }
     else {
         foreach ($row in $evidenceTables[0].Rows) {
@@ -328,35 +331,40 @@ function Test-AcTemplateStructure {
                 else { $evidenceRows[$evidenceAc] = $row }
                 if (-not $seenConcreteIds.ContainsKey($evidenceAc)) { Add-StructuralFailure $Path "Current evidence references unknown AC '$evidenceAc' at line $($row.Line)" }
                 if ($row.Cells[2] -notmatch '^(AUTO|MANUAL|REVIEW|EXECUTION|BLOCKED)$') { Add-StructuralFailure $Path "Invalid current-evidence type at line $($row.Line)" }
-                if ($row.Cells[3] -notmatch '^(PASS|FAIL|PENDING MANUAL|AFFECTED|BLOCKED|RECOVERY STATE)$') { Add-StructuralFailure $Path "Invalid current-evidence conclusion at line $($row.Line)" }
+                if ($row.Cells[3] -notmatch '^(PASS|FAIL|PENDING IMPLEMENTATION|PENDING MANUAL|AFFECTED|BLOCKED|RECOVERY STATE)$') { Add-StructuralFailure $Path "Invalid current-evidence conclusion at line $($row.Line)" }
                 $recovery = $row.Cells[5]
-                $modeBPattern = '^series:\s*MB-\d{8}-\d+;\s*approach_ref:\s*[^;]+;\s*attempt:\s*(\d+);\s*limit:\s*(3|4);\s*kind:\s*(normal|guided);\s*state:\s*(failed|blocked|authorized|reset|cancelled|rejected|resumed)$'
+                $modeBPattern = '^series:\s*(?<series>MB-\d{8}-\d+);\s*approach_ref:\s*[^;]+;\s*attempt:\s*(?<attempt>\d+);\s*limit:\s*(?<limit>3|4);\s*kind:\s*(?<kind>normal|guided);\s*state:\s*(?<state>failed|blocked|authorized|reset|cancelled|rejected|resumed|pending-manual)$'
                 $modeBMatch = [regex]::Match($recovery, $modeBPattern)
-                $looksLikeModeB = ($recovery -match '(?i)(?:^|;)\s*(?:series|approach_ref|attempt|limit|kind|state)\s*:') -or ($row.Cells[3] -eq 'RECOVERY STATE')
-                if ($looksLikeModeB -and (-not $modeBMatch.Success)) {
+                if (($recovery -notin @('N/A','completed')) -and (-not $modeBMatch.Success)) {
                     Add-StructuralFailure $Path "Invalid Mode B Recovery State at line $($row.Line)"
                 } elseif ($modeBMatch.Success) {
-                    $attempt = [int]$modeBMatch.Groups[1].Value
-                    $limit = [int]$modeBMatch.Groups[2].Value
-                    $kind = $modeBMatch.Groups[3].Value
-                    $state = $modeBMatch.Groups[4].Value
+                    $series = $modeBMatch.Groups['series'].Value
+                    $attempt = [int]$modeBMatch.Groups['attempt'].Value
+                    $limit = [int]$modeBMatch.Groups['limit'].Value
+                    $kind = $modeBMatch.Groups['kind'].Value
+                    $state = $modeBMatch.Groups['state'].Value
                     $evidenceType = $row.Cells[2]
                     $conclusion = $row.Cells[3]
                     $acStatus = $acStatuses[$evidenceAc]
+                    if ($modeBSeriesOwners.ContainsKey($series)) { Add-StructuralFailure $Path "Duplicate unfinished Mode B series '$series' for '$evidenceAc' and '$($modeBSeriesOwners[$series])'" }
+                    else { $modeBSeriesOwners[$series] = $evidenceAc }
                     if ($attempt -gt $limit) { Add-StructuralFailure $Path "Mode B Recovery State attempt exceeds limit at line $($row.Line)" }
                     if (($kind -eq 'normal') -and ($limit -ne 3)) { Add-StructuralFailure $Path "Normal Mode B Recovery State must use limit 3 at line $($row.Line)" }
                     if (($kind -eq 'guided') -and (($attempt -ne 4) -or ($limit -ne 4))) { Add-StructuralFailure $Path "Guided Mode B Recovery State must use attempt 4 and limit 4 at line $($row.Line)" }
+                    if (($kind -eq 'normal') -and ($state -in @('cancelled','rejected','resumed','pending-manual')) -and ($attempt -ge $limit)) {
+                        Add-StructuralFailure $Path "Normal Mode B state $state requires an attempt below limit at line $($row.Line)"
+                    }
                     switch ($state) {
                         'failed' {
                             if ($conclusion -ne 'FAIL') { Add-StructuralFailure $Path "Mode B state failed requires current conclusion 'FAIL' at line $($row.Line)" }
-                            if ($evidenceType -ne 'EXECUTION') { Add-StructuralFailure $Path "Mode B state failed requires current-evidence type 'EXECUTION' at line $($row.Line)" }
+                            if ($evidenceType -notin @('EXECUTION','MANUAL')) { Add-StructuralFailure $Path "Mode B state failed requires current-evidence type 'EXECUTION' or 'MANUAL' at line $($row.Line)" }
                             if (($attempt -le 0) -or ($attempt -ge $limit)) { Add-StructuralFailure $Path "Mode B state failed requires a positive pre-limit attempt at line $($row.Line)" }
                             if ($acStatus -ne '[~]') { Add-StructuralFailure $Path "Mode B state failed requires AC status '[~]' at line $($row.Line)" }
                         }
                         'blocked' {
                             if ($conclusion -ne 'BLOCKED') { Add-StructuralFailure $Path "Mode B state blocked requires current conclusion 'BLOCKED' at line $($row.Line)" }
-                            if ($evidenceType -notin @('EXECUTION','BLOCKED')) { Add-StructuralFailure $Path "Mode B state blocked requires current-evidence type 'EXECUTION' or 'BLOCKED' at line $($row.Line)" }
-                            if (($evidenceType -eq 'EXECUTION') -and ($attempt -ne $limit)) { Add-StructuralFailure $Path "Mode B execution block requires attempt equal to limit at line $($row.Line)" }
+                            if ($evidenceType -notin @('EXECUTION','MANUAL','BLOCKED')) { Add-StructuralFailure $Path "Mode B state blocked requires current-evidence type 'EXECUTION', 'MANUAL', or 'BLOCKED' at line $($row.Line)" }
+                            if (($evidenceType -in @('EXECUTION','MANUAL')) -and ($attempt -ne $limit)) { Add-StructuralFailure $Path "Mode B verification block requires attempt equal to limit at line $($row.Line)" }
                             if ($acStatus -ne '[!] [blocked]') { Add-StructuralFailure $Path "Mode B state blocked requires AC status '[!] [blocked]' at line $($row.Line)" }
                         }
                         'authorized' {
@@ -371,11 +379,36 @@ function Test-AcTemplateStructure {
                             if (($kind -ne 'normal') -or ($attempt -ne 0) -or ($limit -ne 3)) { Add-StructuralFailure $Path "Mode B state reset requires attempt 0/3 with normal kind at line $($row.Line)" }
                             if ($acStatus -notin @('[ ]','[~]')) { Add-StructuralFailure $Path "Mode B state reset requires AC status '[ ]' or '[~]' at line $($row.Line)" }
                         }
+                        'pending-manual' {
+                            if ($conclusion -ne 'PENDING MANUAL') { Add-StructuralFailure $Path "Mode B state pending-manual requires current conclusion 'PENDING MANUAL' at line $($row.Line)" }
+                            if ($evidenceType -ne 'MANUAL') { Add-StructuralFailure $Path "Mode B state pending-manual requires current-evidence type 'MANUAL' at line $($row.Line)" }
+                            if ($acStatus -ne '[!] [manual]') { Add-StructuralFailure $Path "Mode B state pending-manual requires AC status '[!] [manual]' at line $($row.Line)" }
+                        }
                         { $_ -in @('cancelled','rejected','resumed') } {
                             if ($conclusion -ne 'RECOVERY STATE') { Add-StructuralFailure $Path "Mode B state $state requires current conclusion 'RECOVERY STATE' at line $($row.Line)" }
                             if ($evidenceType -ne 'EXECUTION') { Add-StructuralFailure $Path "Mode B state $state requires current-evidence type 'EXECUTION' at line $($row.Line)" }
                             if ($acStatus -notin @('[ ]','[~]')) { Add-StructuralFailure $Path "Mode B state $state requires AC status '[ ]' or '[~]' at line $($row.Line)" }
                         }
+                    }
+                } elseif ($recovery -eq 'completed') {
+                    if (($row.Cells[3] -ne 'PASS') -or ($row.Cells[2] -notin @('AUTO','MANUAL','REVIEW')) -or ($acStatuses[$evidenceAc] -notin @('[x]','[>]','[-]'))) {
+                        Add-StructuralFailure $Path "Recovery State 'completed' requires settled PASS evidence at line $($row.Line)"
+                    }
+                } else {
+                    $allowedTypes = switch ($row.Cells[3]) {
+                        'PASS' { @('AUTO','MANUAL','REVIEW') }
+                        'FAIL' { @('AUTO','MANUAL','REVIEW','EXECUTION') }
+                        'PENDING IMPLEMENTATION' { @('EXECUTION') }
+                        'PENDING MANUAL' { @('MANUAL') }
+                        'AFFECTED' { @('REVIEW') }
+                        'BLOCKED' { @('BLOCKED') }
+                        'RECOVERY STATE' { @() }
+                        default { @() }
+                    }
+                    if (($row.Cells[3] -eq 'PENDING IMPLEMENTATION') -and ($row.Cells[2] -ne 'EXECUTION')) {
+                        Add-StructuralFailure $Path "PENDING IMPLEMENTATION requires current-evidence type 'EXECUTION' at line $($row.Line)"
+                    } elseif ($allowedTypes -notcontains $row.Cells[2]) {
+                        Add-StructuralFailure $Path "Conclusion '$($row.Cells[3])' is incompatible with type '$($row.Cells[2])' at line $($row.Line)"
                     }
                 }
             }
@@ -387,6 +420,10 @@ function Test-AcTemplateStructure {
     foreach ($acId in $acStatuses.Keys) {
         $status = $acStatuses[$acId]
         $hasEvidence = $evidenceRows.ContainsKey($acId)
+        $conclusion = if ($hasEvidence) { $evidenceRows[$acId].Cells[3] } else { $null }
+        if ($status -eq '[ ]' -and $hasEvidence -and $conclusion -ne 'RECOVERY STATE') { Add-StructuralFailure $Path "Unimplemented AC '$acId' cannot have conclusion '$conclusion'" }
+        if ($status -eq '[~]' -and $hasEvidence -and $conclusion -notin @('FAIL','PENDING IMPLEMENTATION','RECOVERY STATE')) { Add-StructuralFailure $Path "Partial AC '$acId' has incompatible conclusion '$conclusion'" }
+        if ($conclusion -eq 'PENDING IMPLEMENTATION' -and ($status -ne '[~]')) { Add-StructuralFailure $Path "PENDING IMPLEMENTATION requires AC status '[~]'" }
         if ($status -eq '[x]' -and ((-not $hasEvidence) -or ($evidenceRows[$acId].Cells[3] -ne 'PASS'))) {
             Add-StructuralFailure $Path "Verified AC '$acId' requires one current PASS evidence row"
         }
@@ -432,6 +469,30 @@ function Test-AcTemplateStructure {
         foreach ($summaryCategory in $summaryCategories) {
             if ($actualSummaryCategories -notcontains $summaryCategory) { Add-StructuralFailure $Path "Status Summary is missing category '$summaryCategory'" }
         }
+        $hasConcreteSummary = @($summaryTables[0].Rows | Where-Object { $_.Cells.Count -eq 7 -and ($_.Cells[1..5] -join '') -match '\d' }).Count -gt 0
+        if (($seenConcreteIds.Count -gt 0) -and (-not $hasConcreteSummary)) {
+            Add-StructuralFailure $Path 'Status Summary must be populated when concrete AC rows exist'
+        } elseif ($hasConcreteSummary -and $seenConcreteIds.Count -gt 0) {
+            $summaryByCategory = @{}
+            foreach ($row in $summaryTables[0].Rows) { if ($row.Cells.Count -eq 7) { $summaryByCategory[$row.Cells[0]] = $row.Cells } }
+            foreach ($summaryCategory in $summaryCategories) {
+                $categoryIds = @($acCategoryById.Keys | Where-Object { $acCategoryById[$_] -eq $summaryCategory })
+                $expected = @(
+                    $categoryIds.Count,
+                    @($categoryIds | Where-Object { $acStatuses[$_] -eq '[x]' }).Count,
+                    @($categoryIds | Where-Object { $acStatuses[$_] -in @('[ ]','[~]') }).Count,
+                    @($categoryIds | Where-Object { $acStatuses[$_] -match '^\[!\]' }).Count,
+                    @($categoryIds | Where-Object { $acStatuses[$_] -in @('[>]','[-]') }).Count
+                )
+                if (-not $summaryByCategory.ContainsKey($summaryCategory)) { continue }
+                $cells = $summaryByCategory[$summaryCategory]
+                for ($index = 0; $index -lt $expected.Count; $index++) {
+                    if ($cells[$index + 1] -notmatch '^\d+$' -or [int]$cells[$index + 1] -ne $expected[$index]) {
+                        Add-StructuralFailure $Path "Status Summary '$summaryCategory' column $($index + 1) is $($cells[$index + 1]); expected $($expected[$index])"
+                    }
+                }
+            }
+        }
     }
 
 }
@@ -444,22 +505,37 @@ function Test-AcSchema3NegativeCases {
     try {
         $base = Get-Content -Raw -LiteralPath $TemplatePath -Encoding utf8
         $base = $base.Replace('| AC-<next integer> | {{description}} | [ ] | {{command / test / UI action}} | {{what passing looks like}} |', '| AC-1 | The feature works. | [x] | Run test. | Test passes. |')
-        $base = $base.Replace('| AC-<id> | {{YYYY-MM-DD HH:mm timezone or N/A}} | AUTO \| MANUAL \| REVIEW \| EXECUTION \| BLOCKED | PASS \| FAIL \| PENDING MANUAL \| AFFECTED \| BLOCKED \| RECOVERY STATE | {{concise result and stable locator, or N/A}} | {{exact Mode B tuple above, completed, or N/A}} |', '| AC-1 | 2026-09-03 12:00 +08:00 | AUTO | PASS | Test passed; report/test.log. | completed |')
+        $base = $base.Replace('| AC-<id> | {{YYYY-MM-DD HH:mm timezone or N/A}} | AUTO \| MANUAL \| REVIEW \| EXECUTION \| BLOCKED | PASS \| FAIL \| PENDING IMPLEMENTATION \| PENDING MANUAL \| AFFECTED \| BLOCKED \| RECOVERY STATE | {{concise result and stable locator, or N/A}} | {{exact Mode B tuple above, completed, or N/A}} |', '| AC-1 | 2026-09-03 12:00 +08:00 | AUTO | PASS | Test passed; report/test.log. | completed |')
+        $base = $base.Replace('| Features | | | | | | |', '| Features | 1 | 1 | 0 | 0 | 0 | |')
+        foreach ($category in @('Performance','Compatibility','Quality','Backlog / Deferred')) {
+            $base = $base.Replace("| $category | | | | | | |", "| $category | 0 | 0 | 0 | 0 | 0 | |")
+        }
 
         $cases = @(
+            @{ Name = 'blank concrete summary'; Expected = 'Status Summary must be populated when concrete AC rows exist'; Content = $base.Replace('| Features | 1 | 1 | 0 | 0 | 0 | |', '| Features | | | | | | |').Replace('| Performance | 0 | 0 | 0 | 0 | 0 | |', '| Performance | | | | | | |').Replace('| Compatibility | 0 | 0 | 0 | 0 | 0 | |', '| Compatibility | | | | | | |').Replace('| Quality | 0 | 0 | 0 | 0 | 0 | |', '| Quality | | | | | | |').Replace('| Backlog / Deferred | 0 | 0 | 0 | 0 | 0 | |', '| Backlog / Deferred | | | | | | |') },
             @{ Name = 'duplicate evidence'; Expected = 'Duplicate current-evidence row'; Content = $base.Replace('| AC-1 | 2026-09-03 12:00 +08:00 | AUTO | PASS | Test passed; report/test.log. | completed |', "| AC-1 | 2026-09-03 12:00 +08:00 | AUTO | PASS | Test passed; report/test.log. | completed |`n| AC-1 | 2026-09-03 12:01 +08:00 | AUTO | PASS | Duplicate. | completed |") },
             @{ Name = 'missing pass evidence'; Expected = 'requires one current PASS evidence row'; Content = $base.Replace('| AC-1 | 2026-09-03 12:00 +08:00 | AUTO | PASS | Test passed; report/test.log. | completed |', '') },
             @{ Name = 'manual conclusion mismatch'; Expected = "requires current conclusion 'PENDING MANUAL'"; Content = $base.Replace('| AC-1 | The feature works. | [x] | Run test. | Test passes. |', '| AC-1 | The feature works. | [!] [manual] | Inspect UI. | UI is correct. |') },
+            @{ Name = 'pending implementation wrong type'; Expected = "PENDING IMPLEMENTATION requires current-evidence type 'EXECUTION'"; Content = $base.Replace('| AC-1 | The feature works. | [x] | Run test. | Test passes. |', '| AC-1 | The feature works. | [~] | Run test. | Test passes. |').Replace('| AC-1 | 2026-09-03 12:00 +08:00 | AUTO | PASS | Test passed; report/test.log. | completed |', '| AC-1 | 2026-09-03 12:00 +08:00 | AUTO | PENDING IMPLEMENTATION | Approved edit. | N/A |') },
+            @{ Name = 'pending implementation wrong status'; Expected = "PENDING IMPLEMENTATION requires AC status '[~]'"; Content = $base.Replace('| AC-1 | The feature works. | [x] | Run test. | Test passes. |', '| AC-1 | The feature works. | [ ] | Run test. | Test passes. |').Replace('| AC-1 | 2026-09-03 12:00 +08:00 | AUTO | PASS | Test passed; report/test.log. | completed |', '| AC-1 | 2026-09-03 12:00 +08:00 | EXECUTION | PENDING IMPLEMENTATION | Approved edit. | N/A |') },
+            @{ Name = 'arbitrary recovery state'; Expected = 'Invalid Mode B Recovery State'; Content = $base.Replace('| AC-1 | 2026-09-03 12:00 +08:00 | AUTO | PASS | Test passed; report/test.log. | completed |', '| AC-1 | 2026-09-03 12:00 +08:00 | AUTO | PASS | Test passed. | arbitrary |') },
+            @{ Name = 'failed evidence marked completed'; Expected = "Recovery State 'completed' requires settled PASS evidence"; Content = $base.Replace('| AC-1 | The feature works. | [x] | Run test. | Test passes. |', '| AC-1 | The feature works. | [~] | Run test. | Test passes. |').Replace('| AC-1 | 2026-09-03 12:00 +08:00 | AUTO | PASS | Test passed; report/test.log. | completed |', '| AC-1 | 2026-09-03 12:00 +08:00 | EXECUTION | FAIL | Failed. | completed |') },
+            @{ Name = 'pending evidence marked completed'; Expected = "Recovery State 'completed' requires settled PASS evidence"; Content = $base.Replace('| AC-1 | The feature works. | [x] | Run test. | Test passes. |', '| AC-1 | The feature works. | [~] | Run test. | Test passes. |').Replace('| AC-1 | 2026-09-03 12:00 +08:00 | AUTO | PASS | Test passed; report/test.log. | completed |', '| AC-1 | 2026-09-03 12:00 +08:00 | AUTO | PENDING IMPLEMENTATION | Pending. | completed |') },
+            @{ Name = 'unimplemented pass'; Expected = 'cannot have conclusion'; Content = $base.Replace('| AC-1 | The feature works. | [x] | Run test. | Test passes. |', '| AC-1 | The feature works. | [ ] | Run test. | Test passes. |').Replace('| AC-1 | 2026-09-03 12:00 +08:00 | AUTO | PASS | Test passed; report/test.log. | completed |', '| AC-1 | 2026-09-03 12:00 +08:00 | AUTO | PASS | Stale pass. | N/A |') },
+            @{ Name = 'partial blocked conclusion'; Expected = 'has incompatible conclusion'; Content = $base.Replace('| AC-1 | The feature works. | [x] | Run test. | Test passes. |', '| AC-1 | The feature works. | [~] | Run test. | Test passes. |').Replace('| AC-1 | 2026-09-03 12:00 +08:00 | AUTO | PASS | Test passed; report/test.log. | completed |', '| AC-1 | 2026-09-03 12:00 +08:00 | BLOCKED | BLOCKED | Blocked. | N/A |') },
+            @{ Name = 'duplicate unfinished series'; Expected = 'Duplicate unfinished Mode B series'; Content = $base.Replace('| AC-1 | The feature works. | [x] | Run test. | Test passes. |', "| AC-1 | The feature works. | [~] | Run test. | Test passes. |`n| AC-2 | Another feature works. | [~] | Run test. | Test passes. |").Replace('| AC-1 | 2026-09-03 12:00 +08:00 | AUTO | PASS | Test passed; report/test.log. | completed |', "| AC-1 | 2026-09-03 12:00 +08:00 | EXECUTION | FAIL | Failed. | series: MB-20260903-1; approach_ref: approved-chat; attempt: 1; limit: 3; kind: normal; state: failed |`n| AC-2 | 2026-09-03 12:00 +08:00 | EXECUTION | FAIL | Failed. | series: MB-20260903-1; approach_ref: approved-chat; attempt: 1; limit: 3; kind: normal; state: failed |") },
             @{ Name = 'malformed Mode B recovery'; Expected = 'Invalid Mode B Recovery State'; Content = $base.Replace('| AC-1 | The feature works. | [x] | Run test. | Test passes. |', '| AC-1 | The feature works. | [~] | Run test. | Test passes. |').Replace('| AC-1 | 2026-09-03 12:00 +08:00 | AUTO | PASS | Test passed; report/test.log. | completed |', '| AC-1 | 2026-09-03 12:00 +08:00 | EXECUTION | FAIL | Failed. | series: MB-bad; attempt: 1 |') },
             @{ Name = 'blocked Mode B recovery conclusion'; Expected = "requires current conclusion 'BLOCKED'"; Content = $base.Replace('| AC-1 | The feature works. | [x] | Run test. | Test passes. |', '| AC-1 | The feature works. | [!] [blocked] | Run test. | Test passes. |').Replace('| AC-1 | 2026-09-03 12:00 +08:00 | AUTO | PASS | Test passed; report/test.log. | completed |', '| AC-1 | 2026-09-03 12:00 +08:00 | EXECUTION | RECOVERY STATE | Third failure. | series: MB-20260903-1; approach_ref: approved-chat; attempt: 3; limit: 3; kind: normal; state: blocked |') },
-            @{ Name = 'Mode B failure wrong type'; Expected = "state failed requires current-evidence type 'EXECUTION'"; Content = $base.Replace('| AC-1 | The feature works. | [x] | Run test. | Test passes. |', '| AC-1 | The feature works. | [~] | Run test. | Test passes. |').Replace('| AC-1 | 2026-09-03 12:00 +08:00 | AUTO | PASS | Test passed; report/test.log. | completed |', '| AC-1 | 2026-09-03 12:00 +08:00 | AUTO | FAIL | Failed. | series: MB-20260903-1; approach_ref: approved-chat; attempt: 1; limit: 3; kind: normal; state: failed |') },
+            @{ Name = 'Mode B failure wrong type'; Expected = "state failed requires current-evidence type 'EXECUTION' or 'MANUAL'"; Content = $base.Replace('| AC-1 | The feature works. | [x] | Run test. | Test passes. |', '| AC-1 | The feature works. | [~] | Run test. | Test passes. |').Replace('| AC-1 | 2026-09-03 12:00 +08:00 | AUTO | PASS | Test passed; report/test.log. | completed |', '| AC-1 | 2026-09-03 12:00 +08:00 | AUTO | FAIL | Failed. | series: MB-20260903-1; approach_ref: approved-chat; attempt: 1; limit: 3; kind: normal; state: failed |') },
             @{ Name = 'Mode B failure wrong AC status'; Expected = 'Mode B state failed requires AC status'; Content = $base.Replace('| AC-1 | The feature works. | [x] | Run test. | Test passes. |', '| AC-1 | The feature works. | [ ] | Run test. | Test passes. |').Replace('| AC-1 | 2026-09-03 12:00 +08:00 | AUTO | PASS | Test passed; report/test.log. | completed |', '| AC-1 | 2026-09-03 12:00 +08:00 | EXECUTION | FAIL | Failed. | series: MB-20260903-1; approach_ref: approved-chat; attempt: 1; limit: 3; kind: normal; state: failed |') },
             @{ Name = 'Mode B transition marked pass'; Expected = "state authorized requires current conclusion 'RECOVERY STATE'"; Content = $base.Replace('| AC-1 | 2026-09-03 12:00 +08:00 | AUTO | PASS | Test passed; report/test.log. | completed |', '| AC-1 | 2026-09-03 12:00 +08:00 | EXECUTION | PASS | Authorized. | series: MB-20260903-1; approach_ref: approved-chat; attempt: 4; limit: 4; kind: guided; state: authorized |') },
             @{ Name = 'Mode B failed at limit'; Expected = 'state failed requires a positive pre-limit attempt'; Content = $base.Replace('| AC-1 | The feature works. | [x] | Run test. | Test passes. |', '| AC-1 | The feature works. | [~] | Run test. | Test passes. |').Replace('| AC-1 | 2026-09-03 12:00 +08:00 | AUTO | PASS | Test passed; report/test.log. | completed |', '| AC-1 | 2026-09-03 12:00 +08:00 | EXECUTION | FAIL | Third failure. | series: MB-20260903-1; approach_ref: approved-chat; attempt: 3; limit: 3; kind: normal; state: failed |') },
-            @{ Name = 'Mode B execution blocked before limit'; Expected = 'execution block requires attempt equal to limit'; Content = $base.Replace('| AC-1 | The feature works. | [x] | Run test. | Test passes. |', '| AC-1 | The feature works. | [!] [blocked] | Run test. | Test passes. |').Replace('| AC-1 | 2026-09-03 12:00 +08:00 | AUTO | PASS | Test passed; report/test.log. | completed |', '| AC-1 | 2026-09-03 12:00 +08:00 | EXECUTION | BLOCKED | Premature block. | series: MB-20260903-1; approach_ref: approved-chat; attempt: 1; limit: 3; kind: normal; state: blocked |') },
+            @{ Name = 'Mode B execution blocked before limit'; Expected = 'verification block requires attempt equal to limit'; Content = $base.Replace('| AC-1 | The feature works. | [x] | Run test. | Test passes. |', '| AC-1 | The feature works. | [!] [blocked] | Run test. | Test passes. |').Replace('| AC-1 | 2026-09-03 12:00 +08:00 | AUTO | PASS | Test passed; report/test.log. | completed |', '| AC-1 | 2026-09-03 12:00 +08:00 | EXECUTION | BLOCKED | Premature block. | series: MB-20260903-1; approach_ref: approved-chat; attempt: 1; limit: 3; kind: normal; state: blocked |') },
             @{ Name = 'Mode B blocked wrong AC status'; Expected = 'Mode B state blocked requires AC status'; Content = $base.Replace('| AC-1 | The feature works. | [x] | Run test. | Test passes. |', '| AC-1 | The feature works. | [ ] | Run test. | Test passes. |').Replace('| AC-1 | 2026-09-03 12:00 +08:00 | AUTO | PASS | Test passed; report/test.log. | completed |', '| AC-1 | 2026-09-03 12:00 +08:00 | BLOCKED | BLOCKED | Environment unavailable. | series: MB-20260903-1; approach_ref: approved-chat; attempt: 1; limit: 3; kind: normal; state: blocked |') },
             @{ Name = 'Mode B reset wrong attempt'; Expected = 'state reset requires attempt 0/3 with normal kind'; Content = $base.Replace('| AC-1 | The feature works. | [x] | Run test. | Test passes. |', '| AC-1 | The feature works. | [ ] | Run test. | Test passes. |').Replace('| AC-1 | 2026-09-03 12:00 +08:00 | AUTO | PASS | Test passed; report/test.log. | completed |', '| AC-1 | 2026-09-03 12:00 +08:00 | EXECUTION | RECOVERY STATE | Reset. | series: MB-20260903-1; approach_ref: approved-chat; attempt: 1; limit: 3; kind: normal; state: reset |') },
             @{ Name = 'Mode B transition terminal AC'; Expected = 'Mode B state reset requires AC status'; Content = $base.Replace('| AC-1 | The feature works. | [x] | Run test. | Test passes. |', '| AC-1 | The feature works. | [>] | Run test. | Test passes. |').Replace('| AC-1 | 2026-09-03 12:00 +08:00 | AUTO | PASS | Test passed; report/test.log. | completed |', '| AC-1 | 2026-09-03 12:00 +08:00 | EXECUTION | RECOVERY STATE | Reset. | series: MB-20260903-1; approach_ref: D-2; attempt: 0; limit: 3; kind: normal; state: reset |') },
+            @{ Name = 'Mode B pending manual wrong type'; Expected = "state pending-manual requires current-evidence type 'MANUAL'"; Content = $base.Replace('| AC-1 | The feature works. | [x] | Run test. | Test passes. |', '| AC-1 | The feature works. | [!] [manual] | Inspect UI. | UI is correct. |').Replace('| AC-1 | 2026-09-03 12:00 +08:00 | AUTO | PASS | Test passed; report/test.log. | completed |', '| AC-1 | 2026-09-03 12:00 +08:00 | EXECUTION | PENDING MANUAL | Awaiting user. | series: MB-20260903-1; approach_ref: approved-chat; attempt: 1; limit: 3; kind: normal; state: pending-manual |') },
+            @{ Name = 'Mode B at-limit resume'; Expected = 'state resumed requires an attempt below limit'; Content = $base.Replace('| AC-1 | The feature works. | [x] | Run test. | Test passes. |', '| AC-1 | The feature works. | [~] | Run test. | Test passes. |').Replace('| AC-1 | 2026-09-03 12:00 +08:00 | AUTO | PASS | Test passed; report/test.log. | completed |', '| AC-1 | 2026-09-03 12:00 +08:00 | EXECUTION | RECOVERY STATE | Invalid resume. | series: MB-20260903-1; approach_ref: approved-chat; attempt: 3; limit: 3; kind: normal; state: resumed |') },
             @{ Name = 'legacy EVD append'; Expected = 'must not append legacy EVD'; Content = $base.Replace('## Status Annotation Convention', "### EVD-20260903-1 - AC-1`n`nLegacy event.`n`n## Status Annotation Convention") },
             @{ Name = 'verification citation'; Expected = 'must contain only reusable verification'; Content = $base.Replace('| AC-1 | The feature works. | [x] | Run test. | Test passes. |', '| AC-1 | The feature works. | [x] | Run test. Evidence: EVD-20260903-1 | Test passes. |') }
         )
@@ -471,7 +547,8 @@ function Test-AcSchema3NegativeCases {
             Test-AcTemplateStructure $path 'en'
             $added = @()
             if ($failures.Count -gt $before) { $added = @($failures.GetRange($before, $failures.Count - $before)) }
-            if (-not ($added | Where-Object { $_ -like "*$($case.Expected)*" })) {
+            $expectedPattern = [regex]::Escape([string]$case.Expected)
+            if (-not ($added | Where-Object { $_ -match $expectedPattern })) {
                 $failures.Add("Schema 3 negative fixture '$($case.Name)' did not produce '$($case.Expected)'.")
             }
             if ($added.Count -gt 0) { $failures.RemoveRange($before, $added.Count) }
@@ -485,8 +562,22 @@ function Test-AcSchema3NegativeCases {
             @{ Name = 'redesign reset'; Content = $base.Replace('| AC-1 | The feature works. | [x] | Run test. | Test passes. |', '| AC-1 | The feature works. | [ ] | Run test. | Test passes. |').Replace('| AC-1 | 2026-09-03 12:00 +08:00 | AUTO | PASS | Test passed; report/test.log. | completed |', '| AC-1 | 2026-09-03 12:00 +08:00 | EXECUTION | RECOVERY STATE | New approach approved. | series: MB-20260903-2; approach_ref: D-2; attempt: 0; limit: 3; kind: normal; state: reset |') },
             @{ Name = 'cancelled before code'; Content = $base.Replace('| AC-1 | The feature works. | [x] | Run test. | Test passes. |', '| AC-1 | The feature works. | [ ] | Run test. | Test passes. |').Replace('| AC-1 | 2026-09-03 12:00 +08:00 | AUTO | PASS | Test passed; report/test.log. | completed |', '| AC-1 | 2026-09-03 12:00 +08:00 | EXECUTION | RECOVERY STATE | Cancelled before code. | series: MB-20260903-1; approach_ref: approved-chat; attempt: 0; limit: 3; kind: normal; state: cancelled |') },
             @{ Name = 'rejected with retained work'; Content = $base.Replace('| AC-1 | The feature works. | [x] | Run test. | Test passes. |', '| AC-1 | The feature works. | [~] | Run test. | Test passes. |').Replace('| AC-1 | 2026-09-03 12:00 +08:00 | AUTO | PASS | Test passed; report/test.log. | completed |', '| AC-1 | 2026-09-03 12:00 +08:00 | EXECUTION | RECOVERY STATE | Rejected with retained work. | series: MB-20260903-1; approach_ref: approved-chat; attempt: 1; limit: 3; kind: normal; state: rejected |') },
-            @{ Name = 'same-series resumption'; Content = $base.Replace('| AC-1 | The feature works. | [x] | Run test. | Test passes. |', '| AC-1 | The feature works. | [ ] | Run test. | Test passes. |').Replace('| AC-1 | 2026-09-03 12:00 +08:00 | AUTO | PASS | Test passed; report/test.log. | completed |', '| AC-1 | 2026-09-03 12:00 +08:00 | EXECUTION | RECOVERY STATE | Work resumed. | series: MB-20260903-1; approach_ref: approved-chat; attempt: 1; limit: 3; kind: normal; state: resumed |') }
+            @{ Name = 'same-series resumption'; Content = $base.Replace('| AC-1 | The feature works. | [x] | Run test. | Test passes. |', '| AC-1 | The feature works. | [ ] | Run test. | Test passes. |').Replace('| AC-1 | 2026-09-03 12:00 +08:00 | AUTO | PASS | Test passed; report/test.log. | completed |', '| AC-1 | 2026-09-03 12:00 +08:00 | EXECUTION | RECOVERY STATE | Work resumed. | series: MB-20260903-1; approach_ref: approved-chat; attempt: 1; limit: 3; kind: normal; state: resumed |') },
+            @{ Name = 'pending implementation'; Content = $base.Replace('| AC-1 | The feature works. | [x] | Run test. | Test passes. |', '| AC-1 | The feature works. | [~] | Run test. | Test passes. |').Replace('| AC-1 | 2026-09-03 12:00 +08:00 | AUTO | PASS | Test passed; report/test.log. | completed |', '| AC-1 | 2026-09-03 12:00 +08:00 | EXECUTION | PENDING IMPLEMENTATION | Approved edit persisted; implementation pending. | N/A |') },
+            @{ Name = 'pending manual normal'; Content = $base.Replace('| AC-1 | The feature works. | [x] | Run test. | Test passes. |', '| AC-1 | The feature works. | [!] [manual] | Inspect UI. | UI is correct. |').Replace('| AC-1 | 2026-09-03 12:00 +08:00 | AUTO | PASS | Test passed; report/test.log. | completed |', '| AC-1 | 2026-09-03 12:00 +08:00 | MANUAL | PENDING MANUAL | Awaiting user. | series: MB-20260903-1; approach_ref: approved-chat; attempt: 1; limit: 3; kind: normal; state: pending-manual |') },
+            @{ Name = 'pending manual guided'; Content = $base.Replace('| AC-1 | The feature works. | [x] | Run test. | Test passes. |', '| AC-1 | The feature works. | [!] [manual] | Inspect UI. | UI is correct. |').Replace('| AC-1 | 2026-09-03 12:00 +08:00 | AUTO | PASS | Test passed; report/test.log. | completed |', '| AC-1 | 2026-09-03 12:00 +08:00 | MANUAL | PENDING MANUAL | Awaiting guided check. | series: MB-20260903-1; approach_ref: approved-chat; attempt: 4; limit: 4; kind: guided; state: pending-manual |') },
+            @{ Name = 'normal manual failure'; Content = $base.Replace('| AC-1 | The feature works. | [x] | Run test. | Test passes. |', '| AC-1 | The feature works. | [~] | Inspect UI. | UI is correct. |').Replace('| AC-1 | 2026-09-03 12:00 +08:00 | AUTO | PASS | Test passed; report/test.log. | completed |', '| AC-1 | 2026-09-03 12:00 +08:00 | MANUAL | FAIL | User reported failure. | series: MB-20260903-1; approach_ref: approved-chat; attempt: 2; limit: 3; kind: normal; state: failed |') },
+            @{ Name = 'guided manual failure blocks'; Content = $base.Replace('| AC-1 | The feature works. | [x] | Run test. | Test passes. |', '| AC-1 | The feature works. | [!] [blocked] | Inspect UI. | UI is correct. |').Replace('| AC-1 | 2026-09-03 12:00 +08:00 | AUTO | PASS | Test passed; report/test.log. | completed |', '| AC-1 | 2026-09-03 12:00 +08:00 | MANUAL | BLOCKED | Guided user check failed. | series: MB-20260903-1; approach_ref: approved-chat; attempt: 4; limit: 4; kind: guided; state: blocked |') },
+            @{ Name = 'manual pass closes series'; Content = $base.Replace('| AC-1 | 2026-09-03 12:00 +08:00 | AUTO | PASS | Test passed; report/test.log. | completed |', '| AC-1 | 2026-09-03 12:00 +08:00 | MANUAL | PASS | User reported pass. | completed |') },
+            @{ Name = 'distinct unfinished series'; Content = $base.Replace('| AC-1 | The feature works. | [x] | Run test. | Test passes. |', "| AC-1 | The feature works. | [~] | Run test. | Test passes. |`n| AC-2 | Another feature works. | [~] | Run test. | Test passes. |").Replace('| AC-1 | 2026-09-03 12:00 +08:00 | AUTO | PASS | Test passed; report/test.log. | completed |', "| AC-1 | 2026-09-03 12:00 +08:00 | EXECUTION | FAIL | Failed. | series: MB-20260903-1; approach_ref: approved-chat; attempt: 1; limit: 3; kind: normal; state: failed |`n| AC-2 | 2026-09-03 12:00 +08:00 | EXECUTION | FAIL | Failed. | series: MB-20260903-2; approach_ref: approved-chat; attempt: 1; limit: 3; kind: normal; state: failed |").Replace('| Features | 1 | 1 | 0 | 0 | 0 | |', '| Features | 2 | 0 | 2 | 0 | 0 | |') }
         )
+        foreach ($case in $validCases) {
+            if ($case.Name -in @('at-limit block','external block before limit','pending manual normal','pending manual guided','guided manual failure blocks')) {
+                $case.Content = $case.Content.Replace('| Features | 1 | 1 | 0 | 0 | 0 | |', '| Features | 1 | 0 | 0 | 1 | 0 | |')
+            } elseif ($case.Name -notin @('distinct unfinished series','manual pass closes series')) {
+                $case.Content = $case.Content.Replace('| Features | 1 | 1 | 0 | 0 | 0 | |', '| Features | 1 | 0 | 1 | 0 | 0 | |')
+            }
+        }
         foreach ($case in $validCases) {
             $path = Join-Path $testRoot ("valid-" + ($case.Name -replace '[^a-z ]','' -replace ' ','-') + '.md')
             [IO.File]::WriteAllText($path, [string]$case.Content, [Text.UTF8Encoding]::new($false))
@@ -513,7 +604,7 @@ function Test-ImplementationPlanStructure {
     $frontMatter = Get-FrontMatter $Path
     if (-not $frontMatter.IsValid) { Add-StructuralFailure $Path 'Plan template must begin with closed YAML frontmatter'; return }
     if ($frontMatter.DuplicateKeys.Count -gt 0) { Add-StructuralFailure $Path "Plan frontmatter contains duplicate keys: $($frontMatter.DuplicateKeys -join ', ')" }
-    $requiredFields = @('template','schema','plan_id','project','status','pause_reason','mode','created','updated','code_root','worktree_id','branch','baseline_commit','active_tasks','target_acs','approach_ref','scope_decision_ids')
+    $requiredFields = @('template','schema','plan_id','project','status','pause_reason','mode','created','updated','code_root','worktree_id','branch','baseline_commit','supersedes_plan','active_tasks','target_acs','approach_ref','scope_decision_ids')
     foreach ($field in $requiredFields) {
         if (-not $frontMatter.Values.ContainsKey($field)) { Add-StructuralFailure $Path "Plan frontmatter is missing identity/recovery field '$field'" }
     }
@@ -522,9 +613,10 @@ function Test-ImplementationPlanStructure {
     if ($frontMatter.Values['status'] -ne 'active') { Add-StructuralFailure $Path 'A new persistent plan template must start with status: active' }
     if ($frontMatter.Values['mode'] -ne 'A') { Add-StructuralFailure $Path 'Persistent plan template must use Mode A' }
     if ($frontMatter.Values['active_tasks'] -ne '[]') { Add-StructuralFailure $Path 'A new plan must start with active_tasks: [] until PLAN-1 becomes in_progress' }
-    foreach ($field in @('plan_id','project','status','pause_reason','created','updated','code_root','worktree_id','branch','baseline_commit','approach_ref')) {
+    foreach ($field in @('plan_id','project','status','pause_reason','created','updated','code_root','worktree_id','branch','baseline_commit','supersedes_plan','approach_ref')) {
         if ($frontMatter.Values.ContainsKey($field) -and [string]::IsNullOrWhiteSpace($frontMatter.Values[$field])) { Add-StructuralFailure $Path "Plan frontmatter field '$field' must not be empty" }
     }
+    if ($frontMatter.Values['supersedes_plan'] -ne 'N/A') { Add-StructuralFailure $Path 'A new ordinary plan must start with supersedes_plan: N/A' }
     $targetAcIds = @(Get-FrontMatterList $Path 'target_acs')
     foreach ($syntaxError in @(Get-FrontMatterListSyntaxErrors $Path 'target_acs')) { Add-StructuralFailure $Path "Plan target_acs has invalid YAML list syntax at $syntaxError" }
     if ($targetAcIds.Count -lt 1) { Add-StructuralFailure $Path 'Plan target_acs must contain at least one AC ID' }
@@ -623,7 +715,8 @@ function Test-ImplementationPlanStructure {
     }
     if ($content -notmatch '(?m)^-\s+\*\*Active tasks:\*\*\s+N/A\s*$') { Add-StructuralFailure $Path 'A new plan Recovery State must start with Active tasks: N/A' }
     if ($content -notmatch '(?m)^-\s+\*\*Local commits / COMMIT-BLOCKED / COMMIT-SKIPPED / COMMIT-REVIEW-REQUIRED:\*\*') { Add-StructuralFailure $Path 'Plan Final Record must represent every checkpoint outcome' }
-    if ($content -notmatch '(?m)^-\s+\*\*Current evidence:\*\*') { Add-StructuralFailure $Path 'Plan Final Record must point to current evidence' }
+    if ($content -notmatch '(?m)^-\s+\*\*Acceptance record:\*\*\s+`AC\.md`') { Add-StructuralFailure $Path 'Plan Final Record must point to AC.md' }
+    if ($content -match '(?m)^-\s+\*\*(?:Final AC outcomes|Current evidence):\*\*') { Add-StructuralFailure $Path 'Plan Final Record must not copy AC outcomes or current evidence' }
     if ($content -notmatch '(?m)^-\s+\*\*Project capsule update:\*\*') { Add-StructuralFailure $Path 'Plan Final Record must record the project-capsule update outcome' }
 }
 
@@ -757,7 +850,7 @@ function Test-WorkflowTransitionFixtures {
         $failures.Add("Workflow transition fixtures are invalid JSON: $($_.Exception.Message)")
         return
     }
-    $requiredScenarios = @('blocked-redesign','pre-approval-cancel','post-persistence-cancel','delegate-cancel','active-plan-reentry','paused-plan-restart','active-plan-conflict','manual-pass','mode-b-recovery','mode-b-cancel-restart','test-first-red','blocked-subset-review','blocked-alternate-path','guided-retry-status','mode-a-redesign-plan','guided-mode-transition','external-environment-block','cleared-environment-block','mode-a-to-b-handoff','mode-a-to-b-interruption-recovery','post-approval-rejection','global-experience-session','project-capsule-work-unit','project-capsule-bootstrap','project-capsule-completion','project-capsule-seed-source','project-experience-explicit-only','agent-handoff-active-plan','agent-handoff-latest-completed','layered-ac-reading','conditional-template-reading','conditional-implementation-reference','mode-b-same-series-retry','mode-b-phase6-recovery','mode-b-blocked-conclusion','paused-plan-owner','risk-based-mode-selection')
+    $requiredScenarios = @('blocked-redesign','pre-approval-cancel','post-persistence-cancel','delegate-cancel','active-plan-reentry','paused-plan-restart','active-plan-conflict','manual-pass','mode-b-manual-pending','mode-b-recovery','mode-b-cancel-restart','test-first-red','blocked-subset-review','blocked-alternate-path','guided-retry-status','mode-a-redesign-plan','guided-mode-transition','external-environment-block','cleared-environment-block','mode-a-to-b-handoff','mode-a-to-b-interruption-recovery','post-approval-rejection','global-experience-session','project-capsule-work-unit','project-capsule-bootstrap','project-capsule-completion','project-capsule-seed-source','project-experience-explicit-only','agent-handoff-active-plan','agent-handoff-latest-completed','layered-ac-reading','conditional-template-reading','conditional-implementation-reference','mode-b-same-series-retry','mode-b-phase6-recovery','mode-b-blocked-conclusion','paused-plan-owner','risk-based-mode-selection','approved-plan-supersession','approved-plan-supersession-recovery','mode-b-to-a-attempt-import','manual-ready-work-drain','completed-plan-identity','missing-cache-read-only-fallback','capsule-refresh-provenance')
     $actualScenarios = @($cases | ForEach-Object { $_.scenario })
     foreach ($scenario in $requiredScenarios) {
         if (@($actualScenarios | Where-Object { $_ -eq $scenario }).Count -lt 1) { $failures.Add("Workflow fixtures must define at least one '$scenario' contract case.") }
@@ -818,8 +911,8 @@ Require-ClauseTerms $add @('new Agent/session','_exp_memory.md','once','Do not r
 Require-ClauseTerms $add @('$DOC_HUB/<ProjectName>/_<ProjectName>_exp.md','start of every independent ADD work unit','read','once') 'ADD must read the project-specific capsule once per work unit.'
 Require-ClauseTerms $add @('capsule is absent','at most three','global cache already read','create') 'ADD must initialize a missing project capsule from the current session cache read.'
 Require-ClauseTerms $add @('flat list','at most 12','difficult','non-obvious','verified lessons','source plan') 'ADD must keep project experience bounded and evidence-based.'
-Require-ClauseTerms $add @('Experience content changes only after','Mode A','completed','Mode B','never add lessons') 'ADD must update project lessons only after completed Mode A plans.'
-Require-ClauseTerms $add @('latest_completed_plan','updated after each completed Mode A plan','no lesson changes') 'ADD must maintain the latest completed-plan pointer independently of lesson changes.'
+Require-ClauseTerms $add @('Experience content changes only after','successfully completed','non-superseded Mode A plan','Mode B','never add lessons') 'ADD must update project lessons only after successful Mode A plans.'
+Require-ClauseTerms $add @('latest_completed_plan','updated after each such plan','no lesson changes') 'ADD must maintain the latest successful completed-plan pointer independently of lesson changes.'
 Require-Match $designExploration 'Design Decision Handoff' 'ADD design exploration must produce a bounded decision handoff.'
 Require-Match $designExploration 'one final combined approval' 'Large Phase 3.5B design and AC scope must end with one final combined approval after incremental review.'
 Require-Match $designExploration 'Do not present a complete design or any proposed AC row while a material decision remains unanswered' 'Design exploration must not skip unresolved material questions by drafting the whole design or AC delta.'
@@ -1147,6 +1240,9 @@ $projectDocAsset = Join-Path $ReleaseRoot 'skills\acceptance-driven-development\
 $projectCapsuleAsset = Join-Path $ReleaseRoot 'skills\acceptance-driven-development\assets\project-experience-capsule-template.md'
 $projectCapsuleAssetZh = Join-Path $ReleaseRoot 'skills\acceptance-driven-development\assets\project-experience-capsule-template-zh.md'
 $projectIndexAsset = Join-Path $ReleaseRoot 'skills\acceptance-driven-development\assets\project-index.md'
+$acTemplate = Join-Path $ReleaseRoot 'projects\templates\ac-template.md'
+$acTableCssTemplate = Join-Path $ReleaseRoot 'projects\templates\ac-document-tables.css'
+$projectDocTemplate = Join-Path $ReleaseRoot 'projects\templates\project-doc-template.md'
 $projectIndexTemplate = Join-Path $ReleaseRoot 'projects\templates\project-index.md'
 $workflowFixtures = Join-Path $ReleaseRoot 'tests\fixtures\workflow-transitions.json'
 $addLineCount = (Get-Content -LiteralPath $add -Encoding utf8).Count
@@ -1181,6 +1277,7 @@ foreach ($referenceFile in @($guardrailsRef, $changeGuideRef, $frameworkReviewRe
     if (-not (Test-Path -LiteralPath $referenceFile)) { $failures.Add("Missing ADD compression reference: $referenceFile") }
 }
 Require-Match $add 'FIRST RULE' 'ADD main skill must retain FIRST RULE.'
+Require-ClauseTerms $add @('description: Use when','acceptance criteria','done conditions') 'ADD discovery metadata must retain direct acceptance-definition triggers.'
 Require-Match $add 'Phase 3\.5A: Approved Backlog Entry' 'ADD main skill must retain Phase 3.5A.'
 Require-Match $add 'Phase 3\.5B: Mid-Development Requirement Changes' 'ADD main skill must retain Phase 3.5B.'
 Require-Match $add 'Review checklist \(6 items' 'ADD main skill must retain six-point review.'
@@ -1270,15 +1367,20 @@ Require-Match $recoveryRef 'three consecutive fail' 'Task failures must use the 
 Require-ClauseTerms $recoveryRef @('Mode A counts per','PLAN-N','Mode B counts per target AC','target') 'Failure counters must use explicit mode-specific units.'
 Require-ClauseTerms $recoveryRef @('three consecutive failed cycles','Mode A removes the task','Mode B marks the target','[!] [blocked]','current evidence') 'The three-cycle boundary must define separate Mode A and Mode B block transitions.'
 Require-ClauseTerms $recoveryRef @('one active plan','Agent Handoff','current evidence','git status','recent local commits','diff','identity','ancestry') 'Cross-session recovery must reconcile AC, plan, and Git evidence.'
+Require-ClauseTerms $recoveryRef @('completed-plan','code_root','worktree_id','branch','baseline_commit','mismatched','historical context') 'Completed-plan handoff must verify repository identity before it is read.'
 Require-ClauseTerms $recoveryRef @('Mode B has no persistent plan','latest Git commit','target AC','current evidence','Recovery State','approach_ref','repository diff') 'Mode B recovery must identify persisted state and approach sources.'
 Require-ClauseTerms $recoveryRef @('cannot be reconstructed confidently','preserve AC scope/tree','Phase 3.5B','approach confirmation') 'Mode B recovery must not guess a lost approved approach.'
 Require-ClauseTerms $recoveryRef @('three-failure block','one additional guided attempt','same series','attempt: 4','limit: 4') 'Guided recovery must retain its bounded extra attempt.'
 Require-ClauseTerms $recoveryRef @('approved material redesign','[!] [blocked]','[ ]','no retained implementation','[~]','implementation remains','new series','attempt: 0','state: reset') 'Failure recovery must define persisted redesign state and conditional AC transitions.'
+Require-ClauseTerms $recoveryRef @('exactly one recovery task','each unfinished Mode B target series','task Attempt','row''s locator','re-read','limit','kind','series identity','new task','attempt: 0','Never merge','copy the tuple') 'Mode B to Mode A recovery must preserve target-specific attempt state without copying AC evidence.'
+Require-ClauseTerms $recoveryRef @('approved for replacement','status: paused','awaiting-approved-supersession','supersedes_plan','every unsettled target','old executable tasks','superseded','status: completed','superseded-by-approved-plan','sole owner','never reopened') 'Approved supersession must preserve exactly one recoverable plan owner at every step.'
 Require-ClauseTerms $recoveryRef @('On cancellation','every delegate','stop new writes','wait for/drain','preserves tree/index/commits') 'Cancellation must preserve user and repository state by default.'
 Require-Match $implementationRef 'COMMIT-BLOCKED' 'Unsafe local commits must report COMMIT-BLOCKED.'
 Require-Match $implementationRef 'stage only Agent-owned paths or safely separable hunks' 'Local commits must isolate Agent-owned changes.'
 Require-Match $implementationRef 'Never use broad staging such as `git add -A`' 'Local commits must forbid broad staging with unrelated changes.'
 Require-Match $implementationRef 'index is pre-populated.*merge/rebase/cherry-pick is active' 'Local commits must block on unsafe index or repository operation state.'
+Require-ClauseTerms $experience @('bounded, read-only fallback','at most two','do not write or block') 'Missing experience cache must degrade to bounded read-only research.'
+Require-ClauseTerms $experience @('project-earned entries','source plan exists','completed','superseded-by-*','exclude `_exp_memory.md` seeds') 'Cache refresh must use successful project-capsule sources without ingesting global seeds.'
 Require-Match $implementationRef 'COMMIT-SKIPPED: user instruction' 'Explicit user no-commit instructions must override automatic checkpoints.'
 Require-ClauseTerms $implementationRef @('MANUAL','may commit','Agent checks','remaining','[!] [manual]') 'MANUAL work must permit a local checkpoint before user verification.'
 Require-ClauseTerms $implementationRef @('Checkpoint','complete AC/related group','defer','later tasks remain') 'Local checkpoints must not split an incomplete AC across commits.'
@@ -1295,8 +1397,18 @@ foreach ($exampleAc in $exampleAcFiles) {
     $exampleLanguage = if ((Get-Content -Raw -LiteralPath $exampleAc.FullName -Encoding utf8) -match '验收标准') { 'zh' } else { 'en' }
     Test-AcTemplateStructure $exampleAc.FullName $exampleLanguage
 }
-if (-not (Test-Path -LiteralPath $projectIndexTemplate)) { $failures.Add('Missing manual project-index template.') }
-elseif ((Get-FileHash -LiteralPath $projectIndexAsset -Algorithm SHA256).Hash -ne (Get-FileHash -LiteralPath $projectIndexTemplate -Algorithm SHA256).Hash) { $failures.Add('Installable and manual project-index templates must be identical.') }
+$templateMirrors = @(
+    @{ Installable = $acAsset; Manual = $acTemplate; Name = 'ac-template' },
+    @{ Installable = $acTableCss; Manual = $acTableCssTemplate; Name = 'ac-document-tables' },
+    @{ Installable = $projectDocAsset; Manual = $projectDocTemplate; Name = 'project-doc-template' },
+    @{ Installable = $projectIndexAsset; Manual = $projectIndexTemplate; Name = 'project-index' }
+)
+foreach ($mirror in $templateMirrors) {
+    if (-not (Test-Path -LiteralPath $mirror.Manual)) { $failures.Add("Missing manual $($mirror.Name) template.") }
+    elseif ((Get-FileHash -LiteralPath $mirror.Installable -Algorithm SHA256).Hash -ne (Get-FileHash -LiteralPath $mirror.Manual -Algorithm SHA256).Hash) {
+        $failures.Add("Installable and manual $($mirror.Name) templates must be identical.")
+    }
+}
 foreach ($indexFile in @($projectIndexAsset, $projectIndexTemplate)) {
     Require-Match $indexFile 'FROM ""' 'Project index must discover project documents regardless of hub folder name.'
     Require-Match $indexFile 'template = "project-doc"' 'Project index must select project-document frontmatter.'
@@ -1318,7 +1430,8 @@ Require-ClauseTerms $implementationRef @('explicit restart','paused plans','same
 Require-ClauseTerms $recoveryRef @('After approved AC persistence','before Agent code','new targets','[ ]','edited/resumed targets','persisted') 'Cancellation before code must preserve newly approved and edited AC states.'
 Require-ClauseTerms $implementationRef @('plan matches','status: active','worktree','branch','baseline_commit','target_acs','approach_ref','Reuse') 'Active-plan re-entry must match identity, baseline, and approved approach before reuse.'
 Require-ClauseTerms $implementationRef @('scope_decision_ids','may be','[]','legacy backlog','not an implementation-approach identifier') 'Legacy plans must allow no DEC without confusing scope decisions with approach identity.'
-Require-ClauseTerms $add @('AC-N passed','current-evidence row','[x]') 'MANUAL pass must persist current evidence before marking the AC verified.'
+Require-ClauseTerms $add @('MANUAL','state: pending-manual','AC-N passed','PASS','Mode B','completed','only then mark','[x]') 'MANUAL pass must persist evidence and close Mode B recovery before marking the AC verified.'
+Require-ClauseTerms $recoveryRef @('MANUAL handoff','creates or retains','series','MANUAL / PENDING MANUAL / state: pending-manual','failure uses `MANUAL`','advances normal series','blocks guided series','4/4','without increment') 'Mode B manual verification must preserve and advance its bounded series.'
 Require-ClauseTerms $recoveryRef @('Expected','TEST-FIRST','red','do not count') 'An expected TEST-FIRST red result must not increment the failure counter.'
 Require-NoMatch $recoveryRef '(?i)expected.{0,80}TEST-FIRST.{0,80}red.{0,80}(?<!not )counts? as (?:a )?fail' 'ADD must not contain a contradictory rule that counts expected TEST-FIRST red as failure.'
 Require-ClauseTerms $recoveryRef @('newly discovered risk or impact','Mode B recovery','enter Mode A','same approved approach','import the attempt state','three new tries') 'Mode B recovery must preserve attempt state when a discovered mandatory risk escalates it to Mode A.'
@@ -1330,7 +1443,7 @@ Require-ClauseTerms $recoveryRef @('approved material redesign','Mode B then rep
 Require-ClauseTerms $recoveryRef @('User guidance','same series','current evidence','attempt: 4','limit: 4','kind: guided','state: authorized') 'Guided Mode B recovery must persist its one-extra-attempt boundary.'
 Require-ClauseTerms $recoveryRef @('User guidance','blocked AC','[ ]','no retained implementation','[~]','implementation remains','Mode A','pending','attempt 4/4') 'Guided recovery must reactivate both AC status branches without resetting Mode A attempts.'
 Require-ClauseTerms $recoveryRef @('selection remains Mode A','sole active plan','update','approach_ref','pending','attempt 0','moves Mode A to Mode B','pause_reason: superseded-by-mode-b','never run both modes concurrently') 'Material redesign must preserve one Mode A owner or pause it before Mode B.'
-Require-ClauseTerms $recoveryRef @('For Mode B','EXECUTION','RECOVERY STATE','state: cancelled','no plan','active_tasks','explicit restart','state: resumed','without resetting attempts') 'Mode B cancellation must persist and explicitly resume recovery state.'
+Require-ClauseTerms $recoveryRef @('For Mode B','blocked at its failure limit','stays blocked','EXECUTION / RECOVERY STATE','state: cancelled','no plan','active_tasks','Explicit restart','state: resumed','normal attempts','below 3','authorized guided','4/4') 'Mode B cancellation must preserve the failure limit and explicitly resume only executable state.'
 Require-ClauseTerms $recoveryRef @('three consecutive failed cycles','Mode A removes the task','active_tasks','blocked') 'Blocked Mode A tasks must leave active_tasks.'
 Require-ClauseTerms $recoveryRef @('another task','freshly verifies every AC','old task','superseded','evidence','otherwise','remains blocked') 'An alternate verified path must settle or retain the original blocked task explicitly.'
 Require-ClauseTerms $add @('failed affected AUTO AC','either mode','regression','repair or defer','Phase 3.5A','Phase 3.5B','explicit confirmation') 'Affected AUTO regressions need one mode-independent repair/deferral path.'
@@ -1339,8 +1452,8 @@ Require-ClauseTerms $add @('[ ]','[~]','state: cancelled','state: rejected','exp
 Require-ClauseTerms $add @('Unfinished Mode B','Phase 1/3.5A','mode/attempt','failed','[~]','authorized','reset','resumed','[ ]','Other triaged','Mode A') 'Phase 6 must preserve Mode B recovery instead of routing every remaining empty marker to Mode A.'
 Require-ClauseTerms $recoveryRef @('shared failure','Mode B target once','Mode A task once','never multiplies') 'Shared failures must increment each affected counter only once per cycle.'
 Require-ClauseTerms $recoveryRef @('unavailable required environment/tool','external block','not a failed cycle','BLOCKED','active_tasks','without incrementing','independent work') 'External environment blocks must settle active task state without consuming a failed attempt.'
-Require-ClauseTerms $recoveryRef @('condition clears','same approach','Mode A','pending','attempt/evidence unchanged','Mode B','same-series','state: resumed','Phase 3.5A','prior attempt/guided state','rather than resetting') 'Cleared environment blocks must restore executable task state without resetting Mode B history.'
-Require-ClauseTerms $recoveryRef @('moves Mode A to Mode B','stop new writes','delegate','wait for/drain','first persisted plan change','status: paused','pause_reason: superseded-by-mode-b','before that marker','task states','active_tasks','After the marker','ownership handback','completed','active') 'Mode A to Mode B redesign must persist transition ownership before mutating task state, then deterministically hand it back or close it.'
+Require-ClauseTerms $recoveryRef @('condition clears','Phase 5','Mode A deletes old BLOCKED evidence','[ ]','PENDING IMPLEMENTATION','[~]','plan-task attempt/evidence','pending','Mode B','same-series','state: resumed','Phase 3.5A','imports') 'Cleared environment blocks must restore legal AC evidence and task state without resetting recovery history.'
+Require-ClauseTerms $recoveryRef @('moves Mode A to Mode B','stop new writes','delegate','wait for/drain','first persisted plan change','status: paused','pause_reason: superseded-by-mode-b','before that marker','task states','active_tasks','After the marker','ownership handback','keeps the pause marker','completed','clears `pause_reason`','active') 'Mode A to Mode B redesign must persist transition ownership and clear transition intent only when active ownership returns.'
 Require-ClauseTerms $recoveryRef @('superseded-by-mode-b','Reconcile','First complete','plan-side handoff','idempotently','in_progress','pending','Mode-B-owned','superseded','current evidence','clear `active_tasks`','approach_ref','pause marker','missing reset','unfinished Mode B','ownership handback','Do not use latest-completed fallback','create a replacement') 'Interrupted Mode A to Mode B transitions must idempotently normalize and reconcile one durable owner.'
 Require-ClauseTerms $recoveryRef @('Rejection after approval','does not count as a failed cycle','state: rejected','Explicit restart','state: resumed','without resetting attempts') 'Post-approval rejection must persist a distinct recoverable state without consuming an attempt.'
 Require-ClauseTerms $add @('implementation subset being settled','[!] [blocked]','independent target','Phase 5') 'Phase 4.8 must allow independent implemented targets to settle while another target remains blocked.'
@@ -1364,7 +1477,7 @@ foreach ($englishTemplate in @($acAsset, $acTemplate)) {
     Require-ClauseTerms $englishTemplate @('AC ID','unique key','at most once','Update','do not append verification history') 'English current evidence must overwrite by AC ID.'
     Require-ClauseTerms $englishTemplate @('[x]','current','PASS','[!]','[~]','recovery state') 'English current evidence must link acceptance status to current conclusions.'
     Require-ClauseTerms $englishTemplate @('Mode B','series','approach','attempt','limit','kind','state') 'English current evidence must carry Mode B recovery metadata.'
-    Require-Match $englishTemplate ([regex]::Escape('series: MB-YYYYMMDD-N; approach_ref: <ref>; attempt: N; limit: 3|4; kind: normal|guided; state: failed|blocked|authorized|reset|cancelled|rejected|resumed')) 'English current evidence must show the exact ordered Mode B Recovery State tuple.'
+    Require-Match $englishTemplate ([regex]::Escape('series: MB-YYYYMMDD-N; approach_ref: <ref>; attempt: N; limit: 3|4; kind: normal|guided; state: failed|blocked|authorized|reset|cancelled|rejected|resumed|pending-manual')) 'English current evidence must show the exact ordered Mode B Recovery State tuple.'
     Require-NoMatch $englishTemplate 'EVD-<YYYYMMDD>-<N>|Evidence:\s*EVD-' 'Schema 3 English templates must not retain EVD IDs or citations.'
     Require-Match $englishTemplate '## 🧭 Scope Decision Log' 'Every English AC template must use the scope-decision icon.'
     Require-ClauseTerms $englishTemplate @('How to Verify','only','reusable command','manual steps') 'English verification cells must retain only reusable actions.'
@@ -1376,7 +1489,7 @@ Require-Match $acAssetZh 'AC ID.*最近验证.*类型.*当前结论.*实际结�
 Require-ClauseTerms $acAssetZh @('AC ID','唯一键','最多','更新','不追加验证历史') 'Chinese current evidence must overwrite by AC ID.'
 Require-ClauseTerms $acAssetZh @('[x]','当前','PASS','[!]','[~]','恢复状态') 'Chinese current evidence must link acceptance status to current conclusions.'
 Require-ClauseTerms $acAssetZh @('Mode B','series','approach','attempt','limit','kind','state') 'Chinese current evidence must carry Mode B recovery metadata.'
-Require-Match $acAssetZh ([regex]::Escape('series: MB-YYYYMMDD-N; approach_ref: <ref>; attempt: N; limit: 3|4; kind: normal|guided; state: failed|blocked|authorized|reset|cancelled|rejected|resumed')) 'Chinese current evidence must show the exact ordered Mode B Recovery State tuple.'
+Require-Match $acAssetZh ([regex]::Escape('series: MB-YYYYMMDD-N; approach_ref: <ref>; attempt: N; limit: 3|4; kind: normal|guided; state: failed|blocked|authorized|reset|cancelled|rejected|resumed|pending-manual')) 'Chinese current evidence must show the exact ordered Mode B Recovery State tuple.'
 Require-NoMatch $acAssetZh 'EVD-<YYYYMMDD>-<N>|证据：\s*EVD-' 'Schema 3 Chinese templates must not retain EVD IDs or citations.'
 Require-Match $acAssetZh '## 🧭 范围决策记录' 'Chinese AC template must use the scope-decision icon.'
 Require-ClauseTerms $acAssetZh @('验证方式','只保留','可复用命令','人工步骤') 'Chinese verification cells must retain only reusable actions.'

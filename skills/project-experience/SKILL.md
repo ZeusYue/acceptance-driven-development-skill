@@ -35,7 +35,7 @@ Cache presence helps fallback discovery but never overrides a valid pointer or p
 
 ### Explicit research
 
-Read `$DOC_HUB/_exp_memory.md` once. A valid Schema 2 cache goes directly to matching. A missing or invalid cache may be rebuilt from project documents only when the user's request authorizes that work.
+Read `$DOC_HUB/_exp_memory.md` once. A valid Schema 2 cache goes directly to matching. A missing or invalid cache may be rebuilt from project documents only when the user's request authorizes that work. Otherwise use a bounded, read-only fallback: inspect at most two directly matched project documents, report that cache-backed matching was unavailable, and do not write or block the research.
 
 **Legacy cache fallback:** A cache without Schema 2 frontmatter remains readable when it has non-empty `Known Pitfalls` and `Reusable Patterns` sections. Match it by keywords, report that provenance metadata is unavailable, and do not rewrite it without an explicit refresh request.
 
@@ -64,8 +64,9 @@ Keep `$DOC_HUB` fixed and preserve the old cache until replacement validates.
 2. Read frontmatter for every project document: project, tags, status, date, and modification time.
 3. Match relevant projects by technology, domain, architecture, and reusable pattern.
 4. Read at most two project documents fully. For others, target Tech Stack, Key Dependencies, Reusable Patterns, Technical Debt/Risks, Edge Cases, and Testing.
-5. Distill only evidence-backed pitfalls, patterns, and non-default conventions.
-6. Render, validate, and atomically replace the global cache.
+5. Read a matching `_<ProjectName>_exp.md` only for project-earned entries whose cited source plan exists, is `completed`, and has no `superseded-by-*` pause reason; exclude `_exp_memory.md` seeds so the cache cannot ingest itself.
+6. Distill only evidence-backed pitfalls, patterns, and non-default conventions.
+7. Render, validate, and atomically replace the global cache.
 
 ## Development-project evidence gate
 

@@ -18,11 +18,11 @@ Plan status: `active`, `paused`, or `completed`. Inspect `plans/` first.
 A plan matches only when `status: active`, root/worktree/branch match, `baseline_commit` is a `HEAD` ancestor, `target_acs` covers targets, and `approach_ref` identifies approval.
 `scope_decision_ids` may be `[]` for legacy backlog/no DEC; it is not an implementation-approach identifier.
 Reconcile/reuse it; never reopen `completed`.
-Explicit restart matches paused plans by the same identity, AC, approach, and baseline.
+Explicit restart matches paused plans by the same identity, AC, approach, and baseline. A completed-plan handoff is usable only when its root/worktree/branch and baseline match the current repository; otherwise use it as historical context, not as a recovery owner.
 If exactly one matches without conflict, reconcile it, clear `pause_reason`, and set it `active`; otherwise stop before code and never create a replacement.
 
-Before creating a plan, scan paused plan frontmatter for target-AC overlap. A `user-cancelled` or `user-rejected` owner blocks replacement until explicit matched restart or an approved supersession reconciles that plan; never bypass it with a new plan.
-A paused `superseded-by-mode-b:<approach_ref>` owner is transition state, not a user pause. Reconcile it through the recovery reference before selecting or creating any plan.
+Before creating a plan, scan paused plan frontmatter for target-AC overlap. A `user-cancelled` or `user-rejected` owner blocks replacement until explicit matched restart or an approved supersession reconciles that plan; never bypass it with a new plan. Approved supersession must persist the old owner terminal before the replacement becomes active.
+A paused `superseded-by-mode-b:<approach_ref>` or `awaiting-approved-supersession:<old-plan-id>` plan is transition state, not a user pause. Reconcile it through the recovery reference before selecting or creating any plan.
 
 With no match, copy the asset to `YYYY-MM-DD-<topic>-implementation.md` with the next unused suffix.
 If multiple plans match or another active plan claims overlapping ACs, stop before code and reconcile one owner; do not select by modification time.
@@ -33,7 +33,7 @@ Every executable `PLAN-N` contains:
 `Status | AC mapping | Depends on | Files | Interfaces | Steps | Test strategy | Verification | Review | Commit | Evidence`
 
 Task status is `pending`, `in_progress`, `verified`, `blocked`, or evidence-backed `superseded`.
-Record identity, baseline, `active_tasks`, targets, mapping, constraints. `approach_ref` uses design/D-N, approved-chat, or `legacy-approved-backlog:<AC IDs>`; DEC is insufficient.
+Record identity, baseline, `supersedes_plan`, `active_tasks`, targets, mapping, constraints. `approach_ref` uses design/D-N, approved-chat, or `legacy-approved-backlog:<AC IDs>`; DEC is insufficient.
 Map every task/target AC. `active_tasks` has multiple IDs only for non-overlapping work.
 
 Every plan starts with **Agent Handoff** containing exactly `Goal`, `Implemented`, `Verification`, `Last safe commit`, `Unresolved`, and `Worktree notes`. Keep it concise and update it at task boundaries, pause, and completion. Record only project lessons that materially constrain this plan under Constraints; do not copy the capsule.
@@ -58,7 +58,7 @@ For each ready task or explicit parallel set:
 3. Implement mapped scope; update discovered files, dependencies, commands, or minor steps.
 4. Run verification and record evidence. Skipped/unavailable checks are not passes.
 5. Independently review high-risk work when available, otherwise self-review. Complete Phase 4.8; blocks do not stop independent targets.
-6. After implementation, Agent verification, and review pass, mark `verified` and remove from `active_tasks`; AC status is unchanged.
+6. After implementation, Agent verification, and review pass, mark `verified` and remove from `active_tasks`; AC status is unchanged. Before a MANUAL handoff, finish all ready tasks that do not depend on its result.
 7. Checkpoint a complete AC/related group; defer when later tasks remain. Continue without user permission.
 
 Material scope/behavior/solution change returns to Phase 3.5B; record in-scope corrections and continue.
@@ -93,9 +93,9 @@ On a failed cycle, external block, interrupted session, cancellation/rejection, 
 
 ## Completion and retention
 
-When no task is `pending`/`in_progress` and `active_tasks` is empty, record final AC outcomes, current evidence, commits/reports, approved deviations, and technical debt. Update Agent Handoff before changing plan status.
+When no task is `pending`/`in_progress` and `active_tasks` is empty, record the `AC.md` path and target IDs, commits/reports, approved deviations, and technical debt; never copy AC outcomes or current evidence. Update Agent Handoff before changing plan status.
 A `user-cancelled` or `user-rejected` plan remains paused until explicit matched restart. A `superseded-by-mode-b` plan participates automatically in recovery and follows ownership handback.
 Otherwise keep it active while required blocked work maps to an unsettled AC. Set `completed` only when tasks are `verified`/`superseded`, or each remaining block maps to an explicitly deferred/deprecated AC; AC completion still follows Phases 5/6.
-Permanently retain completed plans under the project `plans/` directory. Update the project capsule's `latest_completed_plan` after completion; add or merge lessons only when they meet the capsule admission rule.
+Permanently retain completed plans under `plans/`. Update the capsule's `latest_completed_plan` only after non-superseded completion; add or merge lessons only when they meet its admission rule.
 
 Update the living project document only with durable architecture, dependency, concurrency, persistence, build, or deployment facts. Do not copy task logs, attempt history, or routine commits into it.

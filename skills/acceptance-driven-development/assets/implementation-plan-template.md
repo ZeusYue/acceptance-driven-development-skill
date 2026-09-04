@@ -12,6 +12,7 @@ code_root: {{code root}}
 worktree_id: {{canonical worktree path or stable host identity}}
 branch: {{branch or N/A}}
 baseline_commit: {{commit hash or N/A}}
+supersedes_plan: N/A
 active_tasks: []
 target_acs:
   - AC-N
@@ -76,8 +77,7 @@ scope_decision_ids: []
 
 ## Final Record
 
-- **Final AC outcomes:** pending
-- **Current evidence:** pending
+- **Acceptance record:** `AC.md` ({{target AC IDs}}); do not copy acceptance status or current evidence here.
 - **Project capsule update:** pending
 - **Local commits / COMMIT-BLOCKED / COMMIT-SKIPPED / COMMIT-REVIEW-REQUIRED:** pending
 - **Approved deviations:** N/A
