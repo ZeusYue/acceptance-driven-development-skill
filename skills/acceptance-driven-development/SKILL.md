@@ -1,18 +1,24 @@
 ---
 name: acceptance-driven-development
-description: Use when implementing features, fixing bugs, defining acceptance criteria or done conditions, or exploring designs under ADD; use a project's AC.md when available.
+description: Use when explicitly requested as ADD, acceptance criteria, or done conditions, or when creating or changing an identifiable persistent software project.
 ---
 
 # Acceptance-Driven Development
 
 Execute code changes against explicit acceptance criteria until each has a settled outcome.
 
-**Completion layers:** Agent implementation work is done only when no `[ ]` or `[~]` remain. The project is complete only when every AC is `[x]`, `[>]`, or `[-]` — no `[ ]`, `[~]`, or `[!]`.
+**Completion:** implementation ends with no `[ ]`/`[~]`; project completion allows only `[x]`, `[>]`, or `[-]`.
+
+## Activation Gate
+
+Auto-activate only for creating or changing an identifiable persistent project. Otherwise one explicit invocation governs the current work unit, not unrelated work.
+
+Without that invocation, questions, explanations, read-only/prose work, unrelated one-off scripts, and delivery-only Git/package/release operations fail. Only actual project changes enter Phase 3.5. On failure, stop before Phase 0; see the guardrails reference.
 
 ## 🚨 FIRST RULE — Check Before You Code
 
 <EXTREMELY-IMPORTANT>
-Every code change enters **Phase 3.5** before Phase 4. Announce the phase and the chosen implementation mode before editing code.
+Every change governed by an active ADD work unit enters **Phase 3.5** before Phase 4. Announce the phase and implementation mode before editing code.
 
 - Approved `[ ]` / `[~]` backlog → **Phase 3.5A** → Mode A.
 - New feature or behavior change → **Phase 3.5B** → propose AC delta + approach → explicit approval → persist AC → Phase 4.
@@ -22,16 +28,15 @@ Every code change enters **Phase 3.5** before Phase 4. Announce the phase and th
 Describing a desired change is not approval of an approach. A fast-lane bug fix skips approach discussion, not impact analysis, review, or verification.
 </EXTREMELY-IMPORTANT>
 
-Announce each entered phase or gate: `Phase 0`, `Gate 1`, `Gate 2`, `Phase 3.5A/B`, `Phase 4 Mode A/B`, `Phase 4.8`, `Phase 5`, and `Phase 6`.
-Read `references/guardrails-and-examples.md` only for rationale, rationalization handling, scenarios, or the compact phase map.
+Announce each entered phase/gate using its heading. Read `references/guardrails-and-examples.md` only for rationale, pressure cases, examples, or the compact map.
 
 ## Capabilities and Scope
 
-ADD is self-contained. External planning, review subagents, and `project-experience` for explicit cross-project research or approved cache refresh are optional. Plan status never replaces AC status; otherwise use built-in planning and self-review.
+ADD is self-contained; external planning, review subagents, and `project-experience` research/cache refresh are optional. Plan status never replaces AC status.
 
 Read `references/design-exploration-and-handoff.md` for explicit ADD exploration, Greenfield Gate 1, or a Large/genuinely ambiguous Phase 3.5B behavior change. Skip it for settled Small/Medium and fast-lane work.
 
-Use ADD for code changes. Skip pure research, prose-only edits, or a user-declined AC process. Code formatting or typo fixes still enter Phase 3.5B fast lane.
+Code formatting or typo fixes still enter Phase 3.5B fast lane.
 
 ## Phase 0: Locate Hub, Experience, AC, and Project Document
 

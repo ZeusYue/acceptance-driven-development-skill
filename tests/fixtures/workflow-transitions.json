@@ -313,5 +313,40 @@
     "source": "experience",
     "requiredTerms": ["project-earned entries", "cited source plan", "completed", "superseded-by-*", "exclude `_exp_memory.md` seeds"],
     "requiredPattern": "(?is)project-earned entries whose cited source plan exists.*is `completed`.*no `superseded-by-\\*` pause reason.*exclude `_exp_memory\\.md` seeds"
+  },
+  {
+    "scenario": "project-level-auto-activation",
+    "name": "persistent project work automatically activates ADD",
+    "source": "add",
+    "requiredTerms": ["Auto-activate only", "creating or changing", "identifiable persistent project"],
+    "requiredPattern": "(?is)Activation Gate.*Auto-activate only for creating or changing an identifiable persistent project"
+  },
+  {
+    "scenario": "explicit-nonproject-activation",
+    "name": "one explicit invocation scopes non-project ADD work",
+    "source": "add",
+    "requiredTerms": ["explicit invocation", "current work unit", "not unrelated work"],
+    "requiredPattern": "(?is)explicit invocation.*current work unit.*not unrelated work.*Without that invocation.*one-off scripts"
+  },
+  {
+    "scenario": "activation-gate-early-exit",
+    "name": "excluded requests exit before loading project context",
+    "source": "guardrails",
+    "requiredTerms": ["fails the Activation Gate", "Stop before Phase 0", "do not read", "Hub", "cache", "capsule", "AC", "Handle normally"],
+    "requiredPattern": "(?is)fails the Activation Gate.*Stop before Phase 0.*do not read the Hub.*cache.*capsule.*AC.*Handle normally"
+  },
+  {
+    "scenario": "delivery-only-no-ac",
+    "name": "delivery-only work preserves acceptance and task state",
+    "source": "guardrails",
+    "requiredTerms": ["delivery-only request", "Preserve", "plan", "AC/task verification states", "artifact/commit locator", "WIP", "verified"],
+    "requiredPattern": "(?is)delivery-only request.*Preserve the current plan and AC/task verification states.*artifact/commit locator.*never treat WIP as verified"
+  },
+  {
+    "scenario": "delivery-change-reentry",
+    "name": "only actual package or release changes re-enter ADD",
+    "source": "guardrails",
+    "requiredTerms": ["Packaging reveals", "build-config", "release-structure change", "Phase 3.5", "actual change"],
+    "requiredPattern": "(?is)Packaging reveals a required build-config or release-structure change.*Enter Phase 3.5 only for that actual change"
   }
 ]

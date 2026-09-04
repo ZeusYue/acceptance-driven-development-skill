@@ -6,8 +6,10 @@
 
 | Rationalization | Operational response |
 |---|---|
-| “It is only one line.” | Every code change still enters Phase 3.5; Phase 3.5A backlog work must use Mode A, while Phase 3.5B uses the mode selected by impact scope. |
+| “It is only one line.” | Every in-scope project change still enters Phase 3.5; Phase 3.5A backlog work uses Mode A, while Phase 3.5B uses the impact-based mode. |
 | “I am debugging, not coding.” | A fix is a code change. Trace cause, then use the appropriate mode. |
+| “It is code, so ADD must run.” | First apply the Activation Gate. Questions, read-only work, and unrelated one-off scripts stay outside ADD unless explicitly invoked. |
+| “A snapshot or package needs a new AC.” | Existing-content Git/package/release work is delivery-only. Preserve current acceptance state; only actual project changes need Phase 3.5. |
 | “The fix is obvious.” | Obvious fixes still need impact analysis and review. |
 | “The user described it exactly.” | Description is not confirmation of the proposed behavioral approach. |
 | “I will update AC later.” | Present proposed scope before approval, persist the approved AC delta before code, and update `[!]` to `[x]` immediately after specific user confirmation. |
@@ -29,6 +31,17 @@
 | 6 | All AC outcomes settled, project document finalized, optional cache refresh. |
 
 ## Worked Examples
+
+### Activation boundary
+
+| Request | ADD response |
+|---|---|
+| “Add export to this project” where its ADD `AC.md` exists | Auto-activate and enter the appropriate ADD path. |
+| “Build a persistent desktop photo manager” | Auto-activate as project creation and enter Greenfield gates. |
+| “Explain this stack trace” or inspect code without changing it | Handle normally; do not locate the Hub or read ADD project context. |
+| “Write an unrelated shutdown script” | Handle as a one-off unless the user explicitly invokes ADD for this work unit. |
+| “Snapshot current changes” or “package the existing release tree” | Perform the delivery operation without new AC; do not change acceptance/task verification state. |
+| Packaging reveals a required build-config or release-structure change | Enter Phase 3.5 only for that actual change. |
 
 ### Greenfield
 
@@ -72,6 +85,8 @@ User confirms test → mark [x]
 
 | Signal | Required response |
 |---|---|
+| ADD was loaded for a request that fails the Activation Gate | Stop before Phase 0; do not read the Hub, cache, capsule, or AC. Handle normally unless the user explicitly invokes ADD. |
+| A delivery-only request arrives during active ADD work | Preserve the current plan and AC/task verification states. Record a relevant artifact/commit locator in existing records, otherwise report it only in chat; never treat WIP as verified. |
 | A code change has no relevant AC | Enter Phase 3.5B, propose a tracking AC, obtain the required confirmation, then persist it before code. |
 | A user test is requested between AUTO items | Finish the batch and execute AUTO verification first. |
 | An affected AUTO AC remains `[!] [affected]` | Re-run its verification command. |

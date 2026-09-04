@@ -185,6 +185,12 @@ Add bulk delete to the photo browser. Use ADD.
 
 You should see the active phase, relevant ACs, impact analysis, review results, and either fresh command evidence or a concrete user-test checklist. For a new project, ADD first explores the design and presents proposed ACs incrementally so you can revise them without reviewing a wall of criteria at once.
 
+### When ADD activates
+
+ADD activates automatically when you create a persistent project or change behavior, code, configuration, build/deployment behavior, or public contracts in an identifiable project. For questions, explanations, read-only work, or an unrelated one-off script, it stays out of the way unless you invoke ADD once for that continuous work unit. The invocation does not carry into unrelated work.
+
+Git inspection, a requested snapshot or commit, packaging existing content, hashes, tags, pushes, and Releases are delivery operations. They do not create ACs or enter Phase 3.5 by themselves, and a WIP snapshot does not become verified work. Only an actual source, configuration, release-structure, or observable-behavior change enters ADD; remote operations still require an explicit request. If a host discovers ADD too broadly, its Activation Gate exits before loading the document hub or project context.
+
 ---
 
 ## What you get as the project grows
@@ -322,7 +328,7 @@ For a GitHub Release ZIP, extract the archive first, then copy its complete `ski
 
 ## First Run: choose a document hub
 
-On the first code-related request, ADD asks for one stable directory shared across projects. A good answer is:
+On the first ADD-activated project request, ADD asks for one stable directory shared across projects. A good answer is:
 
 ```text
 ~/project-docs/
@@ -342,6 +348,8 @@ The sections below preserve version-specific behavior and migration details for 
 v2.7.0 keeps the closed loop while removing the two largest sources of long-session growth:
 
 - Schema 3 replaces append-only EVD history with **Current Verification Evidence**, keyed by AC ID; each AC has at most one row, a new result replaces the old one, and `[x]` requires a current `PASS`;
+- a strict Activation Gate auto-runs ADD only for persistent project creation or identifiable project changes; other work needs one explicit invocation, while questions, read-only tasks, and unrelated one-off scripts stay outside;
+- delivery-only Git snapshots/commits and package/hash/tag/push/Release requests create no AC and do not enter Phase 3.5; only actual project changes do, and WIP never implies verification;
 - `How to Verify` keeps reusable commands or manual steps only, while long logs remain outside `AC.md` behind a stable locator;
 - a failed Mode B verification returns through Phase 3.5A while retaining Mode B and the same target-specific attempt series. Pre-limit failures use `FAIL`; the limit uses `BLOCKED`; a MANUAL handoff keeps the series as `pending-manual` and a pass closes it as `completed`. A normal `3/3` block cannot resume through cancellation or rejection;
 - every new Agent/session reads `_exp_memory.md` once, then each independent Mode A or Mode B work unit reads only `_<ProjectName>_exp.md` once;

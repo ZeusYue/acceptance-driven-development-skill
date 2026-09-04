@@ -28,6 +28,12 @@ $DOC_HUB/
 
 An existing directory referenced by `~/.add-hub` remains active even when `_exp_memory.md` is missing. ADD reads the global cache once per new Agent/session and does not rebuild it automatically. A missing project capsule is created by copying the language-matching ADD capsule template, then seeded with at most three relevant entries already read from that cache, or left empty.
 
+## Activation in Codex
+
+- Auto-activate ADD only for persistent project creation or changes to behavior, code, configuration, build/deployment behavior, or public contracts in an identifiable project.
+- Questions, explanations, read-only/prose work, and unrelated one-off scripts require one explicit ADD invocation for the current continuous work unit. If the gate fails, exit before Phase 0 without reading the Hub, cache, capsule, or AC.
+- Git inspection/snapshot/commit and package/hash/tag/push/Release of existing content are delivery-only. They create no AC and do not enter Phase 3.5; preserve active acceptance/task verification state, and never treat WIP as verified. Route only actual project changes through ADD. Remote operations require an explicit request.
+
 ## Implementation Modes in Codex
 
 - **Mode A** selects the one active plan matching project, canonical worktree, branch, baseline ancestry, target ACs, and approved approach. It resumes that plan or creates a collision-safe new file from `assets/implementation-plan-template.md`; it never overwrites a completed plan. A paused `user-cancelled` or `user-rejected` plan keeps ownership of overlapping ACs and blocks a replacement until explicit matched restart or approved supersession.

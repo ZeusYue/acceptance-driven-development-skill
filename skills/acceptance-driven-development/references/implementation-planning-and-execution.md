@@ -75,12 +75,15 @@ Integrate and verify delegated work locally; acceptance updates stay primary.
 
 After Agent verification/review, commit each complete AC group. MANUAL may commit after Agent checks while remaining `[!] [manual]`.
 
+These are ADD's verified checkpoints. A user-requested delivery-only snapshot may be WIP: it creates no AC and changes no AC/task verification state. It follows the safety checks below but uses the explicit WIP branches in steps 4-5.
+Record its locator in the active plan only when relevant; otherwise report it in chat. Apply Phase 3.5 only to actual source, configuration, release-structure, or observable-behavior changes.
+
 1. Before editing, check `git status --short`, staged diff, and operations; record the plan/map baseline. A failed Git command is not clean.
 2. Before staging, re-run status/index/operation checks and resolve active commit-related hooks, including configured `core.hooksPath`.
    Inspect executable `pre-commit`, `prepare-commit-msg`, `commit-msg`, and `post-commit`. Unreadable, unknown, remote/external, or unrelated-path side effects mean `COMMIT-BLOCKED` unless separately authorized.
 3. Inspect final diff; stage only Agent-owned paths or safely separable hunks. Never use broad staging such as `git add -A` with unrelated changes or alter pre-existing index entries.
-4. Before commit, re-check status, staged diff, preserved index, operations, and hooks; require an exact AC-group match.
-5. Include AC IDs, record the hash, then inspect commit contents and new status/index.
+4. Before commit, re-check status, staged diff, preserved index, operations, and hooks. A verified checkpoint requires an exact AC-group match; a WIP snapshot instead requires an exact user-requested path match and an explicit WIP message.
+5. Include AC IDs only for a verified checkpoint; a WIP snapshot omits AC IDs and stays unverified. Record the hash, then inspect commit contents and new status/index.
    On unexpected hook changes or contents, stop further commits, preserve evidence, and report `COMMIT-REVIEW-REQUIRED`; never rewrite history automatically.
 6. Never push, create or merge a PR, create a tag, or publish a release unless the user separately requests repository integration.
 

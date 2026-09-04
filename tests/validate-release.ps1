@@ -850,7 +850,7 @@ function Test-WorkflowTransitionFixtures {
         $failures.Add("Workflow transition fixtures are invalid JSON: $($_.Exception.Message)")
         return
     }
-    $requiredScenarios = @('blocked-redesign','pre-approval-cancel','post-persistence-cancel','delegate-cancel','active-plan-reentry','paused-plan-restart','active-plan-conflict','manual-pass','mode-b-manual-pending','mode-b-recovery','mode-b-cancel-restart','test-first-red','blocked-subset-review','blocked-alternate-path','guided-retry-status','mode-a-redesign-plan','guided-mode-transition','external-environment-block','cleared-environment-block','mode-a-to-b-handoff','mode-a-to-b-interruption-recovery','post-approval-rejection','global-experience-session','project-capsule-work-unit','project-capsule-bootstrap','project-capsule-completion','project-capsule-seed-source','project-experience-explicit-only','agent-handoff-active-plan','agent-handoff-latest-completed','layered-ac-reading','conditional-template-reading','conditional-implementation-reference','mode-b-same-series-retry','mode-b-phase6-recovery','mode-b-blocked-conclusion','paused-plan-owner','risk-based-mode-selection','approved-plan-supersession','approved-plan-supersession-recovery','mode-b-to-a-attempt-import','manual-ready-work-drain','completed-plan-identity','missing-cache-read-only-fallback','capsule-refresh-provenance')
+    $requiredScenarios = @('blocked-redesign','pre-approval-cancel','post-persistence-cancel','delegate-cancel','active-plan-reentry','paused-plan-restart','active-plan-conflict','manual-pass','mode-b-manual-pending','mode-b-recovery','mode-b-cancel-restart','test-first-red','blocked-subset-review','blocked-alternate-path','guided-retry-status','mode-a-redesign-plan','guided-mode-transition','external-environment-block','cleared-environment-block','mode-a-to-b-handoff','mode-a-to-b-interruption-recovery','post-approval-rejection','global-experience-session','project-capsule-work-unit','project-capsule-bootstrap','project-capsule-completion','project-capsule-seed-source','project-experience-explicit-only','agent-handoff-active-plan','agent-handoff-latest-completed','layered-ac-reading','conditional-template-reading','conditional-implementation-reference','mode-b-same-series-retry','mode-b-phase6-recovery','mode-b-blocked-conclusion','paused-plan-owner','risk-based-mode-selection','approved-plan-supersession','approved-plan-supersession-recovery','mode-b-to-a-attempt-import','manual-ready-work-drain','completed-plan-identity','missing-cache-read-only-fallback','capsule-refresh-provenance','project-level-auto-activation','explicit-nonproject-activation','activation-gate-early-exit','delivery-only-no-ac','delivery-change-reentry')
     $actualScenarios = @($cases | ForEach-Object { $_.scenario })
     foreach ($scenario in $requiredScenarios) {
         if (@($actualScenarios | Where-Object { $_ -eq $scenario }).Count -lt 1) { $failures.Add("Workflow fixtures must define at least one '$scenario' contract case.") }
@@ -885,6 +885,7 @@ $readmeZh = Join-Path $ReleaseRoot 'README-zh.md'
 $ccSwitchGuide = Join-Path $ReleaseRoot 'docs\CCSWITCH.md'
 $ccSwitchGuideZh = Join-Path $ReleaseRoot 'docs\CCSWITCH-zh.md'
 $codexGuide = Join-Path $ReleaseRoot 'codex-port\CODEX-ADAPTATION.md'
+$improvementGuide = Join-Path $ReleaseRoot 'docs\IMPROVEMENT-GUIDE.md'
 $acTemplate = Join-Path $ReleaseRoot 'projects\templates\ac-template.md'
 $projectTemplate = Join-Path $ReleaseRoot 'projects\templates\project-doc-template.md'
 $skillsRoot = Join-Path $ReleaseRoot 'skills'
@@ -1125,6 +1126,13 @@ if (Test-Path -LiteralPath $gitMetadata) {
 # v2.3 README narrative, CC Switch network, and compressed-core contract.
 Require-ClauseTerms $codexGuide @('Mode A','always creates/resumes','persistent','plans/*.md','never replace') 'Codex guide must not let host task UI replace the persistent Mode A plan.'
 Require-ClauseTerms $codexGuide @('Mode B','chat-only','Execution Map') 'Codex guide must reserve chat-only planning for Mode B.'
+Require-Match $codexGuide '## Activation in Codex' 'Codex guide must expose its activation boundary.'
+Require-ClauseTerms $codexGuide @('Auto-activate ADD only','persistent project') 'Codex guide must preserve project-level automatic activation.'
+Require-ClauseTerms $codexGuide @('explicit ADD invocation','current continuous work unit','exit before Phase 0') 'Codex guide must scope explicit activation and early exit.'
+Require-ClauseTerms $codexGuide @('delivery-only','create no AC','WIP','Remote operations require an explicit request') 'Codex guide must preserve delivery-operation boundaries.'
+Require-ClauseTerms $improvementGuide @('严格混合触发','当前连续工作单元') 'Maintainer guide must preserve mixed activation scope.'
+Require-ClauseTerms $improvementGuide @('Activation Gate 位于 Phase 0 前','交付操作','不新建 AC','实际项目改动') 'Maintainer guide must preserve early-exit and delivery-operation boundaries.'
+Require-ClauseTerms $improvementGuide @('WIP 快照','不能创建 AC','实际改动走 Phase 3.5') 'Maintainer principles must distinguish WIP delivery from actual changes.'
 Require-Match $readme '# Acceptance-Driven Development \(ADD\) v2\.7\.0' 'English README must identify v2.7.0.'
 Require-Match $readme 'A real project-level workflow for AI coding agents' 'English README must retain the project-level value proposition.'
 Require-Match $readme '## Your agent said “done.” You disagree.' 'English README must open with the human problem story.'
@@ -1134,6 +1142,9 @@ Require-Match $readme '## A complete development engine, not a checklist bolted 
 Require-Match $readme '## One workflow across different coding agents' 'English README must explain cross-agent portability.'
 Require-Match $readme '(?s)(?:```mermaid.*?){3}' 'English README must retain at least three Mermaid diagrams.'
 Require-Match $readme '## Try ADD in 60 seconds' 'English README must include a 60-second experience before installation.'
+Require-NoMatch $readme 'On the first code-related request' 'English README must not imply that every code-related request activates ADD.'
+Require-ClauseTerms $readme @('persistent project','invoke ADD once','unrelated one-off script','does not carry into unrelated work') 'English README must explain automatic and explicit activation boundaries.'
+Require-ClauseTerms $readme @('delivery operations','do not create ACs','WIP snapshot','Activation Gate') 'English README must explain delivery-only and early-exit boundaries.'
 Require-Match $readme '## Install ADD' 'English README must retain installation instructions.'
 Require-Match $readme 'AC Authority Restoration' 'English README must explain the v2.4 AC-authority change.'
 Require-Match $readme 'Readable AC tables and evidence details' 'English README must explain the v2.4.2 table-readability change.'
@@ -1165,6 +1176,9 @@ Require-Match $readmeZh '## 不只是验收清单，而是一台完整的开发�
 Require-Match $readmeZh '## 一套工作流，适配不同编码 Agent' 'Chinese README must explain cross-agent portability.'
 Require-Match $readmeZh '(?s)(?:```mermaid.*?){3}' 'Chinese README must retain at least three Mermaid diagrams.'
 Require-Match $readmeZh '## 一条请求看懂 ADD' 'Chinese README must include a 60-second experience before installation.'
+Require-NoMatch $readmeZh '首次收到代码相关请求' 'Chinese README must not imply that every code-related request activates ADD.'
+Require-ClauseTerms $readmeZh @('持久项目','显式调用 ADD 一次','无关的一次性脚本','不会延伸到后续无关任务') 'Chinese README must explain automatic and explicit activation boundaries.'
+Require-ClauseTerms $readmeZh @('交付操作','不创建 AC','WIP 快照','Activation Gate') 'Chinese README must explain delivery-only and early-exit boundaries.'
 Require-Match $readmeZh 'AC 权威恢复' 'Chinese README must explain the v2.4 AC-authority change.'
 Require-Match $readmeZh 'AC 表格可读性与证据详情' 'Chinese README must explain the v2.4.2 table-readability change.'
 Require-Match $readmeZh 'ADD 内置设计探索' 'Chinese README must explain the v2.5.0 built-in design change.'
@@ -1277,7 +1291,13 @@ foreach ($referenceFile in @($guardrailsRef, $changeGuideRef, $frameworkReviewRe
     if (-not (Test-Path -LiteralPath $referenceFile)) { $failures.Add("Missing ADD compression reference: $referenceFile") }
 }
 Require-Match $add 'FIRST RULE' 'ADD main skill must retain FIRST RULE.'
-Require-ClauseTerms $add @('description: Use when','acceptance criteria','done conditions') 'ADD discovery metadata must retain direct acceptance-definition triggers.'
+Require-ClauseTerms $add @('description: Use when','explicitly requested as ADD','acceptance criteria','done conditions','identifiable persistent software project') 'ADD discovery metadata must define only positive explicit and project-level triggers.'
+Require-NoMatch $add 'description: Use when implementing features' 'ADD discovery metadata must not auto-activate for every generic feature request.'
+Require-NoMatch $add '(?m)^description:.*questions|^description:.*read-only|^description:.*one-off|^description:.*Git/package/release' 'ADD discovery metadata must not include negative-scenario keywords that can cause host-level false activation.'
+Require-Match $add '## Activation Gate' 'ADD must expose the activation gate before Phase 0.'
+Require-ClauseTerms $add @('Auto-activate only','identifiable persistent project','explicit invocation','current work unit','not unrelated work') 'ADD must retain the mixed automatic/explicit activation boundary.'
+Require-ClauseTerms $add @('Without that invocation','questions','read-only/prose work','unrelated one-off scripts','delivery-only Git/package/release operations','stop before Phase 0') 'ADD must exit excluded requests before project context loading.'
+Require-ClauseTerms $add @('Only actual project changes enter Phase 3.5') 'Delivery operations must re-enter ADD only for actual project changes.'
 Require-Match $add 'Phase 3\.5A: Approved Backlog Entry' 'ADD main skill must retain Phase 3.5A.'
 Require-Match $add 'Phase 3\.5B: Mid-Development Requirement Changes' 'ADD main skill must retain Phase 3.5B.'
 Require-Match $add 'Review checklist \(6 items' 'ADD main skill must retain six-point review.'
@@ -1292,9 +1312,11 @@ Require-NoMatch $add 'Mode choice after confirmed Phase 3\.5B' 'ADD must not req
 Require-ClauseTerms $add @('baseline validation fails','appropriate Phase 3.5 entry','before review') 'Baseline-validation fixes must not bypass Phase 3.5.'
 Require-Match $add 'A repair within the approved AC and approach returns through Phase 3\.5A without reapproval' 'ADD must route same-scope AUTO repairs through approved backlog without duplicate approval.'
 Require-Match $add 'Settle `\[~\]`: fix through the appropriate Phase 3\.5 entry' 'ADD must define the [~]-to-[x] completion transition without bypassing Phase 3.5.'
-Require-Match $guardrailsRef 'Phase 3\.5A backlog work must use Mode A' 'Guardrails must preserve Mode A for approved backlog work.'
+Require-Match $guardrailsRef 'Phase 3\.5A backlog work uses Mode A' 'Guardrails must preserve Mode A for approved backlog work.'
 Require-NoMatch $guardrailsRef 'still enters Phase 3\.5 and Mode B' 'Guardrails must not route every one-line code change to Mode B.'
-Require-Match $guardrailsRef 'A code change has no relevant AC' 'Guardrails must require a confirmed tracking AC for every code change.'
+Require-Match $guardrailsRef 'A code change has no relevant AC' 'Guardrails must require a confirmed tracking AC for every in-scope code change.'
+Require-ClauseTerms $guardrailsRef @('snapshot or package','delivery-only','Preserve current acceptance state','actual project changes') 'Guardrails must distinguish delivery operations from project changes.'
+Require-ClauseTerms $guardrailsRef @('fails the Activation Gate','Stop before Phase 0','do not read the Hub','Handle normally') 'Guardrails must stop false activations before project context loading.'
 Require-Match $add 'Code formatting or typo fixes still enter Phase 3\.5B fast lane' 'ADD must not exempt code formatting or typo fixes from Phase 3.5.'
 Require-Match $add 'After validation or user confirmation, write `~/.add-hub`' 'ADD must persist only a validated or confirmed fallback document-hub selection.'
 Require-ClauseTerms $add @('final approval','save','AC.md','enter Phases 1–3') 'ADD must define the Gate 2 success transition.'
@@ -1382,6 +1404,9 @@ Require-Match $implementationRef 'index is pre-populated.*merge/rebase/cherry-pi
 Require-ClauseTerms $experience @('bounded, read-only fallback','at most two','do not write or block') 'Missing experience cache must degrade to bounded read-only research.'
 Require-ClauseTerms $experience @('project-earned entries','source plan exists','completed','superseded-by-*','exclude `_exp_memory.md` seeds') 'Cache refresh must use successful project-capsule sources without ingesting global seeds.'
 Require-Match $implementationRef 'COMMIT-SKIPPED: user instruction' 'Explicit user no-commit instructions must override automatic checkpoints.'
+Require-ClauseTerms $implementationRef @("ADD's verified checkpoints",'delivery-only snapshot','WIP','creates no AC','changes no AC/task verification state','explicit WIP branches in steps 4-5','actual source','configuration','release-structure','observable-behavior changes') 'Implementation reference must distinguish verified ADD checkpoints from user-requested WIP snapshots.'
+Require-ClauseTerms $implementationRef @('verified checkpoint','exact AC-group match','WIP snapshot','exact user-requested path match','explicit WIP message') 'Checkpoint step 4 must branch between verified AC scope and user-requested WIP scope.'
+Require-ClauseTerms $implementationRef @('Include AC IDs only for a verified checkpoint','WIP snapshot omits AC IDs','stays unverified') 'Checkpoint step 5 must not bind WIP snapshots to AC IDs or verification.'
 Require-ClauseTerms $implementationRef @('MANUAL','may commit','Agent checks','remaining','[!] [manual]') 'MANUAL work must permit a local checkpoint before user verification.'
 Require-ClauseTerms $implementationRef @('Checkpoint','complete AC/related group','defer','later tasks remain') 'Local checkpoints must not split an incomplete AC across commits.'
 Require-Match $implementationRef 'Permanently retain completed plans' 'Completed Mode A plans must be retained.'
@@ -1391,7 +1416,7 @@ Test-AcTemplateStructure $acTemplate 'en'
 Test-AcSchema3NegativeCases $acAsset
 Test-ImplementationPlanStructure $implementationPlanAsset
 Test-ModeBContract $add
-Test-WorkflowTransitionFixtures $workflowFixtures @{ add = $add; implementation = $implementationRef; recovery = $recoveryRef; plan = $implementationPlanAsset; experience = $experience }
+Test-WorkflowTransitionFixtures $workflowFixtures @{ add = $add; guardrails = $guardrailsRef; implementation = $implementationRef; recovery = $recoveryRef; plan = $implementationPlanAsset; experience = $experience }
 $exampleAcFiles = @(Get-ChildItem -LiteralPath (Join-Path $ReleaseRoot 'projects') -Recurse -File -Filter 'AC.md' | Where-Object { $_.FullName -notmatch '[\\/]templates[\\/]' })
 foreach ($exampleAc in $exampleAcFiles) {
     $exampleLanguage = if ((Get-Content -Raw -LiteralPath $exampleAc.FullName -Encoding utf8) -match '验收标准') { 'zh' } else { 'en' }
