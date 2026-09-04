@@ -2,7 +2,7 @@
 
 ## Installation
 
-Copy the full ADD folder into Codex's configured skills directory (commonly `~/.codex/skills/`), including its `assets/` and `references/`. `project-experience` is a recommended companion, not a core dependency:
+Copy the full ADD folder into `$CODEX_HOME/skills/` (default fallback: `~/.codex/skills/`), including its `assets/` and `references/`. `project-experience` is an optional companion for explicit cross-project research or global-cache refresh:
 
 ```text
 ~/.codex/skills/acceptance-driven-development/
@@ -21,16 +21,18 @@ $DOC_HUB/
   project-doc-template.md
   project-index.md                 → optional; Obsidian + Dataview only
   <ProjectName>/AC.md
+  <ProjectName>/_<ProjectName>_exp.md → bounded routine guidance
   <ProjectName>/<ProjectName>.md
   <ProjectName>/plans/*.md         → retained Mode A execution records
 ```
 
-An existing directory referenced by `~/.add-hub` remains the active Hub even if `_exp_memory.md` is missing. A missing cache triggers a full rebuild in that same Hub; it must not trigger a new Hub search.
+An existing directory referenced by `~/.add-hub` remains active even when `_exp_memory.md` is missing. ADD reads the global cache once per new Agent/session and does not rebuild it automatically. A missing project capsule is created from at most three relevant entries already read from that cache, or as an empty capsule.
 
 ## Implementation Modes in Codex
 
-- **Mode A** selects the one active plan matching project, canonical worktree, branch, baseline ancestry, target ACs, and approved approach. It resumes that plan or creates a collision-safe new file from `assets/implementation-plan-template.md`; it never overwrites a completed plan. Cancellation pauses it, and explicit restart may reactivate only one matching paused plan.
-- **Mode B** creates no plan file. Keep exactly six chat fields: `Target AC`, `Files`, `Implementation steps`, `Verification`, `Review`, and `Commit`, including status/attempt, repository baseline, evidence, and commit outcome in their defined subfields. Persist each target's independent failure series in AC EVD so interruption never resets it.
+- **Mode A** selects the one active plan matching project, canonical worktree, branch, baseline ancestry, target ACs, and approved approach. It resumes that plan or creates a collision-safe new file from `assets/implementation-plan-template.md`; it never overwrites a completed plan. A paused `user-cancelled` or `user-rejected` plan keeps ownership of overlapping ACs and blocks a replacement until explicit matched restart or approved supersession.
+- **Mode B** creates no plan file. Keep exactly six chat fields: `Target AC`, `Files`, `Implementation steps`, `Verification`, `Review`, and `Commit`, including status/attempt, repository baseline, evidence, and commit outcome. Persist each target's independent failure series in its AC-keyed current-evidence row so interruption never resets it.
+- A failed Mode B verification returns through Phase 3.5A but retains Mode B and the same series. Before the limit, write conclusion `FAIL` with `state: failed`; at the limit, write conclusion `BLOCKED` with `state: blocked`. Use `RECOVERY STATE` only for non-verification transitions such as authorization, reset, cancellation, rejection, and resumption.
 - Codex task-plan UI may mirror the ADD plan, but it never owns AC status. The user reviews design and AC scope, not the implementation plan.
 - After Agent-side verification and review, create an AC-scoped local commit when safely isolated. Re-check Git state, hooks, staged content, final commit, and tree. Record a hash, `COMMIT-BLOCKED`, or `COMMIT-SKIPPED`; unexpected post-hook state is `COMMIT-REVIEW-REQUIRED`.
 - Never push, create or merge a PR, tag, or publish unless the user separately asks for that repository operation.
@@ -51,9 +53,19 @@ ADD describes capabilities, not mandatory tool names. In Codex, use the native t
 
 1. Read `~/.add-hub`.
 2. If its trimmed path is an existing directory, use it as `$DOC_HUB`.
-3. Only if the pointer is absent or invalid, search for `_exp_memory.md`; resolve ambiguity with the user before rewriting the pointer.
-4. Check `_exp_memory.md` separately. It controls the experience-cache fast path, not the Hub identity.
-5. Seed `project-index.md` only when the Hub is an Obsidian vault with Dataview; otherwise scan project-document frontmatter directly.
+3. Only if the pointer is absent or invalid, find `_exp_memory.md`, read it once, and validate its parent; resolve ambiguity before rewriting the pointer. This read satisfies the session-wide global-cache read.
+4. Otherwise read `_exp_memory.md` once after Hub location. Do not read it again during that Agent/session.
+5. Resolve the project and read its direct `_<ProjectName>_exp.md` path once per independent Mode A/Mode B work unit. Never select it by searching all capsules.
+6. Seed `project-index.md` only when the Hub is an Obsidian vault with confirmed Dataview support.
+
+## Context and handoff
+
+- Extract every AC table row for triage and impact coverage; fully read only target, affected, and nonterminal rows plus their current evidence. Read all of `AC.md` when targeted extraction is insufficient.
+- Read the AC template only for creation, migration, missing schema metadata, or structural failure. Do not load the full project document for routine changes.
+- Every Mode A plan begins with `Agent Handoff`: `Goal`, `Implemented`, `Verification`, `Last safe commit`, `Unresolved`, and `Worktree notes`.
+- A new Agent reads the project capsule, scans plan frontmatter, and restores exactly one matching active plan. With no active plan, it reads only the handoff named by `latest_completed_plan`; a stale pointer permits a compatibility scan of `plans/`.
+- One or two settled targets use Mode B only when low-risk. Architecture, dependency behavior, concurrency, persistence, security, migration, public-contract, and broad shared-component changes require Mode A.
+- Load `references/failure-recovery-and-cancellation.md` only after a failed cycle, external block, interruption, cancellation/rejection, guided retry, redesign, recovery ambiguity, or mode switch. It owns the detailed attempt-series and ownership transitions; ordinary implementation remains in the main skill and implementation reference. A paused `superseded-by-mode-b` owner participates automatically in recovery: first normalize its task ownership idempotently, then reconcile a missing reset, unfinished Mode B work, or ownership handback.
 
 ## Phase 4.8 Review in Codex
 
@@ -68,7 +80,7 @@ For Mode A, prefer an independent review when the host and policy permit it. For
 
 ## Cache Refresh
 
-After a completed project, ADD may request: `Refresh the experience cache for the current $DOC_HUB.` `project-experience` then performs a forced rebuild, writes `_exp_memory.md.tmp`, validates it, and replaces the cache only after success. Never delete the cache merely to force a refresh.
+Only after separate user approval, `project-experience` may refresh the global cache: it writes `_exp_memory.md.tmp`, validates it, and replaces the cache after success. Ordinary Mode A/Mode B work does not invoke that skill. Never delete the cache merely to force a refresh.
 
 ## Quick Verification
 

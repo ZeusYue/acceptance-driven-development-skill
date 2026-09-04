@@ -1,4 +1,4 @@
-# 验收驱动开发（ADD）v2.6.0
+# 验收驱动开发（ADD）v2.7.0
 
 <p align="center">
   <strong>🚀 真正的项目级 AI 开发工作流</strong><br>
@@ -78,7 +78,7 @@ flowchart TD
 | GUI 功能没人真正点过就宣布完成。 | 保持 `[!] [manual]`，并向你提供精确测试步骤。 |
 | Agent 每做一步都停下来询问是否继续。 | Mode A 在真正关卡、阻塞或人工交接前持续执行。 |
 | 同一个失败被一遍遍打补丁。 | 三次完整失败周期后阻塞受影响路径，暴露指导或重设计需求。 |
-| 每次会话、每个项目都从零开始。 | 持久计划、项目记录和证据化经验可以跨上下文恢复。 |
+| 每次会话、每个项目都从零开始。 | 有界项目经验与简短计划交接可恢复关键上下文，不必加载项目历史。 |
 
 ---
 
@@ -93,7 +93,7 @@ flowchart TD
 | 🧪 **证据化验证** | AUTO 项必须运行命令并记录结果；MANUAL 项必须给出精确步骤，而不是一句“请测试”。 |
 | 🔁 **失败与恢复纪律** | 尝试、阻塞、取消、重设计和跨会话恢复都会留下记录，不随聊天上下文消失。 |
 | 🔒 **安全本地检查点** | 只提交 Agent 自己的目标修改，绝不擅自 push、PR、merge、tag 或发行。 |
-| 🧠 **项目经验闭环** | 活文档保留架构与风险；可选 `project-experience` 会把已证实经验带入未来项目。 |
+| 🧠 **有界项目记忆** | 项目专属胶囊最多提供 12 条已验证、非显然经验；全局缓存每个新 Agent 会话只读一次。 |
 
 ### 一眼看懂：功能现在到底是什么状态
 
@@ -138,9 +138,13 @@ flowchart TB
     ADD --> CODE["代码 + 测试<br/>经过审查的实现"]
     CODE --> EVIDENCE["新鲜 AUTO / MANUAL 证据"]
     EVIDENCE --> AC
-    ADD --> PROJECT["ProjectName.md<br/>活架构与风险"]
-    PROJECT --> EXPERIENCE["project-experience<br/>可选跨项目经验"]
-    EXPERIENCE --> ADD
+    ADD --> CAPSULE["_ProjectName_exp.md<br/>有界项目经验"]
+    PLAN --> CAPSULE
+    CAPSULE --> ADD
+    ADD --> PROJECT["ProjectName.md<br/>低频架构记录"]
+    PROJECT --> EXPERIENCE["project-experience<br/>显式研究 / 刷新"]
+    EXPERIENCE --> GLOBAL["_exp_memory.md<br/>全局缓存"]
+    GLOBAL --> CAPSULE
 ```
 
 边界非常明确：设计文档解释批准的选择，计划帮助 Agent 执行，项目文档保留长期工程事实；**只有 `AC.md` 告诉用户哪些功能已经验收。**
@@ -155,7 +159,7 @@ ADD 使用可移植的 `SKILL.md` 结构，并把项目事实保存在普通 Mar
 |:---:|:---:|:---:|:---:|:---:|
 | 支持 | 支持 | 支持 | 支持 | 取决于宿主实现 |
 
-ADD 的核心闭环完全自包含。外部计划工具、审查子 Agent、Obsidian 和 `project-experience` 都是可选增强；即使缺少其中任何一项，验收闭环仍然可以运行。
+ADD 的核心闭环完全自包含。外部计划工具、审查子 Agent、Obsidian 和 `project-experience` 都是可选能力；缺少它们也不影响验收闭环。ADD 每个新 Agent 会话自行读取一次小型全局缓存，日常指导则来自项目经验胶囊。
 
 ---
 
@@ -207,10 +211,11 @@ $DOC_HUB/<ProjectName>/
 ├── AC.md                  # 唯一验收事实来源
 ├── design.md              # 必要时保存已批准设计
 ├── plans/                 # 永久保留的 Mode A 实施记录
-└── <ProjectName>.md       # 活架构、风险、模式和证据
+├── _<ProjectName>_exp.md  # 最多 12 条已验证项目经验
+└── <ProjectName>.md       # 低频架构与风险记录
 ```
 
-ADD 负责项目文档的创建和更新；`project-experience` 读取这些文档，再把跨项目、已证实的经验提炼成紧凑缓存。
+`AC.md` 每个 AC 只保留一行当前验证证据，新结果覆盖旧结果，不再增长 EVD 历史。Mode A 计划包含简短的 `Agent Handoff`，项目胶囊指向最近完成计划；完整项目文档只在需要长期工程事实时加载。
 
 ### 强大时足够强大，简单时保持安静
 
@@ -228,14 +233,14 @@ ADD 负责项目文档的创建和更新；`project-experience` 读取这些文�
 
 ## 安装 ADD
 
-请安装 ADD；如需基于证据的跨项目经验，再安装推荐的配套 Skill：
+请安装 ADD；如需显式跨项目研究或获批的全局缓存刷新，再安装推荐的配套 Skill：
 
 ```text
 acceptance-driven-development
 project-experience
 ```
 
-ADD 负责验收工作流，并内置 Greenfield 或真正含糊变更所需的条件式设计探索；`project-experience` 在宿主支持时提供跨项目经验。
+ADD 负责验收、日常项目胶囊使用和条件式设计探索；`project-experience` 是可选能力，只在显式跨项目研究或获批刷新 `_exp_memory.md` 时运行。
 
 ### 方案一：CC Switch
 
@@ -312,6 +317,8 @@ CC Switch 发现仓库时需要下载 GitHub 的分支压缩包。如果 GitHub 
 | OpenCode | `~/.config/opencode/skills/` |
 | Hermes | `~/.hermes/skills/` |
 
+使用 GitHub Release ZIP 时，先解压，再复制其中完整的 `skills/acceptance-driven-development/` 目录。不要只复制 `SKILL.md`，运行时还需要随包提供的 `assets/` 与 `references/`。
+
 ---
 
 ## 首次运行：选择文档中枢
@@ -322,7 +329,7 @@ CC Switch 发现仓库时需要下载 GitHub 的分支压缩包。如果 GitHub 
 ~/project-docs/
 ```
 
-ADD 会写入 `~/.add-hub`，并将 AC、项目文档、模板和可选经验缓存保存在其中。Obsidian 有帮助，但不是必需条件。
+ADD 会写入 `~/.add-hub`，并将 AC、计划、模板、项目胶囊和可选全局缓存保存在其中。Obsidian 有帮助，但不是必需条件。
 
 ---
 
@@ -330,6 +337,26 @@ ADD 会写入 `~/.add-hub`，并将 AC、项目文档、模板和可选经验缓
 <summary><strong>📦 版本历史与技术契约详情</strong></summary>
 
 以下内容为维护者和已有用户保留各版本的具体行为与迁移说明。新用户阅读上方的能力介绍与安装指南即可开始使用。
+
+## v2.7.0：更少上下文，更强连续性
+
+v2.7.0 在保留完整闭环的同时，移除了长会话中最大的两类膨胀来源：
+
+- Schema 3 用 **🧪 当前验证证据** 取代追加式 EVD 历史，以 AC ID 为唯一键；每个 AC 最多一行，新结果覆盖旧结果，`[x]` 必须对应当前 `PASS`；
+- “验证方式”只保留可复用命令或人工步骤，长日志留在 `AC.md` 外并提供稳定定位信息；
+- Mode B 验证失败后经 Phase 3.5A 返回，但保留 Mode B 和该目标原有的尝试序列。到达上限前使用当前结论 `FAIL`，到达上限使用 `BLOCKED`；`RECOVERY STATE` 只表示非验证型状态转换；
+- 每个新 Agent/新会话只读一次 `_exp_memory.md`；随后每个独立 Mode A 或 Mode B 工作单元只读一次 `_<ProjectName>_exp.md`；
+- 项目胶囊缺失时，从本会话已读全局经验中最多选三条相关内容创建；胶囊采用扁平结构，最多 12 条困难、非显然、已验证经验，并按根因或解决原则去重；
+- 只有 `completed` 的 Mode A 计划可以新增项目经验；Mode B 永不写经验。即使没有新经验，`latest_completed_plan` 仍会前进；
+- 每份 Mode A 计划都以六字段 **Agent Handoff** 开头。新 Agent 先扫描计划 frontmatter，恢复唯一匹配的活动计划；没有活动计划时只读最近完成计划的交接。已取消或已拒绝的暂停计划仍持有重叠 AC，只有显式重启或获批取代后才能创建接替计划；
+- 日常工作提取全部 AC 行，但只完整加载目标、受影响、未终结 AC 及其当前证据。模板、完整项目文档、旧计划和条件 reference 均按需读取；
+- 失败、阻塞、取消、拒绝、重设计和模式切换的细节集中在条件恢复 reference 中，仅在对应事件发生时加载。Mode A 转 Mode B 时保留可恢复的暂停 owner，恢复时先幂等归一化任务所有权；中断不会让交接失去归属，也不能借机创建替代计划；
+- 一至两个目标只有在方案已确定且低风险时才能用 Mode B；架构、依赖行为、并发、持久化、安全、迁移、公共契约和广泛共享组件一律使用 Mode A；
+- `project-experience` 不再为普通编码或 Mode A/Mode B 自动触发，只负责显式跨项目研究与用户批准的全局缓存刷新。
+
+Schema 2 AC 在另行批准迁移前仍可读取。迁移保留 ID、范围、当前状态、可复用验证和每个 AC 最近的有效结果，同时删除已被取代的 EVD 历史。
+
+---
 
 ## v2.6.0：可检查、可恢复的实施执行层
 
@@ -344,7 +371,7 @@ v2.6.0 补齐了从已批准 AC 到已验证代码之间的执行闭环：
 - Mode A 实质重设计转 Mode B 时，必须先结算 delegates 和旧任务所有权；Mode B 结算后，旧计划要么完成，要么恢复剩余工作；
 - 连续三个“实现→验证→审查”周期失败只阻塞受影响工作，除非共享前置条件使整批无法继续；
 - 安全本地提交会复查 index、Git 操作状态、hooks、暂存内容、最终 commit 与工作树，但不会接触远端；
-- 稳定的 EVD 和范围决策记录把验证历史留在 AC 表之外，也覆盖用户报告的 MANUAL 结果。
+- v2.6.0 使用稳定 EVD 与范围决策记录，把验证历史留在 AC 表之外；v2.7.0 已用每个 AC 一行的当前证据取代 EVD 历史。
 
 `AC.md` 仍是唯一验收状态权威。计划任务 verified 或本地 commit 都不能自行把 AC 标记为完成。
 检查点结果只能是 commit hash、`COMMIT-BLOCKED` 或 `COMMIT-SKIPPED`；hook 导致提交后出现异常修改时，以 `COMMIT-REVIEW-REQUIRED` 停止后续提交。

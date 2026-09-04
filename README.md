@@ -1,4 +1,4 @@
-# Acceptance-Driven Development (ADD) v2.6.0
+# Acceptance-Driven Development (ADD) v2.7.0
 
 <p align="center">
   <strong>🚀 A real project-level workflow for AI coding agents</strong><br>
@@ -78,7 +78,7 @@ The agent cannot honestly call a feature complete while `AC.md` still says it is
 | GUI work is declared complete without being used. | It remains `[!] [manual]` with exact steps until someone verifies it. |
 | The agent stops after every task to announce a next step. | Approved Mode A work continues until a real gate, block, or manual handoff. |
 | Repeated failure produces repeated patches. | Three failed cycles block the affected path and expose the need for guidance or redesign. |
-| Each session and project starts from zero. | Persistent plans, project records, and evidence-backed experience survive context loss. |
+| Each session and project starts from zero. | Bounded project experience and concise plan handoffs restore the right context without loading project history. |
 
 ---
 
@@ -93,7 +93,7 @@ The agent cannot honestly call a feature complete while `AC.md` still says it is
 | 🧪 **Verification with evidence** | AUTO criteria require commands and actual results. MANUAL criteria produce a precise handoff instead of “please test it.” |
 | 🔁 **Failure and recovery discipline** | Attempts, blocks, cancellation, redesign, and cross-session recovery are recorded instead of disappearing with chat context. |
 | 🔒 **Safe local checkpoints** | Agent-owned changes can become narrowly scoped local commits without automatic push, PR, merge, tag, or release. |
-| 🧠 **Project memory** | Living documents preserve architecture and risk; optional `project-experience` surfaces proven lessons in future work. |
+| 🧠 **Bounded project memory** | A project capsule contributes at most 12 verified, non-obvious lessons; the global cache is read only once per new Agent session. |
 
 ### The acceptance state is visible at a glance
 
@@ -138,9 +138,13 @@ flowchart TB
     ADD --> CODE["code + tests<br/>reviewed implementation"]
     CODE --> EVIDENCE["fresh AUTO / MANUAL evidence"]
     EVIDENCE --> AC
-    ADD --> PROJECT["ProjectName.md<br/>living architecture and risks"]
-    PROJECT --> EXPERIENCE["project-experience<br/>optional cross-project lessons"]
-    EXPERIENCE --> ADD
+    ADD --> CAPSULE["_ProjectName_exp.md<br/>bounded project lessons"]
+    PLAN --> CAPSULE
+    CAPSULE --> ADD
+    ADD --> PROJECT["ProjectName.md<br/>low-frequency architecture record"]
+    PROJECT --> EXPERIENCE["project-experience<br/>explicit research / refresh"]
+    EXPERIENCE --> GLOBAL["_exp_memory.md<br/>global cache"]
+    GLOBAL --> CAPSULE
 ```
 
 The boundaries matter: design explains approved choices, plans help the agent execute, and project documents preserve durable engineering facts. **Only `AC.md` tells the user what is accepted.**
@@ -155,7 +159,7 @@ ADD uses the portable `SKILL.md` layout and keeps project truth in ordinary Mark
 |:---:|:---:|:---:|:---:|:---:|
 | Supported | Supported | Supported | Supported | Host-dependent |
 
-Core ADD behavior is self-contained. External planning tools, review subagents, Obsidian, and `project-experience` are optional enhancements; their absence does not remove the acceptance loop.
+Core ADD behavior is self-contained. External planning tools, review subagents, Obsidian, and `project-experience` are optional; their absence does not remove the acceptance loop. ADD reads the small global cache itself once per new Agent session and uses a project capsule for routine guidance.
 
 ---
 
@@ -207,10 +211,11 @@ $DOC_HUB/<ProjectName>/
 ├── AC.md                  # sole acceptance source of truth
 ├── design.md              # approved design, when needed
 ├── plans/                 # retained Mode A execution records
-└── <ProjectName>.md       # living architecture, risks, patterns, and evidence
+├── _<ProjectName>_exp.md  # at most 12 verified project lessons
+└── <ProjectName>.md       # low-frequency architecture and risk record
 ```
 
-ADD owns the project-document lifecycle. `project-experience` reads these documents and turns proven cross-project lessons into a compact experience cache.
+`AC.md` keeps one current-evidence row per AC; a new result replaces the old one instead of growing an EVD history. Mode A plans carry a concise `Agent Handoff`, and the project capsule points to the latest completed plan. The full project document is loaded only when durable engineering facts are needed.
 
 ### Powerful when needed, quiet when it is not
 
@@ -228,14 +233,14 @@ You approve the design and acceptance criteria, not the agent's internal task pl
 
 ## Install ADD
 
-Install ADD. For evidence-backed cross-project experience, also install the recommended companion:
+Install ADD. For explicit cross-project research or an approved global-cache refresh, also install the recommended companion:
 
 ```text
 acceptance-driven-development
 project-experience
 ```
 
-ADD owns the acceptance workflow and includes conditional design exploration for Greenfield or genuinely ambiguous changes. `project-experience` provides reusable project experience when the host supports it.
+ADD owns acceptance, routine project-capsule use, and conditional design exploration. `project-experience` is optional and runs only for explicit cross-project research or an approved `_exp_memory.md` refresh.
 
 ### Option 1 — CC Switch
 
@@ -311,6 +316,8 @@ Copy the complete `skills/acceptance-driven-development/` directory, including `
 | OpenCode | `~/.config/opencode/skills/` |
 | Hermes | `~/.hermes/skills/` |
 
+For a GitHub Release ZIP, extract the archive first, then copy its complete `skills/acceptance-driven-development/` directory. Do not copy only `SKILL.md`; the workflow requires its shipped `assets/` and `references/`.
+
 ---
 
 ## First Run: choose a document hub
@@ -321,7 +328,7 @@ On the first code-related request, ADD asks for one stable directory shared acro
 ~/project-docs/
 ```
 
-ADD writes `~/.add-hub` and keeps project ACs, documents, templates, and the optional experience cache there. Obsidian is helpful but not required.
+ADD writes `~/.add-hub` and keeps project ACs, plans, templates, project capsules, and the optional global cache there. Obsidian is helpful but not required.
 
 ---
 
@@ -329,6 +336,26 @@ ADD writes `~/.add-hub` and keeps project ACs, documents, templates, and the opt
 <summary><strong>📦 Release history and technical contract details</strong></summary>
 
 The sections below preserve version-specific behavior and migration details for maintainers and existing users. New users can start with the workflow and installation guide above.
+
+## v2.7.0: Less context, stronger continuity
+
+v2.7.0 keeps the closed loop while removing the two largest sources of long-session growth:
+
+- Schema 3 replaces append-only EVD history with **Current Verification Evidence**, keyed by AC ID; each AC has at most one row, a new result replaces the old one, and `[x]` requires a current `PASS`;
+- `How to Verify` keeps reusable commands or manual steps only, while long logs remain outside `AC.md` behind a stable locator;
+- a failed Mode B verification returns through Phase 3.5A while retaining Mode B and the same target-specific attempt series. Pre-limit failures use current conclusion `FAIL`; the limit uses `BLOCKED`; `RECOVERY STATE` is reserved for non-verification transitions;
+- every new Agent/session reads `_exp_memory.md` once, then each independent Mode A or Mode B work unit reads only `_<ProjectName>_exp.md` once;
+- a missing project capsule is seeded from at most three relevant global lessons already read in the session; it stays flat, holds at most 12 difficult, non-obvious, verified lessons, and merges duplicates;
+- only a completed Mode A plan may add project lessons. Mode B never writes lessons, while `latest_completed_plan` advances even when no lesson changes;
+- every Mode A plan starts with a concise six-field **Agent Handoff**. A new Agent scans plan frontmatter, restores the sole matching active plan, or reads only the handoff from the latest completed plan. A cancelled or rejected paused plan still owns overlapping ACs until explicit restart or approved supersession, so a replacement plan cannot bypass it;
+- routine work extracts all AC rows but fully loads only target, affected, and nonterminal criteria plus their current evidence. Templates, the full project document, old plans, and conditional references are loaded only when needed;
+- detailed failure, block, cancellation, rejection, redesign, and mode-switch transitions live in a conditional recovery reference loaded only when one of those events occurs. A Mode A-to-B switch retains a durable paused owner and idempotently normalizes its task ownership on recovery, so interruption cannot orphan the handoff or permit a replacement plan;
+- one or two targets use Mode B only when settled and low-risk. Architecture, dependency behavior, concurrency, persistence, security, migrations, public contracts, and broadly shared components always use Mode A;
+- `project-experience` no longer activates for ordinary coding or Mode A/Mode B execution; it is reserved for explicit cross-project research and approved global-cache refreshes.
+
+Schema 2 AC documents remain readable until migration is separately approved. Migration keeps IDs, scope, current state, reusable verification, and the latest meaningful result while removing superseded EVD history.
+
+---
 
 ## v2.6.0: Implementation that remains inspectable and resumable
 
@@ -343,7 +370,7 @@ v2.6.0 adds the execution layer that connects approved ACs to verified code:
 - a material Mode A-to-B redesign settles delegates and old task ownership before Mode B starts; when Mode B settles, the old plan is completed or reactivated for its remaining work;
 - three failed implementation/verification/review cycles block only the affected work unless a shared prerequisite blocks the batch;
 - safe local commits re-check the index, active Git operations, hooks, staged content, final commit, and working tree without touching remotes;
-- stable EVD and scope-decision records keep verification history outside readable AC table cells, including user-reported MANUAL results.
+- v2.6.0 used stable EVD and scope-decision records outside readable AC table cells; v2.7.0 supersedes the EVD history with one current-evidence row per AC.
 
 `AC.md` remains the only acceptance-status authority. A verified plan task or local commit never marks an AC complete by itself.
 Checkpoint outcomes are a commit hash, `COMMIT-BLOCKED`, or `COMMIT-SKIPPED`; unexpected post-hook changes stop further commits as `COMMIT-REVIEW-REQUIRED`.

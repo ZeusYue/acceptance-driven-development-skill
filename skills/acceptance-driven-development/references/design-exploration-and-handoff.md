@@ -16,7 +16,7 @@ An explicit user request for ADD design exploration always loads this reference.
 
 ### 1. Establish context
 
-Read the relevant project document, current `AC.md` when present, existing design decisions, code structure, and directly relevant experience cache. State the ADD entry context and separate known facts from unresolved decisions.
+Use the project capsule already read for this work unit, plus relevant project evidence: current `AC.md`, existing design decisions, code structure, and the project document only when needed. Do not re-read `_exp_memory.md` or invoke `project-experience` unless the user explicitly requests cross-project research. State the ADD entry context and separate known facts from unresolved decisions.
 
 Do not ask for information that project evidence can establish.
 
@@ -51,7 +51,9 @@ Break the design into the smallest independently reviewable sections. Cover only
 - compatibility, performance, security, or migration constraints;
 - verification implications.
 
-Give each section a stable decision label such as `D-1`, `D-2`, and preserve those labels in the final ledger. Present one section per turn, scaled from a few sentences to at most 200-300 words when nuanced, then ask whether that section is correct or needs a specific change. Do not continue to the next section until the user confirms or revises the current one. If a revision invalidates an earlier section, return to that section explicitly.
+Give each section a stable decision label such as `D-1`, `D-2`, and preserve those labels in the final ledger.
+Present one section per turn, scaled from a few sentences to at most 200-300 words when nuanced, then ask whether that section is correct or needs a specific change.
+Do not continue to the next section until the user confirms or revises the current one. If a revision invalidates an earlier section, return to that section explicitly.
 
 Lead with concrete behavior and trade-offs. Avoid unrelated refactoring and speculative future features. Do not compress independent UI, state, failure, and verification decisions into one approval checklist merely to reduce turns.
 

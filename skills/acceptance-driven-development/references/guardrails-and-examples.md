@@ -81,7 +81,7 @@ User confirms test → mark [x]
 | One Mode A AC is blocked | Record its block and continue independent pending/partial targets unless a shared prerequisite blocks the batch. |
 | A target file contains inseparable user changes | Preserve the working tree, report `COMMIT-BLOCKED`, and continue independent work; never stage the user's changes. |
 | A session resumes with an active plan | Match project/worktree/branch/target ACs, validate baseline ancestry and uniqueness, then reconcile AC, plan, Git, evidence, and the last safe commit without repeating approval. |
-| A Mode A task or Mode B target AC fails three cycles | Exclude expected TEST-FIRST red, record failure EVD, mark only ACs that cannot proceed `[!] [blocked]`, and ask to redesign, guide once, or defer; continue independent work. |
+| A Mode A task or Mode B target AC fails three cycles | Exclude expected TEST-FIRST red, replace current evidence, mark only ACs that cannot proceed `[!] [blocked]`, and ask to redesign, guide once, or defer; continue independent work. |
 | The user cancels while delegates are running | Cancel and drain delegates first, inspect the final tree, and mark every retained but not freshly accepted implementation `[~]`. |
 | Greenfield AC was written without approval | Delete/revise the draft and return to the proper gate. |
 | The Agent changed unrelated code | Remove only the Agent-owned change or explicitly obtain new AC scope; never revert pre-existing user work. |

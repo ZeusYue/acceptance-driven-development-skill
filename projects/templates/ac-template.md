@@ -1,12 +1,12 @@
 ---
 template: acceptance-criteria
-schema: 2
+schema: 3
 cssclasses: ac-document
 ---
 
 # {{Project Name}} Acceptance Criteria
 
-> **Contract:** This file is the sole source of truth for accepted scope, AC IDs, verification state, evidence, acceptance confirmation, deferral, and deprecation. Do not use a design or implementation plan as an acceptance-status tracker.
+> **Contract:** This file is the sole source of truth for accepted scope, AC IDs, verification state, current evidence, acceptance confirmation, deferral, and deprecation. Do not use a design or implementation plan as an acceptance-status tracker.
 
 ## 🎯 Project Goal
 
@@ -16,7 +16,7 @@ cssclasses: ac-document
 
 ## 🧾 Acceptance Criteria
 
-> **Table convention:** The `ac-document` style renders five-column AC tables with stable proportions across categories. `ID` and `Status` stay compact; other cells wrap normally. Keep each cell scannable: criterion, verification method, and expected result are each limited to two sentences. Put complete command output, benchmark data, screenshot notes, and manual feedback in **🧪 Verification Evidence Details** below, then append `Evidence: EVD-YYYYMMDD-N` to the How to Verify cell without replacing its reusable command/steps.
+> **Table convention:** The `ac-document` style renders five-column AC tables with stable proportions. Keep criterion, verification, and expected-result cells to two sentences each. How to Verify contains only a reusable command or concrete manual steps; keep results and evidence locations in **🧪 Current Verification Evidence**.
 
 ### Features
 
@@ -50,41 +50,25 @@ cssclasses: ac-document
 
 ---
 
-## 🧪 Verification Evidence Details
+## 🧪 Current Verification Evidence
 
-> Use one stable event ID per verification batch. One event may cover multiple ACs. Scan existing IDs and choose the next unused numeric `N` for that date; never overwrite or reuse an ID. Keep only the latest concise EVD citation in each AC row while retaining older events here. Use `N/A` instead of omitting a field, and place long raw output inside `<details>`. Use `RECOVERY STATE` only for `EXECUTION` authorization/reset/recovery events; it never means acceptance passed.
+> AC ID is the unique key and may appear at most once. Update the existing row after each verification; do not append verification history.
+> Keep the actual result to two sentences and store long output elsewhere with a stable path, report, screenshot, commit, or command locator.
+> `[x]` requires a current `PASS` row. `[!]` and `[~]` retain the current manual, affected, blocked, failure, or recovery state. An unverified `[ ]` or `[>]` row may have no evidence row.
+> Mode B Recovery State uses exactly: `series: MB-YYYYMMDD-N; approach_ref: <ref>; attempt: N; limit: 3|4; kind: normal|guided; state: failed|blocked|authorized|reset|cancelled|rejected|resumed`.
 
-### EVD-<YYYYMMDD>-<N> - AC-<id or range>
-
-- **Verification time:** {{YYYY-MM-DD HH:mm timezone}}
-- **Related ACs:** AC-N
-- **Verification type:** AUTO | MANUAL | AUTO + MANUAL | EXECUTION | REVIEW | BLOCKED
-- **Verification scope:** {{files, behavior, environment, or N/A}}
-- **Command / Steps:** {{complete command, exact manual steps, or N/A}}
-- **Expected result:** {{observable pass condition}}
-- **Actual result:** {{concise result}}
-- **Exit status:** {{code, PASS/FAIL, or N/A}}
-- **Evidence attachment:** {{screenshot, report, log path, or N/A}}
-- **Conclusion:** PASS | FAIL | PENDING MANUAL | BLOCKED | RECOVERY STATE
-- **Status update:** {{AC status transition; for EXECUTION, the fixed Mode B series/approach/attempt/limit/kind/state recovery record; or N/A}}
-
-<details>
-<summary>Raw output (optional)</summary>
-
-```text
-{{long output}}
-```
-
-</details>
+| AC ID | Last Verified | Type | Current Conclusion | Actual Result / Evidence Location | Recovery State |
+|---|---|---|---|---|---|
+| AC-<id> | {{YYYY-MM-DD HH:mm timezone or N/A}} | AUTO \| MANUAL \| REVIEW \| EXECUTION \| BLOCKED | PASS \| FAIL \| PENDING MANUAL \| AFFECTED \| BLOCKED \| RECOVERY STATE | {{concise result and stable locator, or N/A}} | {{exact Mode B tuple above, completed, or N/A}} |
 
 ---
 
 ## Status Annotation Convention
 
 - `[ ]` not implemented; `[~]` partially implemented; `[x]` freshly verified passing; `[-]` deprecated; `[>]` explicitly deferred.
-- `[!] [manual]` requires exact user verification steps.
-- `[!] [affected]` requires re-verification after another change; AUTO rows re-run commands, MANUAL rows return to the user.
-- `[!] [blocked]` records a reason and concrete unblock condition.
+- `[!] [manual]` requires exact user verification steps and current `PENDING MANUAL` evidence.
+- `[!] [affected]` requires re-verification and current `AFFECTED` evidence.
+- `[!] [blocked]` records a reason, concrete unblock condition, and current `BLOCKED` evidence.
 
 ## 📊 Status Summary
 
@@ -100,7 +84,7 @@ cssclasses: ac-document
 
 ## 🧭 Scope Decision Log
 
-> Add at most one row per user-approved scope batch. Scan existing IDs and choose the next unused numeric `N` for that date; never overwrite or reuse an ID. Record only acceptance-contract changes; do not record implementation details, tests, ordinary status transitions, evidence events, or commits. For `[>]`, record the deferral reason and revisit trigger here while preserving the row's reusable verification contract.
+> Add at most one row per user-approved scope batch. Scan existing IDs and choose the next unused numeric `N` for that date; never overwrite or reuse an ID. Record only acceptance-contract changes. For `[>]`, record the deferral reason and revisit trigger here while preserving the row's reusable verification contract.
 
 | Date | Decision ID | AC Scope | Approved Scope Decision | Rationale |
 |------|-------------|----------|-------------------------|-----------|
@@ -110,4 +94,4 @@ cssclasses: ac-document
 
 - New top-level IDs are monotonic: `AC-<next integer>` is the current maximum numeric ID plus one; never renumber existing rows.
 - AUTO rows contain executable commands. MANUAL rows contain exact user actions and expected outcomes.
-- Do not put full logs, lengthy benchmark data, or step-by-step manual feedback in the five-column table. Append its EVD ID to the How to Verify cell after the reusable command/steps, and record the detail in **🧪 Verification Evidence Details** in this file.
+- Do not put logs, benchmark data, screenshots, manual feedback, or evidence citations in the five-column acceptance table. Update the matching row in **🧪 Current Verification Evidence**.

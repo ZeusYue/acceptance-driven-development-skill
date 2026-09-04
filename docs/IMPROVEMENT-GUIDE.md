@@ -1,9 +1,26 @@
+# Skill Improvement Guide — 给未来的 Agent 和开发者
+
+> 本文件记录 acceptance-driven-development Skill 的设计原则、已验证防线和版本演进。修改 Skill 前先阅读现行版本与长期原则。
+
+## v2.7.0（2026-09-04）：当前证据、项目胶囊与分层上下文
+
+- Schema 3 以 AC ID 为唯一键保存一行“当前验证证据”；新结果覆盖旧结果，`[x]` 必须对应当前 `PASS`，不再追加 EVD 历史、引用或归档。
+- Mode B 验证失败经 Phase 3.5A 返回时保留原 Mode B 和目标独立尝试序列；到上限前使用 `FAIL/state: failed`，到上限使用 `BLOCKED/state: blocked`，`RECOVERY STATE` 只用于非验证型转换。
+- 每个新 Agent/新会话定位 Hub 后只读一次 `_exp_memory.md`；每个独立 Mode A/Mode B 工作单元读取一次项目唯一胶囊 `_<ProjectName>_exp.md`，同一工作单元不重复读取。
+- 项目胶囊最多 12 条扁平、困难、非显然、已验证经验；仅 completed Mode A 计划可新增/合并经验，Mode B 不写，`latest_completed_plan` 每次完成计划后都更新。
+- Mode A 计划新增六字段 `Agent Handoff`；新 Agent 先扫描 frontmatter，再定向恢复唯一活动计划或最近完成计划的交接，不读取全部计划历史。`user-cancelled` / `user-rejected` 暂停计划在显式重启或获批取代前继续持有重叠 AC，不能用新计划绕过。
+- 日常上下文提取全部 AC 行，但只全文读取目标、受影响、未终结 AC 及其当前证据；模板、完整项目文档、旧计划和条件 reference 按需读取。
+- Mode B 仅适用于一至两个方案确定、低风险目标；架构、依赖行为、并发、持久化、安全、迁移、公共契约和广泛共享组件强制 Mode A。
+- `project-experience` 从普通编码路径退出，只处理显式跨项目研究或获批的全局缓存刷新。ADD 自行读取全局缓存与项目胶囊。
+- 罕见失败、阻塞、取消、拒绝、重设计和模式切换规则拆入条件恢复 reference，只在事件发生时加载。Mode A 转 Mode B 先持久化 `superseded-by-mode-b` 暂停 owner；重入时先幂等归一化计划任务所有权，再补齐 reset、恢复未完成 Mode B 或完成 ownership handback。
+- 运行时预算保持严格：主技能不超过 3300 词，实施 reference 不超过 1900 词，条件恢复 reference 不超过 1300 词，典型实现加载不超过 6000 词，操作文件单行不超过 400 字符。
+
 ## v2.6.0（2026-08-11）：内置实施规划、恢复与安全检查点
 
 - Mode A 必须创建或恢复一份持久计划；Mode B 只使用六字段聊天 Execution Map。两者都从已批准 AC 派生，且不拥有验收状态。
 - 计划 schema 2 用 worktree、branch、baseline、target AC 与 `approach_ref` 识别活动计划；已完成计划永久保留，不覆盖、不重开。
 - `active_tasks` 只包含 `in_progress` 任务；并行仅限文件、生成物、提交组和共享状态均不重叠的任务。
-- 失败按完整“实现 → 验证 → 审查”周期计数；TEST-FIRST 预期红灯不计，Mode B 每次失败将次数写入 AC EVD。
+- 失败按完整“实现 → 验证 → 审查”周期计数；TEST-FIRST 预期红灯不计。v2.6.0 写入 AC EVD，v2.7.0 起改写该 AC 的当前证据行。
 - 必需环境/工具不可用属于外部阻塞，不计失败周期；任务离开 `active_tasks`，独立工作继续。
 - 取消或批准后拒绝先停止并汇总委派任务，再核对最终工作树；保留但未新鲜验收的实现必须是 `[~]`，两类暂停/恢复状态分别持久化。
 - Mode A 转 Mode B 前结算 delegates 与旧任务所有权；Mode B 结算后，旧计划必须完成或恢复剩余工作，不能与 Mode B 并发。
@@ -36,11 +53,8 @@
 6. Mode A 的进度公告、计划 Task 和子 Agent 调度都不是暂停关卡；目标 `[ ]` / `[~]` 未清空时必须连续推进，除非命中明确的 ADD 停止条件。
 
 ---
-# Skill Improvement Guide — 给未来的 Agent 和开发者
 
-> 本文件记录 acceptance-driven-development Skill 的设计原则、已验证的防线、改进时的注意事项。如果你要修改这个 Skill，请先读完本文件。
-
----
+## 长期设计原则
 
 ## 这个 Skill 解决什么问题
 
@@ -240,7 +254,8 @@ Agent 会在两个 Phase 之间迷路。每个 Phase 的出口必须有明确的
 | `skills/acceptance-driven-development/SKILL.md` | 主 Skill，Agent 加载时读取 | 高（每次发现问题都改） |
 | `docs/IMPROVEMENT-GUIDE.md` | 本文件，给未来的改进者，不进入运行时 Skill | 低（设计原则稳定后很少改） |
 | `skills/acceptance-driven-development/references/framework-review-checklist.md` | 框架自审清单 | 低（按需增加框架） |
-| `skills/acceptance-driven-development/references/implementation-planning-and-execution.md` | Mode A/B 实施、恢复和 Git 检查点 | 中（执行边界变化时更新） |
+| `skills/acceptance-driven-development/references/implementation-planning-and-execution.md` | Mode A/B 实施、计划所有权和 Git 检查点 | 中（执行边界变化时更新） |
+| `skills/acceptance-driven-development/references/failure-recovery-and-cancellation.md` | 失败序列、阻塞、取消/拒绝、重设计与模式切换 | 中（恢复状态机变化时更新） |
 | `skills/acceptance-driven-development/assets/implementation-plan-template.md` | Mode A 固定计划资产 | 低（schema 变化时更新） |
 | Vault 笔记 `Acceptance-Driven-Development Skill.md` | 设计决策记录 | 中（每次重大改动同步） |
 | 发行仓库根目录 | README、安装指南、测试和 Release 包的规范来源 | 中（每次发行同步） |

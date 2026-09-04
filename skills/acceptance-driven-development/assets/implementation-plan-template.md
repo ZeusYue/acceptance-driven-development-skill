@@ -23,6 +23,15 @@ scope_decision_ids: []
 
 > This plan decomposes approved work. `AC.md` is the sole authority for scope, acceptance status, evidence, confirmation, deferral, and deprecation.
 
+## Agent Handoff
+
+- **Goal:** {{current approved outcome}}
+- **Implemented:** N/A
+- **Verification:** N/A
+- **Last safe commit:** {{baseline commit or N/A}}
+- **Unresolved:** PLAN-1
+- **Worktree notes:** {{clean baseline or pre-existing paths}}
+
 ## Status Summary
 
 | Task | AC mapping | Status | Depends on | Attempt | Commit group |
@@ -32,6 +41,7 @@ scope_decision_ids: []
 ## Constraints
 
 - {{approved scope and repository constraints}}
+- **Applied project lessons:** {{only lessons that materially constrain this plan, or N/A}}
 - Do not use plan status as AC status.
 - Task status is `pending`, `in_progress`, `verified`, `blocked`, or evidence-backed `superseded`; only `in_progress` tasks belong in `active_tasks`.
 - Do not push, create or merge a PR, tag, or publish unless separately requested.
@@ -67,7 +77,8 @@ scope_decision_ids: []
 ## Final Record
 
 - **Final AC outcomes:** pending
-- **Evidence IDs:** pending
+- **Current evidence:** pending
+- **Project capsule update:** pending
 - **Local commits / COMMIT-BLOCKED / COMMIT-SKIPPED / COMMIT-REVIEW-REQUIRED:** pending
 - **Approved deviations:** N/A
 - **Technical debt:** N/A
