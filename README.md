@@ -183,7 +183,7 @@ For a change to working software:
 Add bulk delete to the photo browser. Use ADD.
 ```
 
-You should see the active phase, relevant ACs, impact analysis, review results, and either fresh command evidence or a concrete user-test checklist. For a new project, ADD first explores the design and presents proposed ACs incrementally so you can revise them without reviewing a wall of criteria at once.
+You should see the active phase, relevant ACs, impact analysis, review results, and either fresh command evidence or a concrete user-test checklist. When the project and objective are already known, explicitly invoking ADD recovers the document hub, project capsule, target ACs, and current plan handoff in that same response. For a new project, ADD first explores the design and presents proposed ACs incrementally so you can revise them without reviewing a wall of criteria at once.
 
 ### When ADD activates
 
@@ -203,12 +203,14 @@ Git inspection, a requested snapshot or commit, packaging existing content, hash
 |---|---|
 | `[ ]` | Not implemented |
 | `[~]` | Approved work has a known remainder |
-| `[x]` | Freshly verified passing |
+| `[x]` | Verified passing; remains valid until a concrete behavior or verification-path impact is found |
 | `[!] [manual]` | Needs a specific hands-on check |
 | `[!] [affected]` | Previously passed, now affected by another change |
 | `[!] [blocked]` | Verification unavailable; reason and unblock condition recorded |
 | `[>]` | Explicitly deferred by the user |
 | `[-]` | Explicitly deprecated |
+
+Natural replies such as `tests passed` or `all passed` settle the latest outstanding manual handoff as a batch, including affected MANUAL checks. ADD writes that result before handling a new request in the same message; ambiguous handoffs trigger one scope question. AUTO checks still require their commands.
 
 ### A project record that survives the session
 
@@ -221,7 +223,7 @@ $DOC_HUB/<ProjectName>/
 └── <ProjectName>.md       # low-frequency architecture and risk record
 ```
 
-`AC.md` keeps one current-evidence row per AC; a new result replaces the old one instead of growing an EVD history. Mode A plans carry a concise `Agent Handoff`, and the project capsule points to the latest completed plan. The full project document is loaded only when durable engineering facts are needed.
+`AC.md` keeps one current-evidence row per AC; a new result replaces the old one instead of growing an EVD history. Mode A plans carry a concise `Agent Handoff`, and the project capsule points to the latest completed plan. A requested code rollback distinguishes abandoned scope from a retained requirement: ACs are retired or restored, obsolete tasks are superseded, and an executed rollback becomes the latest valid plan handoff. The full project document is loaded only when durable engineering facts are needed.
 
 ### Powerful when needed, quiet when it is not
 
@@ -342,6 +344,12 @@ ADD writes `~/.add-hub` and keeps project ACs, plans, templates, project capsule
 <summary><strong>📦 Release history and technical contract details</strong></summary>
 
 The sections below preserve version-specific behavior and migration details for maintainers and existing users. New users can start with the workflow and installation guide above.
+
+## Current branch hardening
+
+- explicit ADD activation continues directly through existing-AC recovery, unfinished Mode B evidence, or the Greenfield path when its context is known;
+- natural-language manual acceptance is settled before a same-message follow-up request; its latest batch remains reconstructable after chat loss, while accepted rows persist until a concrete impact is identified;
+- code rollback now handles abandoned scope, retained requirements, Mode A supersession, and Mode B origins, then repairs the `latest_completed_plan` handoff after reimplementation or explicit deferral.
 
 ## v2.7.0: Less context, stronger continuity
 

@@ -51,7 +51,7 @@
   {
     "scenario": "manual-pass",
     "name": "manual pass persists evidence and closes a Mode B series before verified status",
-    "source": "add",
+    "source": "contract",
     "requiredTerms": ["MANUAL", "state: pending-manual", "AC-N passed", "PASS", "Mode B", "completed", "only then mark", "[x]"],
     "requiredPattern": "(?is)MANUAL.*state: pending-manual.*AC-N passed.*PASS.*Mode B.*completed.*only then mark `\\[x\\]`"
   },
@@ -220,8 +220,8 @@
     "scenario": "conditional-implementation-reference",
     "name": "routine Mode B avoids the full implementation reference",
     "source": "add",
-    "requiredTerms": ["Mode A", "reads", "implementation-planning-and-execution.md", "once", "Routine Mode B", "compact rules", "failure-recovery-and-cancellation.md", "only after"],
-    "requiredPattern": "(?is)Mode A reads.*implementation-planning-and-execution\\.md.*once.*Routine Mode B uses the compact rules.*failure-recovery-and-cancellation\\.md.*only after"
+    "requiredTerms": ["Mode A", "reads", "implementation-planning-and-execution.md", "once", "Routine Mode B", "compact rules", "Session recovery", "failure-recovery-and-cancellation.md", "also read it after"],
+    "requiredPattern": "(?is)Mode A reads.*implementation-planning-and-execution\\.md.*once.*Routine Mode B uses the compact rules.*Session recovery reads.*failure-recovery-and-cancellation\\.md.*also read it after"
   },
   {
     "scenario": "mode-b-same-series-retry",
@@ -276,8 +276,8 @@
     "scenario": "approved-plan-supersession-recovery",
     "name": "interrupted approved supersession resumes the named replacement only",
     "source": "recovery",
-    "requiredTerms": ["awaiting-approved-supersession", "supersedes_plan", "old paused/completed plan", "repository identity", "complete its supersession write", "activate it", "never create a second replacement"],
-    "requiredPattern": "(?is)For `awaiting-approved-supersession`.*match `supersedes_plan`.*old paused/completed plan.*repository identity.*old is paused.*complete its supersession write.*completed naming this replacement.*activate it.*never create a second replacement"
+    "requiredTerms": ["awaiting-approved-supersession", "supersedes_plan", "named old owner", "repository identity", "active or paused", "complete its supersession write", "activate it", "never create a second replacement"],
+    "requiredPattern": "(?is)For `awaiting-approved-supersession`.*match `supersedes_plan`.*named old owner.*repository identity.*old is active or paused.*complete its supersession write.*completed naming this replacement.*activate it.*never create a second replacement"
   },
   {
     "scenario": "mode-b-to-a-attempt-import",
@@ -329,6 +329,20 @@
     "requiredPattern": "(?is)explicit invocation.*current work unit.*not unrelated work.*Without that invocation.*one-off scripts"
   },
   {
+    "scenario": "explicit-load-continues-with-known-context",
+    "name": "explicit loading continues through project recovery when context is complete",
+    "source": "add",
+    "requiredTerms": ["After explicit activation", "project and objective", "Phase 0", "same turn", "Hub", "project capsule", "target AC", "transition owner", "active-plan handoff", "unfinished Mode B evidence", "identity-checked latest-completed handoff", "next real gate"],
+    "requiredPattern": "(?is)After explicit activation.*project and objective.*Phase 0.*same turn.*Hub.*project capsule.*target AC.*transition owner.*active-plan handoff.*unfinished Mode B evidence.*identity-checked latest-completed handoff.*next real gate"
+  },
+  {
+    "scenario": "explicit-load-completes-missing-context",
+    "name": "explicit loading asks once for a missing project or objective",
+    "source": "add",
+    "requiredTerms": ["Ask once", "missing project or objective"],
+    "requiredPattern": "(?is)After explicit activation.*project and objective.*Ask once for a missing project or objective"
+  },
+  {
     "scenario": "activation-gate-early-exit",
     "name": "excluded requests exit before loading project context",
     "source": "guardrails",
@@ -348,5 +362,145 @@
     "source": "guardrails",
     "requiredTerms": ["Packaging reveals", "build-config", "release-structure change", "Phase 3.5", "actual change"],
     "requiredPattern": "(?is)Packaging reveals a required build-config or release-structure change.*Enter Phase 3.5 only for that actual change"
+  },
+  {
+    "scenario": "acceptance-feedback-before-next-request",
+    "name": "acceptance feedback settles before a same-message follow-up request",
+    "source": "contract",
+    "requiredTerms": ["acceptance feedback", "same message", "first", "settle", "then", "subsequent request"],
+    "requiredPattern": "(?is)acceptance feedback.*same message.*first.*settle.*then.*subsequent request"
+  },
+  {
+    "scenario": "natural-language-manual-batch-pass",
+    "name": "natural-language pass settles the latest outstanding manual handoff batch",
+    "source": "contract",
+    "requiredTerms": ["tests passed", "all passed", "latest outstanding", "Manual Verification Handoff", "target", "affected MANUAL", "current evidence", "Status Summary"],
+    "requiredPattern": "(?is)`tests passed`.*`all passed`.*latest outstanding.*Manual Verification Handoff.*target.*affected MANUAL.*current evidence.*Status Summary"
+  },
+  {
+    "scenario": "ambiguous-manual-feedback",
+    "name": "ambiguous acceptance feedback requests one scope clarification",
+    "source": "contract",
+    "requiredTerms": ["more than one handoff", "equally plausible", "ask once", "scope"],
+    "requiredPattern": "(?is)more than one handoff.*equally plausible.*ask once.*scope"
+  },
+  {
+    "scenario": "accepted-status-persistence",
+    "name": "accepted status persists until a concrete impact is identified",
+    "source": "contract",
+    "requiredTerms": ["Existing", "[x]", "remains valid", "observable behavior", "verification path"],
+    "requiredPattern": "(?is)Existing `\\[x\\]` remains valid.*observable behavior or verification path"
+  },
+  {
+    "scenario": "concrete-impact-reopen",
+    "name": "reopening an accepted AC records a concrete impact point",
+    "source": "contract",
+    "requiredTerms": ["reopen", "[!] [affected]", "concrete impact point", "shared-file edit"],
+    "requiredPattern": "(?is)reopen.*`\\[!\\] \\[affected\\]`.*concrete impact point.*shared-file edit"
+  },
+  {
+    "scenario": "manual-auto-verification-boundary",
+    "name": "manual and automatic results settle only their own verification portions",
+    "source": "contract",
+    "requiredTerms": ["MANUAL confirmation", "MANUAL portion", "AUTO result", "AUTO portion", "both"],
+    "requiredPattern": "(?is)MANUAL confirmation.*MANUAL portion.*AUTO result.*AUTO portion.*both"
+  },
+  {
+    "scenario": "rollback-abandon-unimplemented-scope",
+    "name": "rollback abandons unimplemented new scope without deleting its AC",
+    "source": "rollback",
+    "requiredTerms": ["abandon", "before implementation", "new AC", "[-]", "scope decision", "stable ID"],
+    "requiredPattern": "(?is)abandon.*before implementation.*new AC.*`\\[-\\]`.*scope decision.*stable ID"
+  },
+  {
+    "scenario": "rollback-retain-scope",
+    "name": "rollback can retain the requirement while reverting implementation",
+    "source": "rollback",
+    "requiredTerms": ["retain", "requirement", "reimplement now", "[ ]", "[~]", "rollback plan"],
+    "requiredPattern": "(?is)retain.*requirement.*reimplement now.*`\\[ \\]`.*`\\[~\\]`.*rollback plan"
+  },
+  {
+    "scenario": "rollback-restore-prior-contract",
+    "name": "rollback restores prior accepted contracts and reverifies them",
+    "source": "rollback",
+    "requiredTerms": ["modified prior AC", "previous approved contract", "re-verify", "current evidence"],
+    "requiredPattern": "(?is)modified prior AC.*previous approved contract.*re-verify.*current evidence"
+  },
+  {
+    "scenario": "rollback-supersede-unexecuted-plan",
+    "name": "an abandoned unexecuted plan is superseded without refreshing the capsule",
+    "source": "rollback",
+    "requiredTerms": ["unexecuted plan", "superseded", "active_tasks", "project capsule", "latest_completed_plan"],
+    "requiredPattern": "(?is)unexecuted plan.*tasks.*`superseded`.*clear `active_tasks`.*project capsule.*`latest_completed_plan`"
+  },
+  {
+    "scenario": "rollback-plan-supersedes",
+    "name": "an executed rollback uses a new plan linked to the reverted plan",
+    "source": "rollback",
+    "requiredTerms": ["executed rollback", "new Mode A plan", "supersedes_plan", "reverted plan"],
+    "requiredPattern": "(?is)executed rollback.*new Mode A plan.*`supersedes_plan`.*reverted plan"
+  },
+  {
+    "scenario": "rollback-completion-pointer",
+    "name": "successful rollback completion becomes the latest valid handoff",
+    "source": "rollback",
+    "requiredTerms": ["rollback plan", "completed", "latest_completed_plan", "project capsule", "rollback plan path"],
+    "requiredPattern": "(?is)rollback plan.*`completed`.*`latest_completed_plan`.*project capsule.*rollback plan path"
+  },
+  {
+    "scenario": "manual-handoff-durable-scope",
+    "name": "manual handoff batch scope survives lost chat context",
+    "source": "contract",
+    "requiredTerms": ["shared issuance timestamp", "Last Verified", "chat handoff is unavailable", "latest outstanding batch", "greatest timestamp"],
+    "requiredPattern": "(?is)shared issuance timestamp.*`Last Verified`.*chat handoff is unavailable.*latest outstanding batch.*greatest timestamp"
+  },
+  {
+    "scenario": "affected-marker-concrete-impact",
+    "name": "the executable affected marker names the concrete impact point",
+    "source": "add",
+    "requiredTerms": ["affected", "observable behavior or verification path", "needs re-verification"],
+    "requiredPattern": "(?is)Mark any affected.*observable behavior or verification path.*needs re-verification"
+  },
+  {
+    "scenario": "rollback-interruption-transition-pair",
+    "name": "rollback supersession resumes when the old owner is still active",
+    "source": "recovery",
+    "requiredTerms": ["awaiting-approved-supersession", "named old owner", "active or paused", "one transition pair", "complete its supersession write"],
+    "requiredPattern": "(?is)awaiting-approved-supersession.*named active/paused old owner.*one transition pair.*old is active or paused.*complete its supersession write"
+  },
+  {
+    "scenario": "rollback-retained-requirement-completion",
+    "name": "retained requirements settle through immediate reimplementation or deferral",
+    "source": "rollback",
+    "requiredTerms": ["retain the requirement", "reimplement now", "[ ]", "[~]", "defer reimplementation", "[>]", "rollback plan", "completed", "latest_completed_plan"],
+    "requiredPattern": "(?is)retain the requirement.*reimplement now.*`\\[ \\]`.*`\\[~\\]`.*defer reimplementation.*`\\[>\\]`.*rollback plan.*`completed`.*`latest_completed_plan`"
+  },
+  {
+    "scenario": "explicit-load-greenfield-path",
+    "name": "explicit loading routes a project without AC through the No AC path",
+    "source": "add",
+    "requiredTerms": ["After explicit activation", "project and objective", "existing AC", "No AC", "Greenfield"],
+    "requiredPattern": "(?is)After explicit activation.*project and objective.*existing AC.*No AC.*Greenfield"
+  },
+  {
+    "scenario": "explicit-load-recovery-reference",
+    "name": "explicit session recovery loads the conditional recovery reference",
+    "source": "add",
+    "requiredTerms": ["session recovery", "references/failure-recovery-and-cancellation.md"],
+    "requiredPattern": "(?is)session recovery.*references/failure-recovery-and-cancellation\\.md"
+  },
+  {
+    "scenario": "rollback-abandon-implemented-scope",
+    "name": "abandoning an implemented new AC restores code before deprecation",
+    "source": "rollback",
+    "requiredTerms": ["implemented new AC", "restore", "rollback plan", "verify", "[-]", "scope decision"],
+    "requiredPattern": "(?is)implemented new AC.*restore.*rollback plan.*verify.*`\\[-\\]`.*scope decision"
+  },
+  {
+    "scenario": "rollback-mode-b-origin",
+    "name": "rollback from Mode B links AC recovery state without inventing a prior plan",
+    "source": "rollback",
+    "requiredTerms": ["Mode B", "no persistent plan", "supersedes_plan: N/A", "target AC", "Recovery State", "checkpoint commit"],
+    "requiredPattern": "(?is)Mode B.*no persistent plan.*`supersedes_plan: N/A`.*target AC.*Recovery State.*checkpoint commit"
   }
 ]

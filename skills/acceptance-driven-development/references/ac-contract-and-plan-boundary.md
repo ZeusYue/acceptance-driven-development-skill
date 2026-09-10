@@ -68,6 +68,16 @@ Plan status records execution progress only. Its final record references the `AC
 
 ## Manual Verification Handoff
 
-For every `[!] [manual]`, present AC ID, what changed, prerequisites, exact steps, expected result, and a reply form such as `AC-45 passed` or `AC-45 failed: <observation>`.
-On pass, replace that AC's current-evidence row with the reported result and only then mark `[x]`.
-On failure, replace current evidence, set `[~]`, and use Phase 3.5A for same-scope repair or Phase 3.5B for a material delta. AUTO and affected AUTO rows still require their executable commands.
+For every `[!] [manual]`, present AC ID, what changed, prerequisites, exact steps, expected result, and a reply form such as `AC-45 passed` or `AC-45 failed: <observation>`. A Mode B handoff retains `state: pending-manual`.
+On `AC-N passed`, replace current evidence with reported `PASS`, set Mode B `completed`, and only then mark `[x]`.
+On `AC-N failed: <observation>`, replace current evidence, set `[~]`, and use Phase 3.5A for same-scope repair or Phase 3.5B for a material delta. Retain unfinished Mode B; otherwise use Mode A. AUTO and affected AUTO rows still require their commands.
+
+### Acceptance feedback intake
+
+Process acceptance feedback in the same message first: settle its complete mapped batch, then handle any subsequent request.
+
+- Explicit AC IDs map directly. Natural-language replies such as `tests passed` or `all passed` map to the latest outstanding **Manual Verification Handoff**, including every target and affected MANUAL row listed there; replace their current evidence and recompute Status Summary as one batch.
+- On handoff, write one shared issuance timestamp into `Last Verified` for every listed row. When the chat handoff is unavailable, reconstruct the latest outstanding batch from pending MANUAL rows with the greatest timestamp.
+- When more than one handoff is equally plausible, ask once which scope the result covers. Otherwise apply the whole latest batch without requiring the user to repeat IDs.
+- Existing `[x]` remains valid across turns until a current change affects its observable behavior or verification path. To reopen it as `[!] [affected]`, record the concrete impact point; a shared-file edit reopens only rows connected through that point.
+- MANUAL confirmation settles the MANUAL portion; an AUTO result settles the AUTO portion. A mixed batch reaches `[x]` only after both portions are current.

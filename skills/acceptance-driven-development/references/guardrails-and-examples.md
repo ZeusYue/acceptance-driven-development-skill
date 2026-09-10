@@ -40,6 +40,8 @@
 | “Build a persistent desktop photo manager” | Auto-activate as project creation and enter Greenfield gates. |
 | “Explain this stack trace” or inspect code without changing it | Handle normally; do not locate the Hub or read ADD project context. |
 | “Write an unrelated shutdown script” | Handle as a one-off unless the user explicitly invokes ADD for this work unit. |
+| “Use ADD to continue the current FitsCompare task” after the task is already known | Treat loading and Phase 0 as one execution unit; recover the project capsule, target AC, and applicable plan handoff, then continue to the next real gate. |
+| “Load ADD” with no identifiable project or work objective in context | Ask once for the missing project or objective, then enter the normal continuation path. |
 | “Snapshot current changes” or “package the existing release tree” | Perform the delivery operation without new AC; do not change acceptance/task verification state. |
 | Packaging reveals a required build-config or release-structure change | Enter Phase 3.5 only for that actual change. |
 

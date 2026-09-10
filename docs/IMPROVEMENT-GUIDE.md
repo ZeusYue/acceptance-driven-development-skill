@@ -2,6 +2,14 @@
 
 > 本文件记录 acceptance-driven-development Skill 的设计原则、已验证防线和版本演进。修改 Skill 前先阅读现行版本与长期原则。
 
+## vNext（2026-09-10）：连续激活、验收回填与代码回退
+
+- 显式调用 ADD 且项目/目标已知时，同轮继续 Phase 0 与项目胶囊。有 AC 时恢复过渡 owner、活动计划、未完 Mode B 或经身份校验的最近完成交接；无 AC 时进入 Greenfield/重建路径。
+- 同一用户消息中的验收反馈先结算，然后处理后续需求。“测试通过/全部通过”默认对应最近未结算 Manual Verification Handoff 的完整 MANUAL 批次；发出交接时给整批证据写入同一 `Last Verified` 时间戳，使聊天丢失后仍可重建范围。
+- 已通过 `[x]` 跨轮持续有效；只在当前改动对可观察行为或验证路径存在具体影响点时重开，共享文件变化本身不扩大影响集。
+- 代码回退使用独立条件 reference。放弃已实现新 AC 时先恢复并验证代码，再结为 `[-]`；保留需求时选择当前重做或恢复后明确延后。Mode A 来源复用原子 `supersedes_plan` 交接，Mode B 来源使用 `supersedes_plan: N/A` 并通过 AC 恢复状态和检查点定位。
+- 运行时提示默认描述正向执行配方、产物结构和顺序。只对高频且高风险的纪律性失误保留必要的“不得/never”，避免用穷举负面例子稀释核心规则。
+
 ## v2.7.0（2026-09-04）：当前证据、项目胶囊与分层上下文
 
 - 技能发现采用严格混合触发：持久项目创建和可识别项目内的行为/代码/配置/构建/部署/公共契约改动自动启用；普通问答、只读工作和无关一次性脚本须显式调用一次，作用域仅限当前连续工作单元。
@@ -262,6 +270,7 @@ Agent 会在两个 Phase 之间迷路。每个 Phase 的出口必须有明确的
 | `skills/acceptance-driven-development/references/framework-review-checklist.md` | 框架自审清单 | 低（按需增加框架） |
 | `skills/acceptance-driven-development/references/implementation-planning-and-execution.md` | Mode A/B 实施、计划所有权和 Git 检查点 | 中（执行边界变化时更新） |
 | `skills/acceptance-driven-development/references/failure-recovery-and-cancellation.md` | 失败序列、阻塞、取消/拒绝、重设计与模式切换 | 中（恢复状态机变化时更新） |
+| `skills/acceptance-driven-development/references/code-rollback.md` | 放弃范围、实现回退、计划取代和最近有效交接 | 低（回退合同变化时更新） |
 | `skills/acceptance-driven-development/assets/implementation-plan-template.md` | Mode A 固定计划资产 | 低（schema 变化时更新） |
 | Vault 笔记 `Acceptance-Driven-Development Skill.md` | 设计决策记录 | 中（每次重大改动同步） |
 | 发行仓库根目录 | README、安装指南、测试和 Release 包的规范来源 | 中（每次发行同步） |

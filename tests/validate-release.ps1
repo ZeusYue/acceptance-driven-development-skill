@@ -850,7 +850,7 @@ function Test-WorkflowTransitionFixtures {
         $failures.Add("Workflow transition fixtures are invalid JSON: $($_.Exception.Message)")
         return
     }
-    $requiredScenarios = @('blocked-redesign','pre-approval-cancel','post-persistence-cancel','delegate-cancel','active-plan-reentry','paused-plan-restart','active-plan-conflict','manual-pass','mode-b-manual-pending','mode-b-recovery','mode-b-cancel-restart','test-first-red','blocked-subset-review','blocked-alternate-path','guided-retry-status','mode-a-redesign-plan','guided-mode-transition','external-environment-block','cleared-environment-block','mode-a-to-b-handoff','mode-a-to-b-interruption-recovery','post-approval-rejection','global-experience-session','project-capsule-work-unit','project-capsule-bootstrap','project-capsule-completion','project-capsule-seed-source','project-experience-explicit-only','agent-handoff-active-plan','agent-handoff-latest-completed','layered-ac-reading','conditional-template-reading','conditional-implementation-reference','mode-b-same-series-retry','mode-b-phase6-recovery','mode-b-blocked-conclusion','paused-plan-owner','risk-based-mode-selection','approved-plan-supersession','approved-plan-supersession-recovery','mode-b-to-a-attempt-import','manual-ready-work-drain','completed-plan-identity','missing-cache-read-only-fallback','capsule-refresh-provenance','project-level-auto-activation','explicit-nonproject-activation','activation-gate-early-exit','delivery-only-no-ac','delivery-change-reentry')
+    $requiredScenarios = @('blocked-redesign','pre-approval-cancel','post-persistence-cancel','delegate-cancel','active-plan-reentry','paused-plan-restart','active-plan-conflict','manual-pass','mode-b-manual-pending','mode-b-recovery','mode-b-cancel-restart','test-first-red','blocked-subset-review','blocked-alternate-path','guided-retry-status','mode-a-redesign-plan','guided-mode-transition','external-environment-block','cleared-environment-block','mode-a-to-b-handoff','mode-a-to-b-interruption-recovery','post-approval-rejection','global-experience-session','project-capsule-work-unit','project-capsule-bootstrap','project-capsule-completion','project-capsule-seed-source','project-experience-explicit-only','agent-handoff-active-plan','agent-handoff-latest-completed','layered-ac-reading','conditional-template-reading','conditional-implementation-reference','mode-b-same-series-retry','mode-b-phase6-recovery','mode-b-blocked-conclusion','paused-plan-owner','risk-based-mode-selection','approved-plan-supersession','approved-plan-supersession-recovery','mode-b-to-a-attempt-import','manual-ready-work-drain','completed-plan-identity','missing-cache-read-only-fallback','capsule-refresh-provenance','project-level-auto-activation','explicit-nonproject-activation','explicit-load-continues-with-known-context','explicit-load-completes-missing-context','activation-gate-early-exit','delivery-only-no-ac','delivery-change-reentry','acceptance-feedback-before-next-request','natural-language-manual-batch-pass','ambiguous-manual-feedback','accepted-status-persistence','concrete-impact-reopen','manual-auto-verification-boundary','rollback-abandon-unimplemented-scope','rollback-retain-scope','rollback-restore-prior-contract','rollback-supersede-unexecuted-plan','rollback-plan-supersedes','rollback-completion-pointer','manual-handoff-durable-scope','affected-marker-concrete-impact','rollback-interruption-transition-pair','rollback-retained-requirement-completion','explicit-load-greenfield-path','explicit-load-recovery-reference','rollback-abandon-implemented-scope','rollback-mode-b-origin')
     $actualScenarios = @($cases | ForEach-Object { $_.scenario })
     foreach ($scenario in $requiredScenarios) {
         if (@($actualScenarios | Where-Object { $_ -eq $scenario }).Count -lt 1) { $failures.Add("Workflow fixtures must define at least one '$scenario' contract case.") }
@@ -878,6 +878,7 @@ function Test-WorkflowTransitionFixtures {
 }
 
 $add = Join-Path $ReleaseRoot 'skills\acceptance-driven-development\SKILL.md'
+$rollbackRef = Join-Path $ReleaseRoot 'skills\acceptance-driven-development\references\code-rollback.md'
 $designExploration = Join-Path $ReleaseRoot 'skills\acceptance-driven-development\references\design-exploration-and-handoff.md'
 $experience = Join-Path $ReleaseRoot 'skills\project-experience\SKILL.md'
 $readme = Join-Path $ReleaseRoot 'README.md'
@@ -1263,31 +1264,37 @@ $addLineCount = (Get-Content -LiteralPath $add -Encoding utf8).Count
 $designExplorationLineCount = (Get-Content -LiteralPath $designExploration -Encoding utf8).Count
 $implementationRefLineCount = (Get-Content -LiteralPath $implementationRef -Encoding utf8).Count
 $recoveryRefLineCount = (Get-Content -LiteralPath $recoveryRef -Encoding utf8).Count
+$rollbackRefLineCount = (Get-Content -LiteralPath $rollbackRef -Encoding utf8).Count
 $acContractWordContent = Get-Content -Raw -LiteralPath $acContractRef -Encoding utf8
 $addWordContent = Get-Content -Raw -LiteralPath $add -Encoding utf8
 $implementationWordContent = Get-Content -Raw -LiteralPath $implementationRef -Encoding utf8
 $recoveryWordContent = Get-Content -Raw -LiteralPath $recoveryRef -Encoding utf8
+$rollbackWordContent = Get-Content -Raw -LiteralPath $rollbackRef -Encoding utf8
 $addWordCount = [regex]::Matches($addWordContent, '\b[\p{L}\p{N}_-]+\b').Count
 $implementationRefWordCount = [regex]::Matches($implementationWordContent, '\b[\p{L}\p{N}_-]+\b').Count
 $recoveryRefWordCount = [regex]::Matches($recoveryWordContent, '\b[\p{L}\p{N}_-]+\b').Count
+$rollbackRefWordCount = [regex]::Matches($rollbackWordContent, '\b[\p{L}\p{N}_-]+\b').Count
 $mandatoryImplementationWordCount = $addWordCount + $implementationRefWordCount + [regex]::Matches($acContractWordContent, '\b[\p{L}\p{N}_-]+\b').Count
 $overlongOperationalLines = @(
     (Get-Content -LiteralPath $add -Encoding utf8)
     (Get-Content -LiteralPath $implementationRef -Encoding utf8)
     (Get-Content -LiteralPath $recoveryRef -Encoding utf8)
+    (Get-Content -LiteralPath $rollbackRef -Encoding utf8)
 ) | Where-Object { $_.Length -gt 400 }
 if ($addLineCount -gt 380) { $failures.Add("ADD main skill exceeds 380-line operational budget: $addLineCount") }
 if ($designExplorationLineCount -gt 120) { $failures.Add("ADD design exploration exceeds 120-line conditional-reference budget: $designExplorationLineCount") }
 if ($implementationRefLineCount -gt 140) { $failures.Add("ADD implementation reference exceeds 140-line conditional-reference budget: $implementationRefLineCount") }
 if ($recoveryRefLineCount -gt 100) { $failures.Add("ADD recovery reference exceeds 100-line conditional-reference budget: $recoveryRefLineCount") }
+if ($rollbackRefLineCount -gt 90) { $failures.Add("ADD rollback reference exceeds 90-line conditional-reference budget: $rollbackRefLineCount") }
 if ($addWordCount -gt 3300) { $failures.Add("ADD main skill exceeds 3300-word operational budget: $addWordCount") }
 if ($implementationRefWordCount -gt 1900) { $failures.Add("ADD implementation reference exceeds 1900-word conditional-reference budget: $implementationRefWordCount") }
 if ($recoveryRefWordCount -gt 1300) { $failures.Add("ADD recovery reference exceeds 1300-word conditional-reference budget: $recoveryRefWordCount") }
+if ($rollbackRefWordCount -gt 900) { $failures.Add("ADD rollback reference exceeds 900-word conditional-reference budget: $rollbackRefWordCount") }
 if ($mandatoryImplementationWordCount -gt 6000) { $failures.Add("Typical implementation load exceeds 6000 words: $mandatoryImplementationWordCount") }
 if ($overlongOperationalLines.Count -gt 0) { $failures.Add("ADD operational files contain $($overlongOperationalLines.Count) line(s) longer than 400 characters.") }
 if (Test-Path -LiteralPath (Join-Path $ReleaseRoot 'skills\acceptance-driven-development\IMPROVEMENT-GUIDE.md')) { $failures.Add('Maintainer improvement guide must not ship inside the runtime skill directory.') }
 if (-not (Test-Path -LiteralPath (Join-Path $ReleaseRoot 'docs\IMPROVEMENT-GUIDE.md'))) { $failures.Add('Maintainer improvement guide must remain available under docs/.') }
-foreach ($referenceFile in @($guardrailsRef, $changeGuideRef, $frameworkReviewRef, $acContractRef, $designExploration, $implementationRef, $recoveryRef)) {
+foreach ($referenceFile in @($guardrailsRef, $changeGuideRef, $frameworkReviewRef, $acContractRef, $designExploration, $implementationRef, $recoveryRef, $rollbackRef)) {
     if (-not (Test-Path -LiteralPath $referenceFile)) { $failures.Add("Missing ADD compression reference: $referenceFile") }
 }
 Require-Match $add 'FIRST RULE' 'ADD main skill must retain FIRST RULE.'
@@ -1301,7 +1308,7 @@ Require-ClauseTerms $add @('Only actual project changes enter Phase 3.5') 'Deliv
 Require-Match $add 'Phase 3\.5A: Approved Backlog Entry' 'ADD main skill must retain Phase 3.5A.'
 Require-Match $add 'Phase 3\.5B: Mid-Development Requirement Changes' 'ADD main skill must retain Phase 3.5B.'
 Require-Match $add 'Review checklist \(6 items' 'ADD main skill must retain six-point review.'
-Require-Match $add 'Only mark `\[x\]` after FRESH verification' 'ADD main skill must retain fresh verification.'
+Require-Match $add '`\[x\]` transitions require FRESH verification in the current turn' 'ADD main skill must require fresh evidence for each transition to verified status.'
 Require-Match $add 'Living Project Document' 'ADD main skill must retain living project-document lifecycle.'
 Require-Match $add 'Existing project but missing AC\.md' 'ADD main skill must distinguish a missing AC in an existing project from Greenfield.'
 Require-Match $add '_exp_memory\.md\.tmp' 'ADD main skill must retain atomic cache refresh.'
@@ -1363,7 +1370,7 @@ Require-Match $add 'change to `\[ \]` if untouched or `\[~\]` if partial impleme
 Require-ClauseTerms $add @('resumed','[>]','target','[ ]','[~]','implementation remains') 'A changed-scope deferred AC must leave deferred status after Phase 3.5B approval.'
 Require-Match $add 'do not write it first' 'Untracked fast-lane work must confirm its tracking AC before persistence.'
 Require-Match $add 'A vague check fails this gate' 'Vague MANUAL criteria must fail the AC Contract Gate.'
-Require-Match $add 'On `AC-N failed:' 'ADD must define a failed manual-verification transition.'
+Require-Match $acContractRef 'On `AC-N failed:' 'ADD must define a failed manual-verification transition.'
 Require-Match $add 'only after explicit user confirmation of deferral or deprecation' 'ADD must not defer or deprecate partial ACs unilaterally.'
 Require-ClauseTerms $add @('tracked bug','target','[x]','[~]') 'A known tracked bug must invalidate its formerly verified target AC.'
 Require-Match $add 'When the condition clears, reclassify through Phase 3' 'Blocked ACs must define an unblock transition.'
@@ -1373,6 +1380,14 @@ Require-Match $designExploration 'apply the approved AC delta.*before mode selec
 Require-Match $add 'references/ac-contract-and-plan-boundary\.md' 'ADD must link its AC-contract reference.'
 Require-Match $add 'references/implementation-planning-and-execution\.md' 'ADD must load its implementation planning and execution reference.'
 Require-Match $add 'references/failure-recovery-and-cancellation\.md' 'ADD must route exceptional recovery through its conditional reference.'
+Require-Match $add 'references/code-rollback\.md' 'ADD must route user-requested code rollback through its conditional reference.'
+Require-Match $rollbackRef 'Phase 3\.5B impact analysis' 'Actual code restoration must enter ADD impact analysis.'
+Require-ClauseTerms $rollbackRef @('rollback plan','paused','awaiting-approved-supersession','supersedes_plan') 'A prepared rollback plan must persist the standard transition owner.'
+Require-ClauseTerms $rollbackRef @('old plan owns','named rollback plan owns','standard approved-supersession recovery') 'Rollback ownership transfer must remain recoverable across interruption.'
+Require-ClauseTerms $readme @('tests passed','all passed','latest outstanding manual handoff','same message') 'English README must explain durable acceptance intake.'
+Require-ClauseTerms $readme @('code rollback','latest valid plan handoff') 'English README must explain rollback handoff repair.'
+Require-ClauseTerms $readmeZh @('测试通过','全部通过','最近一批未结算','同一消息') 'Chinese README must explain durable acceptance intake.'
+Require-ClauseTerms $readmeZh @('代码回退','最近有效交接') 'Chinese README must explain rollback handoff repair.'
 Require-Match $add 'assets/implementation-plan-template\.md.*\$DOC_HUB/<Project>/plans/' 'Mode A must copy the installed plan asset before code.'
 Require-Match $add 'Execution Map.*do not create a persistent plan' 'Mode B must use a chat-only Execution Map.'
 Require-Match $add 'without asking for plan approval' 'ADD must not make users review implementation plans.'
@@ -1416,7 +1431,7 @@ Test-AcTemplateStructure $acTemplate 'en'
 Test-AcSchema3NegativeCases $acAsset
 Test-ImplementationPlanStructure $implementationPlanAsset
 Test-ModeBContract $add
-Test-WorkflowTransitionFixtures $workflowFixtures @{ add = $add; guardrails = $guardrailsRef; implementation = $implementationRef; recovery = $recoveryRef; plan = $implementationPlanAsset; experience = $experience }
+Test-WorkflowTransitionFixtures $workflowFixtures @{ add = $add; contract = $acContractRef; guardrails = $guardrailsRef; implementation = $implementationRef; recovery = $recoveryRef; rollback = $rollbackRef; plan = $implementationPlanAsset; experience = $experience }
 $exampleAcFiles = @(Get-ChildItem -LiteralPath (Join-Path $ReleaseRoot 'projects') -Recurse -File -Filter 'AC.md' | Where-Object { $_.FullName -notmatch '[\\/]templates[\\/]' })
 foreach ($exampleAc in $exampleAcFiles) {
     $exampleLanguage = if ((Get-Content -Raw -LiteralPath $exampleAc.FullName -Encoding utf8) -match '验收标准') { 'zh' } else { 'en' }
@@ -1455,7 +1470,7 @@ Require-ClauseTerms $implementationRef @('explicit restart','paused plans','same
 Require-ClauseTerms $recoveryRef @('After approved AC persistence','before Agent code','new targets','[ ]','edited/resumed targets','persisted') 'Cancellation before code must preserve newly approved and edited AC states.'
 Require-ClauseTerms $implementationRef @('plan matches','status: active','worktree','branch','baseline_commit','target_acs','approach_ref','Reuse') 'Active-plan re-entry must match identity, baseline, and approved approach before reuse.'
 Require-ClauseTerms $implementationRef @('scope_decision_ids','may be','[]','legacy backlog','not an implementation-approach identifier') 'Legacy plans must allow no DEC without confusing scope decisions with approach identity.'
-Require-ClauseTerms $add @('MANUAL','state: pending-manual','AC-N passed','PASS','Mode B','completed','only then mark','[x]') 'MANUAL pass must persist evidence and close Mode B recovery before marking the AC verified.'
+Require-ClauseTerms $acContractRef @('MANUAL','state: pending-manual','AC-N passed','PASS','Mode B','completed','only then mark','[x]') 'MANUAL pass must persist evidence and close Mode B recovery before marking the AC verified.'
 Require-ClauseTerms $recoveryRef @('MANUAL handoff','creates or retains','series','MANUAL / PENDING MANUAL / state: pending-manual','failure uses `MANUAL`','advances normal series','blocks guided series','4/4','without increment') 'Mode B manual verification must preserve and advance its bounded series.'
 Require-ClauseTerms $recoveryRef @('Expected','TEST-FIRST','red','do not count') 'An expected TEST-FIRST red result must not increment the failure counter.'
 Require-NoMatch $recoveryRef '(?i)expected.{0,80}TEST-FIRST.{0,80}red.{0,80}(?<!not )counts? as (?:a )?fail' 'ADD must not contain a contradictory rule that counts expected TEST-FIRST red as failure.'

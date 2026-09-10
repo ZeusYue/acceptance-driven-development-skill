@@ -4,7 +4,7 @@
 
 ## Attempts and blocks
 
-An attempt is an implementation → verification → review cycle ending unexpectedly; its failed commands are one event.
+An attempt is one failed implementation → verification → review cycle; its commands form one event.
 A shared failure increments each affected Mode B target once and Mode A task once; AC count never multiplies it. Expected `TEST-FIRST` red and `CHARACTERIZATION` do not count. Mode A counts per `PLAN-N`; Mode B counts per target AC.
 
 Each Mode B target with unfinished work owns one `MB-YYYYMMDD-N` series. Scan current Recovery State, allocate the next unused number, and never share series. PASS replaces the tuple with `completed`.
@@ -15,23 +15,24 @@ A Mode B MANUAL handoff creates or retains its series as `MANUAL / PENDING MANUA
 After three consecutive failed cycles, Mode A removes the task from `active_tasks` as `blocked`; Mode B marks the target `[!] [blocked]` and replaces current evidence with `BLOCKED / state: blocked`.
 Mark dependent unsettled ACs; continue independent work. If another task freshly verifies every AC that required the blocked task, mark the old task `superseded` with evidence; otherwise it remains blocked.
 
-An unavailable required environment/tool is an external block, not a failed cycle; replace current evidence with Type/Conclusion `BLOCKED` plus reason/unblock condition.
-Mode A removes the selected task from `active_tasks` and marks it `blocked` without incrementing; Mode B records `state: blocked` without incrementing. Continue independent work.
+An unavailable required environment/tool is an external block, not a failed cycle; write `BLOCKED` Type/Conclusion plus reason/unblock condition.
+Mode A removes the task from `active_tasks` and marks it `blocked` without incrementing; Mode B records `state: blocked` without incrementing. Continue independent work.
 When the condition clears, first apply Phase 5's AC transition. Mode A deletes old BLOCKED evidence for `[ ]`, or writes `EXECUTION / PENDING IMPLEMENTATION / N/A` for retained `[~]`; only plan-task attempt/evidence stays unchanged. Return task to `pending`. Mode B replaces the row with same-series `state: resumed`; Phase 3.5A imports prior attempt/guided state and retains Mode B.
 
 ## New Agent or session recovery
 
-1. Use the project capsule already read once. Scan plan frontmatter for active/paused `superseded-by-mode-b:<approach_ref>` or `awaiting-approved-supersession:<old-plan-id>` owners overlapping target ACs. Reconcile one; conflicts stop code. User-cancelled/rejected plans require explicit restart or named supersession.
+1. Use project capsule. Scan plan frontmatter for active/paused `superseded-by-mode-b:<approach_ref>` or `awaiting-approved-supersession:<old-plan-id>` owners overlapping targets.
+   A named active/paused old owner plus its awaiting replacement is one transition pair; reconcile it. Other conflicts stop code. Cancelled/rejected plans require explicit restart or named supersession.
 2. Reconcile a `superseded-by-mode-b` owner against current AC evidence and Git.
    First complete its plan-side handoff idempotently: return unrelated `in_progress` tasks to `pending`, mark Mode-B-owned tasks `superseded` with current evidence, clear `active_tasks`, and set `approach_ref` from the pause marker.
    Then write a missing reset, recover an unfinished Mode B series, or perform ownership handback when Mode B is settled. Do not use latest-completed fallback or create a replacement first.
-   For `awaiting-approved-supersession`, match `supersedes_plan`, the old paused/completed plan, and repository identity. If old is paused, complete its supersession write; if completed naming this replacement, activate it. Mismatch stops before code; never create a second replacement.
+   For `awaiting-approved-supersession`, match `supersedes_plan`, the named old owner, and repository identity. If old is active or paused, complete its supersession write; if completed naming this replacement, activate it. Mismatch stops before code; never create a second replacement.
 3. With one active plan, read Agent Handoff, target task state, and Recovery State; reconcile AC rows/current evidence, `git status`, recent local commits, diff, identity, and ancestry.
-4. With no active or transition owner, read only Agent Handoff from the completed-plan pointer `latest_completed_plan` after checking `code_root`, `worktree_id`, `branch`, and `baseline_commit` against the repository.
+4. With no active or transition owner, read only Agent Handoff from completed-plan pointer `latest_completed_plan` after checking `code_root`, `worktree_id`, `branch`, and `baseline_commit` against the repository.
    If pointer is missing or stale or mismatched, scan `plans/` as a compatibility fallback with the same check. Mismatched handoffs are historical context. Never treat a completed plan as active.
-5. Resume `in_progress` or ready `pending` work without repeating verified tasks or re-requesting approval.
+5. Resume `in_progress` or ready `pending` work without repeating verified tasks or approval.
 
-Mode B has no persistent plan. Recover from the latest Git commit, target AC, current evidence, Recovery State, `approach_ref`, and repository diff.
+Mode B has no persistent plan. Recover from latest Git commit, target AC, current evidence, Recovery State, `approach_ref`, and repository diff.
 Unfinished `failed`, `authorized`, `reset`, or `resumed` returns through Phase 3.5A with its attempt state; `pending-manual` reissues the handoff. `cancelled`/`rejected` never auto-resumes. If the approach cannot be reconstructed confidently, preserve AC scope/tree and return to Phase 3.5B for approach confirmation; never reset attempts because chat context was lost.
 
 ## Guidance and redesign

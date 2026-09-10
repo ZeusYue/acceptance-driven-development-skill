@@ -13,7 +13,10 @@ Execute code changes against explicit acceptance criteria until each has a settl
 
 Auto-activate only for creating or changing an identifiable persistent project. Otherwise one explicit invocation governs the current work unit, not unrelated work.
 
-Without that invocation, questions, explanations, read-only/prose work, unrelated one-off scripts, and delivery-only Git/package/release operations fail. Only actual project changes enter Phase 3.5. On failure, stop before Phase 0; see the guardrails reference.
+Without that invocation, questions, read-only/prose work, unrelated one-off scripts, and delivery-only Git/package/release operations stay outside ADD; only actual project changes enter Phase 3.5. Stop before Phase 0.
+
+After explicit activation with known project and objective, continue through Phase 0 in the same turn: locate Hub and read the project capsule.
+With an existing AC, read the target AC and recover its transition owner, active-plan handoff, unfinished Mode B evidence, or identity-checked latest-completed handoff; with No AC, enter the Greenfield or reconstruction path. Then reach the next real gate. Ask once for a missing project or objective.
 
 ## 🚨 FIRST RULE — Check Before You Code
 
@@ -52,15 +55,15 @@ Code formatting or typo fixes still enter Phase 3.5B fast lane.
 
 ### Experience entry and project capsule
 
-After Hub location, each new Agent/session reads `$DOC_HUB/_exp_memory.md` once; step 2 fallback counts. Absence does not block ADD. Do not read it again in that session unless the user requests cross-project research or approves cache refresh.
+After Hub location, each new Agent/session reads `$DOC_HUB/_exp_memory.md` once; step 2 counts. Absence does not block. Do not read it again in that session unless the user requests cross-project research or approves cache refresh.
 
 Resolve the project and use `$DOC_HUB/<ProjectName>/_<ProjectName>_exp.md`, never a search-selected `*_exp.md`.
-At the start of every independent ADD work unit, read that capsule once before impact analysis or planning. A Mode A batch or Mode B change is one unit; retries, verification, review, and continuation do not trigger another read.
+At the start of every independent ADD work unit, read that capsule once before impact analysis or planning. One Mode A batch or Mode B change is a unit; retries, verification, review, and continuation do not trigger another read.
 
-If the capsule is absent, create it by copying the language-matching `assets/project-experience-capsule-template*.md`; never invent structure. Seed at most three relevant entries from the global cache already read this session, or none. Record its source cache revision; label seeds as `_exp_memory.md`, not project-verified facts.
+If the capsule is absent, create it by copying the language-matching `assets/project-experience-capsule-template*.md`. Seed at most three relevant entries from the global cache already read this session, or none. Record its source cache revision; label seeds `_exp_memory.md`, not project-verified facts.
 
 The capsule is a flat list of at most 12 difficult, non-obvious, verified lessons, each titled and at most two sentences.
-Project-earned lessons cite a completed source plan; initial seeds cite `_exp_memory.md`. Admit only reusable, verified investigation/diagnosis/trade-off/failure-repair guidance. Merge matching causes/solutions; exclude routine facts, counts, commits, and one-offs.
+Project-earned lessons cite a completed source plan; initial seeds cite `_exp_memory.md`. Admit only reusable, verified investigation/diagnosis/trade-off/failure-repair guidance; merge matching causes/solutions; exclude routine facts, counts, commits, and one-offs.
 After initialization, Experience content changes only after a successfully completed, non-superseded Mode A plan; Mode B and unfinished plans never add lessons. Keep `latest_completed_plan: plans/<file>.md`, updated after each such plan even when no lesson changes. Never automatically re-seed an existing capsule.
 
 ### Locate AC, templates, and the AC Contract Gate
@@ -102,6 +105,8 @@ Load the full project document only for first setup, material architecture/depen
 
 Use `references/change-design-guide.md` for sizing and the solution ladder.
 
+Before later requests in the same message, settle acceptance feedback through `references/ac-contract-and-plan-boundary.md`.
+
 ## Phases 1–3: Triage, Order, Classify
 
 ### Phase 1: Parse statuses
@@ -137,7 +142,7 @@ Order Features → Compatibility → Performance → Quality; infer missing cate
 
 1. Announce `Phase 3.5A — Approved backlog impact analysis: N triaged ACs`.
 2. Use the project capsule already read for this work unit, list target ACs, and trace relevant call paths.
-3. Mark any affected `[x]` rows as `[!] [affected]` with `⚠️ Affected by AC-N implementation — needs re-verification`.
+3. Mark any affected `[x]` row `[!] [affected]` and name its observable behavior or verification path in `⚠️ Affected by AC-N: <impact point> — needs re-verification`.
 4. Initial triaged work always enters **Mode A**, even for one or two rows. Same-approach recovery of an unfinished Mode B series retains Mode B and its attempt state unless newly discovered impact meets a mandatory Mode A risk condition; it is not initial triage.
 
 ### Phase 3.5B: Mid-Development Requirement Changes
@@ -156,21 +161,21 @@ Use the project capsule already read for this work unit. Before approval, trace 
   - Proposed affected non-target `[x]` rows become `[!] [affected]`. A tracked bug changes its target `[x]` to `[~]`; other tracked fast-lane work with unchanged accepted behavior marks target and affected `[x]` rows `[!] [affected]`.
 - **Mode choice after Phase 3.5B persistence:** use Mode A for three or more related target ACs. One or two settled, low-risk targets may use Mode B. A material architecture, dependency relationship/behavior, concurrency, persistence, security, migration, public-contract, or broad shared-component change always uses Mode A regardless of AC count.
 
-Physical-size uncertainty is Medium; genuine design ambiguity loads the design reference.
-
 ## Phase 4: Implement
 
 Change only target scope; trace root cause and re-verify affected ACs.
-Mode A reads `references/implementation-planning-and-execution.md` once when creating/recovering its plan. Routine Mode B uses the compact rules below. Read `references/failure-recovery-and-cancellation.md` only after a failed cycle, block, interruption, cancellation/rejection, guided retry, redesign, or mode switch. Load references fully only when targeted access is unavailable.
+Mode A reads `references/implementation-planning-and-execution.md` once when creating/recovering its plan. Routine Mode B uses the compact rules below.
+Session recovery reads `references/failure-recovery-and-cancellation.md`; also read it after failure, block, interruption, cancellation/rejection, guided retry, redesign, or mode switch. Load references fully only when targeted access is unavailable.
+Read `references/code-rollback.md` for user-requested code rollback.
 
 ### Mode A: Batch
 
 Use for Phase 3.5A, 3+ related Phase 3.5B targets, and every listed high-risk category.
 
-1. List targets, then apply the reference's plan matching rules and reuse the sole match. Otherwise copy `assets/implementation-plan-template.md` to collision-safe `$DOC_HUB/<Project>/plans/YYYY-MM-DD-<topic>-implementation[-N].md`; never reopen a completed plan. Self-check and execute without asking for plan approval.
+1. List targets and reuse the sole reference-matched plan. Otherwise copy `assets/implementation-plan-template.md` to collision-safe `$DOC_HUB/<Project>/plans/YYYY-MM-DD-<topic>-implementation[-N].md`; never reopen a completed plan. Self-check and execute without asking for plan approval.
 2. Run ready mapped tasks sequentially; parallelize only non-overlapping work.
 3. Complete Phase 4.8: fresh baseline validation, then independent review when possible or explicit self-review; all checks pass before Phase 5.
-4. Re-run affected AUTO ACs; hand off affected MANUAL ACs. Create a safe local AC-scoped checkpoint after Agent verification; never push unless separately requested. After three failed cycles for the same task, apply the reference's boundary.
+4. Re-run affected AUTO ACs; hand off affected MANUAL ACs. After Agent verification, create a safe local AC-scoped checkpoint; never push unless requested. After three failed cycles for one task, apply the reference's boundary.
 
 **Mode A Continuation Rule:** A phase announcement or progress update is not a decision gate. While any target remains `[ ]` or `[~]`, continue ready tasks.
 Do not stop after a plan task, ask whether to continue, or treat plan/subagent progress as acceptance completion. Three failed cycles block only the affected task and dependent ACs; continue independent rows.
@@ -214,7 +219,7 @@ Mode A prefers an independent reviewer; Mode B self-reviews inline. Output one r
 - **AUTO:** run the AC command and show command, expected result, actual result, and exit status; replace that AC's current-evidence row with the concise result and stable locator, then mark `[x]` only when its Current Conclusion is `PASS`. A successful Mode B target replaces its recovery tuple with `completed`.
 - AUTO failure: replace current evidence and mark the target `[~]`. A repair within the approved AC and approach returns through Phase 3.5A without reapproval. An unfinished Mode B series retains Mode B and its attempt state; other repairs use Mode A. A material scope/behavior/approach change requires a proposed delta and Phase 3.5B approval.
 - A failed affected AUTO AC in either mode is a regression: finish independent work and ask whether to repair or defer. Repair marks `[~]` and uses Phase 3.5A for approved scope, or Phase 3.5B for scope/behavior/approach changes. Deferral requires explicit confirmation before `[>]`.
-- **MANUAL:** mark `[!] [manual]`, write `PENDING MANUAL`, and give exact steps. Mode B creates or retains its tuple as `state: pending-manual`. On `AC-N passed`, replace evidence with the reported `PASS`; Mode B writes `completed`; only then mark `[x]`.
+- **MANUAL:** mark `[!] [manual]`, write `PENDING MANUAL`, retain Mode B `state: pending-manual`, and issue the handoff below; settle replies through the AC-contract reference.
 - **BLOCKED:** mark `[!] [blocked]` with reason and unblock condition, including linked task evidence at the three-attempt boundary.
   When the condition clears, reclassify through Phase 3 and replace blocked evidence: use `[ ]` with no retained implementation or `[~]` when implementation remains, then enter Phase 3.5A with the attempt boundary preserved.
   A material new approach enters Phase 3.5B; verification-only work runs AUTO or the approved MANUAL handoff. Explicitly confirmed deferral/deprecation becomes `[>]`/`[-]` with a scope decision and affected-behavior handling.
@@ -222,13 +227,13 @@ Mode A prefers an independent reviewer; Mode B self-reviews inline. Output one r
 
 ### Manual Verification Handoff
 
-For every `[!] [manual]`, output **Manual Verification Handoff** with `AC ID | What changed | Prerequisites | Exact steps | Expected result | Reply format`. Ask for replies such as `AC-45 passed` or `AC-45 failed: <observation>`; never replace it with a generic test request.
+For every `[!] [manual]`, output **Manual Verification Handoff**: `AC ID | What changed | Prerequisites | Exact steps | Expected result | Reply format`.
 
-Derive the handoff from the approved MANUAL row. On `AC-N passed`, replace its current-evidence row and update the status. On `AC-N failed: <observation>`, replace current evidence, set `[~]`, and use Phase 3.5A; retain an unfinished Mode B series, otherwise use Mode A. A needed delta uses Phase 3.5B.
+Apply the approved-row pass/fail transitions from the AC-contract reference.
 
 Split `[!]` reports by annotation; never ask a user to test `[blocked]`. Update a reported MANUAL pass immediately.
 
-**Only mark `[x]` after FRESH verification in this turn.**
+**`[x]` transitions require FRESH verification in the current turn.**
 
 ## Phase 6: Complete (HARD GATE)
 
@@ -247,3 +252,4 @@ Split `[!]` reports by annotation; never ask a user to test `[blocked]`. Update 
 - `references/ac-contract-and-plan-boundary.md` — AC schema, safe migration, plan boundary, and manual handoff.
 - `references/implementation-planning-and-execution.md` — Mode A plan, Mode B map, task loop, review, and Git checkpoints.
 - `references/failure-recovery-and-cancellation.md` — conditional failure, block, interruption, retry, redesign, and cancellation state machine.
+- `references/code-rollback.md` — conditional code rollback, scope retirement, plan supersession, and handoff repair.
