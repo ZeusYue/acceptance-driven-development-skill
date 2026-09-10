@@ -1,4 +1,4 @@
-# Acceptance-Driven Development (ADD) v2.7.0
+# Acceptance-Driven Development (ADD) v2.7.1
 
 <p align="center">
   <strong>🚀 A real project-level workflow for AI coding agents</strong><br>
@@ -345,7 +345,7 @@ ADD writes `~/.add-hub` and keeps project ACs, plans, templates, project capsule
 
 The sections below preserve version-specific behavior and migration details for maintainers and existing users. New users can start with the workflow and installation guide above.
 
-## Current branch hardening
+## v2.7.1: Reliable acceptance and rollback
 
 - explicit ADD activation continues directly through existing-AC recovery, unfinished Mode B evidence, or the Greenfield path when its context is known;
 - natural-language manual acceptance is settled before a same-message follow-up request; its latest batch remains reconstructable after chat loss, while accepted rows persist until a concrete impact is identified;

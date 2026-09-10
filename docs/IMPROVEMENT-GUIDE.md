@@ -2,7 +2,7 @@
 
 > 本文件记录 acceptance-driven-development Skill 的设计原则、已验证防线和版本演进。修改 Skill 前先阅读现行版本与长期原则。
 
-## vNext（2026-09-10）：连续激活、验收回填与代码回退
+## v2.7.1（2026-09-10）：连续激活、验收回填与代码回退
 
 - 显式调用 ADD 且项目/目标已知时，同轮继续 Phase 0 与项目胶囊。有 AC 时恢复过渡 owner、活动计划、未完 Mode B 或经身份校验的最近完成交接；无 AC 时进入 Greenfield/重建路径。
 - 同一用户消息中的验收反馈先结算，然后处理后续需求。“测试通过/全部通过”默认对应最近未结算 Manual Verification Handoff 的完整 MANUAL 批次；发出交接时给整批证据写入同一 `Last Verified` 时间戳，使聊天丢失后仍可重建范围。
