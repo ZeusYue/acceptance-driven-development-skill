@@ -1,6 +1,6 @@
 # Validation of the public workflow refactor
 
-This report documents the pre-release evaluation of the public `v3.0.0` revision against commit `5148411` (v2.7.1). Validation took place on 2026-09-11 in Codex desktop on Windows with Python 3.13. Evaluating agents inherited the session's default model configuration; no model override was requested. Exact model/backend identification was not exposed by the evaluation calls.
+This report documents the pre-release evaluation of the public `v3.0.0` workflow and the follow-up `v3.0.1` language clarification. The original comparison is against commit `5148411` (v2.7.1). Validation took place on 2026-09-11 in Codex desktop on Windows with Python 3.13. Evaluating agents inherited the session's default model configuration; no model override was requested. Exact model/backend identification was not exposed by the evaluation calls.
 
 The initial candidate used for the fifteen decision probes and six execution runs below had `SKILL.md` SHA-256 `fbc07add66c637eaef1ac83570ae406f96dddadd80df372c5b796186759fceb0`, with 878 entry-point words and 2,696 across its six installable files (whitespace-delimited). Later changes to acceptance discovery and location handling have separate validation below; the initial results do not certify those revisions. The original entry point contained 3,323 words. Size is a descriptive property, not a quality score.
 
@@ -71,7 +71,7 @@ the file does not exist yet. An inaccessible source is unresolved, not absent.
 
 This revision's `SKILL.md` SHA-256 is
 `55145d806aa318e4b803427ccbd32f35e809bcdc985f66d46aaf8f9f67ea3c9d`.
-It has 1,003 entry-point words and 3,179 across the six installable files.
+The v3.0.1 package has 1,003 entry-point words and 3,199 across the six installable files.
 The references, templates, and both READMEs follow the same location rule.
 
 Three fresh agents acted on the isolated projects in

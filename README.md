@@ -1,4 +1,4 @@
-# Acceptance-Driven Development (ADD) v3.0.0
+# Acceptance-Driven Development (ADD) v3.0.1
 
 [简体中文](README-zh.md) · [Install](#install) · [Contribute](docs/IMPROVEMENT-GUIDE.md)
 
@@ -84,7 +84,7 @@ After installation, start or reload a session as your host requires and try a sm
 
 ## Migrating from 2.x
 
-Version 3.0.0 replaces numbered phases, Mode A/B selection, fixed failure-attempt quotas, and mandatory document setup with one outcome-driven loop. Planning depth follows the work's uncertainty, dependencies, and impact. Delivery operations such as commits follow your request and repository practice.
+Version 3 replaces numbered phases, Mode A/B selection, fixed failure-attempt quotas, and mandatory document setup with one outcome-driven loop. Version 3.0.1 clarifies that the optional acceptance template is language-neutral. Planning depth follows the work's uncertainty, dependencies, and impact. Delivery operations such as commits follow your request and repository practice.
 
 Keep existing acceptance records: preserve stable IDs, scope, valid results, and cancellation or deferral decisions. Reassess evidence when code, dependencies, environment, or assumptions change. Old attempt counters and plan-ownership protocols no longer control execution; no bulk document migration is required.
 

@@ -2,7 +2,7 @@
 
 Source of scope: <user request or agreed decision>
 
-Use this optional template at an established acceptance location; it does not authorize selecting a new location. Adapt it to the project and omit unused sections. Preserve established IDs; for new records, AC-1, AC-2, and so on are sufficient.
+Use this optional template at an established acceptance location; it does not authorize selecting a new location. Adapt it to the project and omit unused sections. Write the record in the user's and project's language; the English labels here are structural examples, not an output-language requirement. Preserve established IDs; for new records, AC-1, AC-2, and so on are sufficient.
 
 | ID | Observable condition | Status | How to verify | Passing result |
 |---|---|---|---|---|

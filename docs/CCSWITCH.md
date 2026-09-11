@@ -14,7 +14,7 @@ Skill directory: skills/acceptance-driven-development
 
 Refresh discovery and select `acceptance-driven-development`. This revision ships one skill, including its references and optional templates. Start or reload the target-agent session as that host requires.
 
-The installer retrieves the selected remote branch. The public `v3.0.0` revision is available from `main`; future development snapshots may require manual installation of their local skill directory.
+The installer retrieves the selected remote branch. The public `v3.0.1` revision is available from `main`; future development snapshots may require manual installation of their local skill directory.
 
 ## If discovery shows no skills
 

@@ -1,5 +1,11 @@
 # Changelog
 
+## [3.0.1] - 2026-09-11
+
+- Clarify that `ac-template.md` is a structural example and that agents should
+  write acceptance records in the user's and project's language.
+- Refresh public README and installer notes for the patch release.
+
 ## [3.0.0] - 2026-09-11
 
 Version 3 replaces the process-heavy ADD execution engine with a portable,
@@ -26,6 +32,9 @@ outcome-driven workflow for public use.
 - Verification follows what available tools can actually observe. Relevant
   evidence can remain valid across turns until implementation or its assumptions
   change.
+- The optional acceptance template is language-neutral in use: agents should
+  write records in the user's or project's language rather than copy its English
+  labels verbatim.
 
 ### Removed from the core package
 
