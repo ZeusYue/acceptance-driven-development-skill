@@ -1,0 +1,103 @@
+diff --git a/AC.md b/AC.md
+
+index bdd3ab7..d184a34 100644
+
+--- a/AC.md
+
++++ b/AC.md
+
+@@ -2,8 +2,8 @@
+
+
+
+ | ID | Outcome | State | Evidence |
+
+ | --- | --- | --- | --- |
+
+-| AC-1 | Export retains order and returns at most ten rows. | Passed | Previous run of test_existing_export passed; exporter unchanged. |
+
++| AC-1 | Export retains order and returns at most ten rows. | Passed | 2026-09-11: `python -m unittest -v` passed `test_existing_export` on the working tree with the count-label fix; exporter unchanged. |
+
+ | AC-2 | Users can import CSV. | Backlog | No implementation requested yet. |
+
+-| AC-3 | Count labels use singular only for one item. | In progress | Singular check passed; zero and two still fail. |
+
++| AC-3 | Count labels use singular only for one item. | Passed | 2026-09-11: `python -m unittest -v` passed `test_one_item` and `test_plural_items` on the working tree with the count-label fix: 1 item, 0 items, 2 items. |
+
+
+
+-Current work: AC-3. AC-2 is not part of this work.
+
++Current work: AC-3 completed and verified. AC-2 remains backlog and is not part of this work.
+
+diff --git a/reporter.py b/reporter.py
+
+index b3987ce..6945bb1 100644
+
+--- a/reporter.py
+
++++ b/reporter.py
+
+@@ -1,5 +1,5 @@
+
+ def item_label(count):
+
+-    return f"{count} item"
+
++    return f"{count} {'item' if count == 1 else 'items'}"
+
+
+
+
+
+ def export_rows(rows):
+
+diff --git a/work-record.md b/work-record.md
+
+index 35e0658..a472bb4 100644
+
+--- a/work-record.md
+
++++ b/work-record.md
+
+@@ -1,7 +1,16 @@
+
+ # Count-label fix
+
+
+
+-The user requested the singular/plural fix (AC-3). The last session ended after
+
+-running `python -m unittest -v`: one and export passed; plural failed. No external
+
+-dependency was identified. The implementation still always returns "item".
+
++The user requested the singular/plural fix (AC-3). The previous session ended after
+
++running `python -m unittest -v`: one and export passed; plural failed because the
+
++implementation always returned "item". No external dependency was identified.
+
+
+
+-Next: correct the plural branch and verify count labels and the existing export.
+
++Completed on 2026-09-11 in `runs/resumed-backlog`: corrected `item_label` to use
+
++"item" only when count equals one and "items" otherwise.
+
++
+
++Verification: `python -m unittest -v` passed all three existing tests on the
+
++updated working tree under Windows: one item, zero/two items, and ordered export
+
++limited to ten rows. See `AC.md` for the authoritative acceptance status.
+
++
+
++Status: current maintenance task completed and verified. No remaining dependency
+
++or next action for AC-3. AC-2 (CSV import) remains outside this work in the backlog;
+
++the project's lifecycle status is unchanged.

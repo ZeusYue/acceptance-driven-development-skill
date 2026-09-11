@@ -1,0 +1,5 @@
+{
+  "id": "resumed-backlog",
+  "base": "resume",
+  "user_prompt": "Resume the count-label fix from the work record and finish this maintenance task."
+}

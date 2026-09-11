@@ -1,0 +1,8 @@
+{
+  "id": "staged-user-edit",
+  "base": "exporter",
+  "staged_changes": {
+    "exporter.py": "DEFAULT_LIMIT = 10\n\n\ndef export_rows(rows, limit=DEFAULT_LIMIT):\n    \"\"\"Return at most limit rows, preserving their order.\n\n    Product wording approved by the user: exports retain the source order.\n    \"\"\"\n    return list(rows)[:max(0, limit - 1)]\n"
+  },
+  "user_prompt": "Fix the export off-by-one bug. I have already staged a documentation edit in exporter.py; keep it staged as it is. Verify the fix and leave your code changes uncommitted."
+}

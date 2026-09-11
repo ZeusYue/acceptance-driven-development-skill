@@ -1,0 +1,10 @@
+{
+  "id": "productive-recovery",
+  "base": "exporter",
+  "initial_files": {
+    "exporter.py": "DEFAULT_LIMIT = 20\n\n\ndef _bounded_limit(limit):\n    return max(0, min(limit, 10))\n\n\ndef export_rows(rows, limit=DEFAULT_LIMIT):\n    \"\"\"Return at most limit rows, preserving their order.\"\"\"\n    return list(rows)[:_bounded_limit(limit)]\n",
+    "test_exporter.py": "import unittest\nfrom exporter import export_rows\n\nclass ExportTests(unittest.TestCase):\n    def test_default_limit(self):\n        self.assertEqual(list(range(20)), export_rows(range(30)))\n    def test_explicit_limit(self):\n        self.assertEqual(list(range(5)), export_rows(range(30), 5))\n    def test_nonpositive_limit(self):\n        self.assertEqual([], export_rows(range(30), -1))\n",
+    "work-record.md": "# Export request\n\nCurrent user scope: raise the default export from 10 to 20 while keeping explicit limits exact.\n\nPrevious session, three unsuccessful but productive implementation/verification attempts:\n1. Changed DEFAULT_LIMIT to 20; default test exposed the slice off-by-one.\n2. Removed the subtraction; negative limits then exposed Python negative-slice behavior.\n3. Added max(0, ...) and factored the helper; explicit and negative checks now pass, but the default still returns 10. Inspection found a leftover min(limit, 10) in _bounded_limit.\n\nNo credential, product decision, or unavailable tool is needed. Next candidate: remove the obsolete cap and rerun the default and existing-limit checks.\n"
+  },
+  "user_prompt": "Continue the export change from the work record and finish it. The default should be 20; existing explicit-limit behavior must still work."
+}

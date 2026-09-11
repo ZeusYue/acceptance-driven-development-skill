@@ -1,0 +1,19 @@
+diff --git a/exporter.py b/exporter.py
+
+index f644aae..7a0e3fb 100644
+
+--- a/exporter.py
+
++++ b/exporter.py
+
+@@ -6,4 +6,4 @@ def export_rows(rows, limit=DEFAULT_LIMIT):
+
+
+
+     Product wording approved by the user: exports retain the source order.
+
+     """
+
+-    return list(rows)[:max(0, limit - 1)]
+
++    return list(rows)[:max(0, limit)]

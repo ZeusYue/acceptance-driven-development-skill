@@ -1,0 +1,71 @@
+diff --git a/AC.md b/AC.md
+
+index 5ee3c67..683e1e1 100644
+
+--- a/AC.md
+
++++ b/AC.md
+
+@@ -1,5 +1,9 @@
+
+ # Export acceptance
+
+
+
+-AC-1: default export follows config.json and explicit limits are exact.
+
+-State: Passed.
+
+-Evidence: Before config.json changed, python -m unittest -v passed; the default was 10. No check has run after the configuration edit.
+
++AC-1: default export follows config.json and explicit limits are exact.
+
++State: Passed.
+
++Verification: Run `python -m unittest -v` from this repository. With `config.json` set to `{"default_limit": 20}`, exporting 30 rows without a limit must return the first 20; explicit limits 5 and 25 must return exactly those counts. Short input must remain intact, and zero or negative limits must return no rows.
+
++
+
++Current evidence (2026-09-11): On Windows with Python 3.13.2, `python -m unittest -v` passed all 4 tests (exit 0) against base commit `f0e714aafef4b1c307397a936a086a6a01e65fb0` plus the user's preserved config change to 20 and the updated expectations in `test_exporter.py`. Verified the exact ordered rows for the default limit 20 and explicit limits 5 and 25, intact short input, and empty results for limits 0 and -1. `exporter.py` is unchanged.
+
++
+
++Historical evidence: Before the config edit, the suite passed with default 10. That result did not verify the changed configuration. The first run after the edit failed only because `test_default_limit` still expected 10; the actual default result contained the first 20 rows. Updating that stale expectation and checking explicit limits below and above the default produced the current passing result.
+
+diff --git a/test_exporter.py b/test_exporter.py
+
+index abc0227..0a9dd1e 100644
+
+--- a/test_exporter.py
+
++++ b/test_exporter.py
+
+@@ -5,10 +5,12 @@ from exporter import export_rows
+
+
+
+ class ExportTests(unittest.TestCase):
+
+     def test_default_limit(self):
+
+-        self.assertEqual(list(range(10)), export_rows(range(30)))
+
++        self.assertEqual(list(range(20)), export_rows(range(30)))
+
+
+
+     def test_explicit_limit(self):
+
+-        self.assertEqual(list(range(5)), export_rows(range(30), 5))
+
++        for limit in (5, 25):
+
++            with self.subTest(limit=limit):
+
++                self.assertEqual(list(range(limit)), export_rows(range(30), limit))
+
+
+
+     def test_short_input(self):
+
+         self.assertEqual(["a", "b"], export_rows(["a", "b"]))

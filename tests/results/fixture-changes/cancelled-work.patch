@@ -1,0 +1,21 @@
+diff --git a/account.py b/account.py
+
+index 3461393..66ee9c7 100644
+
+--- a/account.py
+
++++ b/account.py
+
+@@ -1,5 +1,5 @@
+
+ def account_label(name):
+
+-    return name.strip().lower()
+
++    return name.strip()
+
+
+
+
+
+ def analytics_enabled():

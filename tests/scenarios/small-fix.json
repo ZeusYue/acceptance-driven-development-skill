@@ -1,0 +1,5 @@
+{
+  "id": "small-fix",
+  "base": "exporter",
+  "user_prompt": "Fix export_rows returning one fewer row than requested. Ten rows should be returned by default, an explicit limit of five should return five, and nonpositive limits should return no rows. Keep this a small maintenance fix."
+}

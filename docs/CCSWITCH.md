@@ -1,64 +1,35 @@
-# Install ADD with CC Switch
+# Installing ADD with CC Switch
 
-Use this guide after you understand what ADD does from the [main README](../README.md). CC Switch can recursively discover both skills in this repository; a temporary zero count can also mean that GitHub archive download or refresh failed.
+These are optional installer notes. The [main README](../README.md#install) describes the portable installation contract. CC Switch labels and installation methods can vary by version; the current ADD revision has not been verified across all CC Switch or target-agent versions.
 
 ## Add the repository
 
-1. Select the target agent application.
-2. Open **Skills → Discover Skills → Repository Management → Add Skill Repository**.
-3. Enter:
-
-   ```text
-   Repository URL: https://github.com/ZeusYue/acceptance-driven-development-skill
-   Branch: main
-   ```
-
-4. Save the repository record.
-5. Return to **Discover Skills** and refresh.
-
-The discoverable files are:
+In CC Switch, select the target agent, open its skill discovery or repository management screen, and add:
 
 ```text
-skills/acceptance-driven-development/SKILL.md
-skills/project-experience/SKILL.md
+Repository URL: https://github.com/ZeusYue/acceptance-driven-development-skill
+Branch: main
+Skill directory: skills/acceptance-driven-development
 ```
 
-Install `acceptance-driven-development`; optionally install the recommended `project-experience` companion, then begin a new target-agent session. The repository exposes both skills. Conditional design exploration is bundled inside ADD; it is not a third discoverable skill.
+Refresh discovery and select `acceptance-driven-development`. This revision ships one skill, including its references and optional templates. Start or reload the target-agent session as that host requires.
 
-## If discovery shows 0 skills
+The installer retrieves the selected remote branch. The public `v3.0.0` revision is available from `main`; future development snapshots may require manual installation of their local skill directory.
 
-1. Confirm the repository URL ends at `acceptance-driven-development-skill`.
-2. Confirm the branch is exactly `main`.
-3. Refresh Discover Skills and restart CC Switch if necessary.
-4. If the repository record cannot be corrected, delete and add it again.
+## If discovery shows no skills
 
-### GitHub archive, network, and proxy
+Check the root repository URL and branch, then refresh discovery. Inspect any download or scan error your installer exposes. A zero count alone does not distinguish a network failure from a layout or installer problem.
 
-CC Switch downloads the GitHub archive for the selected branch before it scans `SKILL.md`. Verify that the same archive is reachable in a browser:
+If the installer uses GitHub branch archives, check whether the [main branch archive](https://github.com/ZeusYue/acceptance-driven-development-skill/archive/refs/heads/main.zip) is reachable in your environment. After fixing network or proxy settings, retry discovery. If discovery still fails, use the README's manual installation steps and report the installer version, exact error, and download result.
 
-```text
-https://github.com/ZeusYue/acceptance-driven-development-skill/archive/refs/heads/main.zip
-```
+## Windows symbolic-link errors
 
-If it cannot download:
+Check the installation method, destination, and the exact error. Changing a storage location does not grant symbolic-link permission. Depending on the installer and Windows configuration, Developer Mode or an appropriate permission change may allow links; use your platform's guidance.
 
-- change network, or configure the system / CC Switch network proxy for your environment;
-- restart CC Switch after changing network or proxy settings;
-- refresh Discover Skills again.
+If the installer offers a copy method, that is also a valid installation option. Ensure the target agent discovers one intended copy of ADD, and update that copy when the skill changes.
 
-If the archive downloads successfully but CC Switch still reports zero skills, the repository layout is not the first suspect: the current archive contains two valid `SKILL.md` files. Use manual installation as a temporary workaround and file an issue with the CC Switch version, screenshots, and whether the archive URL downloaded.
+## Updating
 
-## Windows: Failed to create symbolic link
+Replace or update the full installed ADD directory, including references and assets. Preserve local customizations separately before replacement and avoid retaining retired references in the active copy.
 
-A message such as `Failed to create symbolic link: …` is a local installation permission or storage-location problem, not a repository-discovery problem.
-
-1. **Prefer symbolic links when they work.** They keep one shared skill definition and avoid duplicate skills in the target agent.
-2. In CC Switch **Settings**, check the synchronization/install method separately from the skills storage location. `~/.agents/skills` is a useful shared location, but changing storage alone does not grant symbolic-link permission; restart and reinstall after changing either setting.
-3. To keep symbolic links, run CC Switch as Administrator or enable Windows Developer Mode, then retry.
-4. **Copy is only a temporary fallback** when symbolic links cannot be used. Explicitly select the Copy synchronization method and remove or reinstall old target-agent copies first so the same skill is not discovered twice.
-
-Changing the storage location or sync method may require reinstalling the skills for the selected target agent.
-
-## Update or remove
-
-Refresh discovery, then update ADD and the optional `project-experience` companion if installed. Uninstalling them does not delete your `$DOC_HUB`, AC files, project documents, or `~/.add-hub` pointer.
+The former `project-experience` companion is outside the current package. Updating ADD does not remove a separately installed companion or any existing project records.

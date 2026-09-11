@@ -1,0 +1,267 @@
+diff --git a/exporter.py b/exporter.py
+
+index 78b24ab..baeb70b 100644
+
+--- a/exporter.py
+
++++ b/exporter.py
+
+@@ -1,5 +1,38 @@
+
+-DEFAULT_LIMIT = 10
+
++import csv
+
++import io
+
++from collections.abc import Sequence
+
++
+
++
+
++DEFAULT_LIMIT = 10
+
+
+
+
+
+-def export_rows(rows, limit=DEFAULT_LIMIT):
+
+-    return list(rows)[:max(0, limit)]
+
++def export_rows(rows, limit=DEFAULT_LIMIT):
+
++    return list(rows)[:max(0, limit)]
+
++
+
++
+
++def export_csv(rows, columns, limit=DEFAULT_LIMIT):
+
++    """Render records using an explicit, ordered list of approved columns.
+
++
+
++    This helper does not choose which fields may be shared publicly. Columns
+
++    must be supplied by the caller; unlisted fields are never included.
+
++    """
+
++    if isinstance(columns, (str, bytes)) or not isinstance(columns, Sequence):
+
++        raise TypeError("columns must be an ordered sequence of field names")
+
++    columns = tuple(columns)
+
++    if not columns or any(not isinstance(column, str) or not column for column in columns):
+
++        raise ValueError("columns must contain nonempty field names")
+
++    if len(set(columns)) != len(columns):
+
++        raise ValueError("columns must not contain duplicates")
+
++
+
++    output = io.StringIO(newline="")
+
++    writer = csv.DictWriter(output, fieldnames=columns, extrasaction="ignore")
+
++    writer.writeheader()
+
++    writer.writerows(export_rows(rows, limit))
+
++    return output.getvalue()
+
++
+
++
+
++def write_csv(rows, destination, columns, limit=DEFAULT_LIMIT):
+
++    """Save a UTF-8 CSV file, suitable for serving as a download attachment."""
+
++    content = export_csv(rows, columns, limit)
+
++    with open(destination, "w", encoding="utf-8", newline="") as output:
+
++        output.write(content)
+
+diff --git a/feature-notes.md b/feature-notes.md
+
+index 92ef547..8d44ad5 100644
+
+--- a/feature-notes.md
+
++++ b/feature-notes.md
+
+@@ -1,3 +1,15 @@
+
+ # Public CSV export
+
+
+
+-Requested: a CSV download intended to be shareable outside the team. The data model includes name, email, and internal support_notes. The project has no decided public-field policy. CSV quoting, row ordering, and empty-result behavior can be implemented without selecting which personal/internal fields are public.
+
++Requested: a CSV download intended to be shareable outside the team. The data model includes name, email, and internal support_notes. The project has no decided public-field policy. CSV quoting, row ordering, and empty-result behavior can be implemented without selecting which personal/internal fields are public.
+
++
+
++## Current implementation and acceptance
+
++
+
++- [x] CSV column order follows the caller's explicit ordered column list and does not depend on record key order. Unlisted fields are excluded; there is no default public field list.
+
++- [x] Commas, double quotes, LF, CRLF, and CR inside values survive a CSV reader round trip.
+
++- [x] Record order and the existing default limit of 10 are preserved. An empty selection produces the selected column headers with no data rows; missing values produce empty cells.
+
++- [x] `write_csv(rows, destination, columns, limit=10)` saves UTF-8 CSV with correct physical and embedded newlines. `export_csv(rows, columns, limit=10)` returns the CSV text for a future download handler.
+
++- [!] The public download's field list remains a product decision: which of `name`, `email`, and `support_notes` may be shared, and in what order? Recommendation pending agreement: share only `name`, exclude `email` and `support_notes`. No product default or public download handler has been selected. This fixture contains only a Python exporter and has no HTTP/UI download integration.
+
++
+
++Verification: on 2026-09-11, `python -m unittest -v` passed all 11 tests against these working changes (the 4 existing row-export tests and 7 CSV tests). The file-output test writes and reads a UTF-8 CSV in a temporary directory inside this repository. `git diff --check` passed. This establishes serializer and file output behavior; it does not establish approval of any public fields or a browser download flow.
+
++
+
++Next action after the field decision: bind the approved ordered column list to the public export entry point. Do not infer authorization to publish personal or internal fields from the serialization API's ability to accept them.
+
+diff --git a/test_exporter.py b/test_exporter.py
+
+index abc0227..fe25073 100644
+
+--- a/test_exporter.py
+
++++ b/test_exporter.py
+
+@@ -1,6 +1,10 @@
+
++import csv
+
++import io
+
++from pathlib import Path
+
++import tempfile
+
+ import unittest
+
+
+
+-from exporter import export_rows
+
++from exporter import export_csv, export_rows, write_csv
+
+
+
+
+
+ class ExportTests(unittest.TestCase):
+
+@@ -16,3 +20,50 @@ class ExportTests(unittest.TestCase):
+
+     def test_nonpositive_limit(self):
+
+         self.assertEqual([], export_rows(range(30), 0))
+
+         self.assertEqual([], export_rows(range(30), -1))
+
++
+
++
+
++class CsvExportTests(unittest.TestCase):
+
++    def test_column_order_is_explicit_and_unlisted_fields_are_excluded(self):
+
++        rows = [{"second": "B", "private": "hidden", "first": "A"}]
+
++        self.assertEqual("first,second\r\nA,B\r\n", export_csv(rows, ["first", "second"]))
+
++
+
++    def test_commas_quotes_and_line_breaks_round_trip(self):
+
++        values = ["one,two", 'say "hello"', "line 1\nline 2", "line 1\r\nline 2", "a\rb"]
+
++        content = export_csv([{"value": value} for value in values], ["value"])
+
++        self.assertIn('"one,two"\r\n', content)
+
++        self.assertIn('"say ""hello"""\r\n', content)
+
++        self.assertEqual(
+
++            [["value"], *[[value] for value in values]],
+
++            list(csv.reader(io.StringIO(content, newline=""))),
+
++        )
+
++
+
++    def test_row_order_and_existing_limits_are_preserved(self):
+
++        rows = [{"value": value} for value in range(12)]
+
++        parsed = list(csv.reader(io.StringIO(export_csv(iter(rows), ["value"]))))
+
++        self.assertEqual([["value"], *[[str(value)] for value in range(10)]], parsed)
+
++        self.assertEqual("value\r\n0\r\n1\r\n", export_csv(rows, ["value"], limit=2))
+
++
+
++    def test_empty_or_nonpositive_limit_keeps_header(self):
+
++        self.assertEqual("first,second\r\n", export_csv([], ["first", "second"]))
+
++        for limit in (0, -1):
+
++            with self.subTest(limit=limit):
+
++                self.assertEqual("value\r\n", export_csv([{"value": "a"}], ["value"], limit))
+
++
+
++    def test_missing_values_are_blank(self):
+
++        self.assertEqual("first,second\r\n,\r\n", export_csv([{"first": None}], ["first", "second"]))
+
++
+
++    def test_columns_cannot_be_omitted_or_unordered(self):
+
++        with self.assertRaises(TypeError):
+
++            export_csv([])
+
++        for columns in ("value", {"first", "second"}, {"first": 1}):
+
++            with self.subTest(columns=columns), self.assertRaises(TypeError):
+
++                export_csv([], columns)
+
++        for columns in ([], ["value", "value"], [""], [None]):
+
++            with self.subTest(columns=columns), self.assertRaises(ValueError):
+
++                export_csv([], columns)
+
++
+
++    def test_saved_file_uses_utf8_and_preserves_embedded_newlines(self):
+
++        with tempfile.TemporaryDirectory(dir=Path(__file__).parent) as folder:
+
++            destination = Path(folder) / "records.csv"
+
++            write_csv([{"value": "\u4f60\u597d\nworld"}], destination, ["value"])
+
++            self.assertEqual('value\r\n"\u4f60\u597d\nworld"\r\n'.encode("utf-8"), destination.read_bytes())

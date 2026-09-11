@@ -1,64 +1,35 @@
 # 使用 CC Switch 安装 ADD
 
-请先通过[主 README](../README-zh.md)了解 ADD 的作用，再使用本指南安装。CC Switch 可以递归发现本仓库的两个 Skill；短暂显示 0 个技能也可能是 GitHub 分支压缩包下载或发现刷新失败。
+这是可选的安装器说明，通用安装方式见[主 README](../README-zh.md#安装)。CC Switch 的界面名称和安装方式可能随版本变化；当前 ADD 修订尚未覆盖验证所有 CC Switch 或目标 Agent 版本。
 
 ## 添加仓库
 
-1. 选择目标 Agent 应用；
-2. 打开 **技能 → 发现技能 → 仓库管理 → 添加技能仓库**；
-3. 填写：
-
-   ```text
-   仓库 URL：https://github.com/ZeusYue/acceptance-driven-development-skill
-   分支：main
-   ```
-
-4. 保存仓库记录；
-5. 回到**发现技能**并刷新。
-
-可发现文件为：
+在 CC Switch 中选择目标 Agent，打开其技能发现或仓库管理页面，添加：
 
 ```text
-skills/acceptance-driven-development/SKILL.md
-skills/project-experience/SKILL.md
+仓库 URL：https://github.com/ZeusYue/acceptance-driven-development-skill
+分支：main
+技能目录：skills/acceptance-driven-development
 ```
 
-请安装 `acceptance-driven-development`；需要跨项目经验时再安装推荐的 `project-experience`，然后在目标 Agent 中新开会话。仓库会发现两个 Skill；条件式设计探索已内置于 ADD，不会单独显示。
+刷新发现结果，选择 `acceptance-driven-development`。本次修订只提供一个技能，其中包含引用文件和可选模板。按宿主要求新开或重新加载目标 Agent 会话。
 
-## 如果发现时显示 0 个技能
+安装器下载的是所选远程分支。公开的 `v3.0.0` 修订位于 `main`；未来尚未发布的开发快照可能需要手动安装本地技能目录。
 
-1. 确认仓库 URL 结尾为 `acceptance-driven-development-skill`；
-2. 确认分支严格为 `main`；
-3. 刷新“发现技能”，必要时重启 CC Switch；
-4. 仓库记录无法修正时，删除后重新添加。
+## 如果显示未发现技能
 
-### GitHub archive、网络与代理
+检查仓库根 URL 和分支，再刷新发现结果；查看安装器提供的下载或扫描错误。仅凭数量为零，无法区分网络问题、目录结构问题和安装器问题。
 
-CC Switch 在扫描 `SKILL.md` 前，会下载所选分支的 GitHub archive。请先在浏览器中确认以下地址可访问：
+如果安装器使用 GitHub 分支压缩包，请检查当前环境能否访问 [main 分支压缩包](https://github.com/ZeusYue/acceptance-driven-development-skill/archive/refs/heads/main.zip)。修复网络或代理设置后重试。仍然失败时，可按 README 手动安装，并报告安装器版本、完整错误和下载结果。
 
-```text
-https://github.com/ZeusYue/acceptance-driven-development-skill/archive/refs/heads/main.zip
-```
+## Windows 符号链接错误
 
-如果无法下载：
+检查安装方式、目标位置和具体错误。改变存储位置不会赋予符号链接权限。开发人员模式或适当的权限调整可能允许创建链接，具体以安装器和 Windows 当前配置为准。
 
-- 切换网络，或按自身环境配置系统 / CC Switch 网络代理；
-- 网络或代理修改后重启 CC Switch；
-- 再次刷新“发现技能”。
+如果安装器提供复制方式，也可以使用。确保目标 Agent 只发现预期的一份 ADD，并在技能变化时更新该副本。
 
-若 archive 可以下载、CC Switch 仍显示 0 个技能，不应首先怀疑仓库布局：当前 archive 已含两个有效 `SKILL.md`。可先用手动安装作为临时方案，并在 Issue 中提供 CC Switch 版本、截图和 archive 下载结果。
+## 更新
 
-## Windows：创建符号链接失败
+整体替换或更新已安装的 ADD 目录，包含引用文件和资产。替换前另行保留本地定制，避免已退役的引用文件留在生效副本中。
 
-出现“`创建符号链接失败：……`”这类报错时，问题通常在本地安装权限或存储位置，而不是仓库发现。
-
-1. **符号链接可正常创建时应优先使用**：它保持一个共享 Skill 来源，不会让目标 Agent 显示重复 Skill。
-2. 打开 CC Switch **设置**，分别检查“同步/安装方式”和 **Skills 存储位置**。`~/.agents/skills` 适合作为共享位置，但只修改存储位置不会授予符号链接权限；修改任一设置后都应重启并重新安装。
-3. 若要继续使用符号链接，请以**管理员身份**启动 CC Switch，或启用 Windows 开发人员模式后重试。
-4. **Copy / 复制仅作为临时兜底**。需要明确把同步方式改为 Copy，并先移除或重新安装旧的目标 Agent 副本，避免同一 Skill 被发现两次。
-
-修改存储位置或同步方式后，所选目标 Agent 的 Skill 可能需要重新安装。
-
-## 更新或卸载
-
-刷新发现结果后，更新 ADD；如已安装可选的 `project-experience` 配套 Skill，也一并更新。卸载不会删除 `$DOC_HUB`、AC 文件、项目文档或 `~/.add-hub` 指针。
+原 `project-experience` 配套技能已不属于当前包。更新 ADD 不会删除单独安装的配套技能或已有项目记录。
